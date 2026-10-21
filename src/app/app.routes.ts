@@ -1,9 +1,11 @@
 import { Routes } from '@angular/router';
+import { autoLoginPartialRoutesGuard } from 'angular-auth-oidc-client';
+import { Shell } from './layout/shell';
 
 const emConstrucao = () => import('./paginas/em-construcao').then((m) => m.EmConstrucao);
 
-/** Menu e rotas na ordem da barra lateral (docs/01, seção 1.4). */
-export const routes: Routes = [
+/** Telas na ordem da barra lateral (docs/01, seção 1.4). */
+const telas: Routes = [
   { path: '', pathMatch: 'full', redirectTo: 'painel' },
   { path: 'painel', title: 'Painel · Aurora', loadComponent: emConstrucao,
     data: { secao: 'Adesão', titulo: 'Painel', marco: 'Marco 1 — Acesso e núcleo' } },
@@ -27,5 +29,10 @@ export const routes: Routes = [
     data: { secao: 'Administração', titulo: 'Perfis', marco: 'Marco 1 — Acesso e núcleo' } },
   { path: 'admin/integracoes', title: 'Integrações · Aurora', loadComponent: emConstrucao,
     data: { secao: 'Administração', titulo: 'Integrações', marco: 'Marco 3 — Operação' } },
-  { path: '**', redirectTo: 'painel' },
+];
+
+/** Tudo exige login: sem sessão, o guard leva ao Keycloak e volta para a rota pedida. */
+export const routes: Routes = [
+  { path: '', component: Shell, canActivate: [autoLoginPartialRoutesGuard], children: telas },
+  { path: '**', redirectTo: '' },
 ];

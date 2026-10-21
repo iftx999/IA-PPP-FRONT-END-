@@ -6,7 +6,7 @@
 
   <div class="escopo">
     <span class="rotulo">Seu escopo</span>
-    <span class="escopo-nome">—</span>
+    <span class="escopo-nome">{{ sessao.usuario()?.tenant ?? (sessao.semAcesso() ? '—' : 'Carregando…') }}</span>
   </div>
 
   <nav aria-label="Menu principal">
@@ -40,9 +40,26 @@
             [attr.aria-label]="tema.tema() === 'dark' ? 'Usar tema claro' : 'Usar tema escuro'">
       {{ tema.tema() === 'dark' ? 'Tema claro' : 'Tema escuro' }}
     </button>
+    @if (sessao.usuario(); as eu) {
+      <div class="usuario">
+        <span class="avatar" aria-hidden="true">{{ sessao.iniciais() }}</span>
+        <span class="usuario-texto">
+          <span>{{ eu.nome }}</span>
+          <span class="email">{{ eu.email }}</span>
+        </span>
+      </div>
+    }
+    <button class="botao" type="button" (click)="sessao.sair()">Sair</button>
   </div>
 </header>
 
 <main class="conteudo">
-  <router-outlet />
+  @if (sessao.semAcesso()) {
+    <section class="cartao aviso" role="alert">
+      <p class="rotulo">Sem acesso</p>
+      <p>Seu login funcionou, mas você ainda não é usuário ativo deste cliente. Peça acesso ao administrador.</p>
+    </section>
+  } @else {
+    <router-outlet />
+  }
 </main>

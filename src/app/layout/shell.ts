@@ -1,5 +1,6 @@
 import { Component, inject } from '@angular/core';
 import { RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
+import { SessaoService } from '../nucleo/sessao';
 import { TemaService } from '../nucleo/tema';
 
 interface ItemMenu {
@@ -16,6 +17,7 @@ interface ItemMenu {
 })
 export class Shell {
   protected readonly tema = inject(TemaService);
+  protected readonly sessao = inject(SessaoService);
 
   protected readonly secoes: { titulo: string; itens: ItemMenu[] }[] = [
     {
