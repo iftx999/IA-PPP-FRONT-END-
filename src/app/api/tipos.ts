@@ -10,3 +10,6 @@ export type LinhaUnidade = Esquemas['LinhaDto'];
 export type Meta = Esquemas['MetaDto'];
 export type Projecao = Esquemas['ProjecaoDto'];
 export type PontoSerie = Esquemas['PontoDto'];
+export type SemLigacao = Esquemas['SemLigacaoResponse'];
+export type ImovelSemLigacao = Esquemas['ItemDto'];
+export type SituacaoImovel = ImovelSemLigacao['situacao'];

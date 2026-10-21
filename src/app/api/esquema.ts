@@ -52,6 +52,38 @@ export interface paths {
     patch?: never;
     trace?: never;
   };
+  '/api/v1/imoveis/sem-ligacao': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get: operations['listar_1'];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/api/v1/imoveis/sem-ligacao/exportacao.csv': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get: operations['exportar'];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
   '/api/v1/eu': {
     parameters: {
       query?: never;
@@ -155,6 +187,36 @@ export interface components {
       nome: string;
       tipo: string | null;
     };
+    ItemDto: {
+      matricula: string;
+      /** Format: uuid */
+      unidadeId: string;
+      unidadeNome: string;
+      /** @enum {string} */
+      situacao: 'FACTIVEL' | 'CORTADO';
+      ultimoMesLigado: string | null;
+      primeiraCompetencia: string;
+      /** Format: int64 */
+      mesesSemLigacao: number | null;
+    };
+    SemLigacaoResponse: {
+      /** Format: uuid */
+      unidadeId: string;
+      unidadeNome: string;
+      competencia: string;
+      totais: components['schemas']['TotaisDto'];
+      itens: components['schemas']['ItemDto'][];
+      proximo: string | null;
+      matriculasVisiveis: boolean;
+    };
+    TotaisDto: {
+      /** Format: int64 */
+      todos: number;
+      /** Format: int64 */
+      factiveis: number;
+      /** Format: int64 */
+      cortados: number;
+    };
     EuResponse: {
       /** Format: uuid */
       usuarioId: string;
@@ -235,6 +297,57 @@ export interface operations {
         };
         content: {
           '*/*': components['schemas']['PainelResponse'];
+        };
+      };
+    };
+  };
+  listar_1: {
+    parameters: {
+      query?: {
+        unidade?: string;
+        competencia?: string;
+        situacao?: 'FACTIVEL' | 'CORTADO';
+        matricula?: string;
+        cursor?: string;
+        limite?: number;
+      };
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description OK */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          '*/*': components['schemas']['SemLigacaoResponse'];
+        };
+      };
+    };
+  };
+  exportar: {
+    parameters: {
+      query: {
+        unidade: string;
+        competencia?: string;
+        situacao?: 'FACTIVEL' | 'CORTADO';
+      };
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description OK */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          '*/*': string;
         };
       };
     };

@@ -1,0 +1,104 @@
+@if (pagina(); as p) {
+  <header class="cabecalho">
+    <div class="titulo">
+      <span class="rotulo">Imóveis sem ligação · {{ fmt.competenciaLonga(p.competencia) }}</span>
+      <h1>{{ p.unidadeNome }}</h1>
+      <p class="orientacao">
+        Imóveis com rede disponível e sem ligação ativa. Localize cada um no sistema comercial pela matrícula: a Aurora
+        não guarda nome do cliente nem endereço.
+      </p>
+    </div>
+    @if (sessao.pode('relatorio:exportar')) {
+      <div class="exportar">
+        <button class="botao" type="button" (click)="exportar(p)" [disabled]="exportando()">
+          {{ exportando() ? 'Gerando planilha…' : 'Exportar CSV' }}
+        </button>
+        <span class="aviso-auditoria">A emissão fica registrada na auditoria.</span>
+        @if (erroExportacao()) {
+          <span class="erro" role="alert">Não foi possível exportar. Tente de novo.</span>
+        }
+      </div>
+    }
+  </header>
+
+  <div class="barra">
+    <div class="abas" role="tablist" aria-label="Situação">
+      <button role="tab" type="button" [attr.aria-selected]="aba() === 'TODOS'" (click)="escolherAba('TODOS')">
+        Todos <span class="dado">{{ fmt.numero(p.totais.todos) }}</span>
+      </button>
+      <button role="tab" type="button" [attr.aria-selected]="aba() === 'FACTIVEL'" (click)="escolherAba('FACTIVEL')">
+        Factíveis <span class="dado">{{ fmt.numero(p.totais.factiveis) }}</span>
+      </button>
+      <button role="tab" type="button" [attr.aria-selected]="aba() === 'CORTADO'" (click)="escolherAba('CORTADO')">
+        Cortados <span class="dado">{{ fmt.numero(p.totais.cortados) }}</span>
+      </button>
+    </div>
+    <form class="busca" role="search" (submit)="$event.preventDefault(); buscar(campoBusca.value)">
+      <label for="busca-matricula" class="rotulo">Matrícula</label>
+      <input #campoBusca id="busca-matricula" type="search" inputmode="numeric" autocomplete="off"
+             placeholder="Início da matrícula" maxlength="40" [value]="matricula() ?? ''"
+             (search)="buscar(campoBusca.value)" />
+    </form>
+  </div>
+
+  @if (!p.matriculasVisiveis) {
+    <p class="mascaradas" role="note">
+      Matrículas parcialmente ocultas: seu perfil não inclui acesso a dados pessoais.
+    </p>
+  }
+
+  <section class="cartao lista" aria-label="Imóveis sem ligação">
+    @if (itens().length === 0) {
+      <p class="vazio">Nenhum imóvel sem ligação com esses filtros.</p>
+    } @else {
+      <table>
+        <thead>
+          <tr>
+            <th scope="col">Matrícula</th>
+            <th scope="col">Unidade</th>
+            <th scope="col">Situação</th>
+            <th scope="col">Sem ligação há</th>
+            <th scope="col">Origem</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (item of itens(); track item.matricula + item.unidadeId) {
+            <tr>
+              <td class="dado matricula">{{ item.matricula }}</td>
+              <td>{{ item.unidadeNome }}</td>
+              <td>
+                <aurora-selo [tom]="item.situacao === 'CORTADO' ? 'perigo' : 'atencao'">
+                  {{ item.situacao === 'CORTADO' ? 'Cortado' : 'Factível' }}
+                </aurora-selo>
+              </td>
+              <td class="dado">{{ tempoSemLigacao(item) }}</td>
+              <td class="origem">{{ origem(item) }}</td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    }
+    <footer class="rodape">
+      <span>Mostrando <span class="dado">{{ fmt.numero(itens().length) }}</span> de
+        <span class="dado">{{ fmt.numero(totalDaAba()) }}</span></span>
+      @if (proximo()) {
+        <button class="botao" type="button" (click)="carregarMais()" [disabled]="carregandoMais()">
+          {{ carregandoMais() ? 'Carregando…' : 'Carregar mais' }}
+        </button>
+      }
+    </footer>
+  </section>
+} @else if (naoEncontrado()) {
+  <section class="cartao vazio-cartao" role="status">
+    <span class="rotulo">Sem dados</span>
+    <p>Não há carga de imóveis para esta unidade ou competência no seu escopo.</p>
+  </section>
+} @else if (primeiraPagina.error()) {
+  <section class="cartao vazio-cartao" role="alert">
+    <span class="rotulo">Erro</span>
+    <p>Não foi possível carregar a lista. Tente novamente em instantes.</p>
+    <button class="botao" type="button" (click)="primeiraPagina.reload()">Tentar de novo</button>
+  </section>
+} @else {
+  <div class="esqueleto" aria-busy="true" aria-label="Carregando a lista"></div>
+}
