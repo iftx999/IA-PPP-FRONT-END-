@@ -1,0 +1,166 @@
+@if (painel(); as p) {
+  <header class="cabecalho">
+    <div class="titulo">
+      <span class="rotulo">Painel de adesão</span>
+      <h1>{{ p.unidade.nome }}</h1>
+      @if (p.acima; as acima) {
+        <a class="voltar" [routerLink]="[]" [queryParams]="{ unidade: acima.id }" queryParamsHandling="merge">
+          ← Voltar para {{ acima.nome }}
+        </a>
+      }
+    </div>
+    <label class="competencia">
+      <span class="rotulo">Competência</span>
+      <select [value]="p.competencia" (change)="navegar({ competencia: $any($event.target).value })">
+        @for (c of p.competenciasDisponiveis; track c) {
+          <option [value]="c">{{ fmt.competenciaLonga(c) }}</option>
+        }
+      </select>
+    </label>
+  </header>
+
+  <div class="grade">
+    <section class="cartao kpi" aria-labelledby="kpi-titulo">
+      <span class="rotulo" id="kpi-titulo">{{ p.meta?.origem ? 'Indicador contratual' : 'Adesão à rede de esgoto' }}</span>
+      <div class="valor">
+        <span class="dado numero-heroi">{{ fmt.percentual(p.adesao.percentual) }}</span>
+        <aurora-selo-situacao [situacao]="p.situacao" />
+      </div>
+      <p class="apoio">
+        <span class="dado">{{ fmt.numero(p.adesao.ligados) }}</span> ligados de
+        <span class="dado">{{ fmt.numero(p.adesao.comRede) }}</span> imóveis com rede disponível
+      </p>
+      <dl class="detalhes">
+        <div><dt>Meta</dt><dd class="dado">{{ p.meta ? fmt.percentual(p.meta.valor) : '—' }}</dd></div>
+        <div><dt>Limite de alerta</dt><dd class="dado">{{ p.meta?.alerta != null ? fmt.percentual(p.meta?.alerta) : '—' }}</dd></div>
+        <div>
+          <dt>Variação</dt>
+          <dd class="dado variacao" [class]="tendencia(p.variacaoPp)">
+            {{ tendencia(p.variacaoPp) === 'sobe' ? '▲' : tendencia(p.variacaoPp) === 'desce' ? '▼' : '' }}
+            {{ fmt.pontosPercentuais(p.variacaoPp) }}
+          </dd>
+        </div>
+      </dl>
+      @if (p.meta; as meta) {
+        <p class="origem">
+          @if (meta.seguidaDe) {
+            Meta herdada: segue {{ meta.seguidaDe.nome }}.
+          } @else if (meta.origem) {
+            Origem: {{ meta.origem }}.
+          } @else {
+            Meta definida manualmente.
+          }
+          @if (meta.vigenciaFim) { Vigente até {{ fmt.competenciaCurta(meta.vigenciaFim.slice(0, 7)) }}. }
+        </p>
+      }
+      <a class="sem-ligacao" routerLink="/sem-ligacao"
+         [queryParams]="{ unidade: p.unidade.id, competencia: p.competencia }">
+        Ver os {{ fmt.numero(p.adesao.semLigacao) }} imóveis sem ligação →
+      </a>
+    </section>
+
+    <section class="cartao no-ritmo" aria-labelledby="ritmo-titulo">
+      <span class="rotulo" id="ritmo-titulo">No ritmo</span>
+      @if (p.projecao && p.meta) {
+        <p class="veredito">{{ veredito(p.projecao, p.meta.valor) }}</p>
+        <dl class="numeros">
+          <div><dt>Ligações que faltam</dt><dd class="dado">{{ fmt.numero(p.projecao.faltam) }}</dd></div>
+          @if (p.projecao.ritmoNecessario != null) {
+            <div><dt>Ritmo necessário</dt><dd class="dado">≈ {{ fmt.numero(p.projecao.ritmoNecessario) }}/mês</dd></div>
+          }
+          <div><dt>Ritmo atual</dt><dd class="dado">{{ p.projecao.ritmoAtual != null ? fmt.numero(p.projecao.ritmoAtual) + '/mês' : '—' }}</dd></div>
+          @if (p.projecao.projecaoNoPrazo != null) {
+            <div><dt>Projeção em {{ fmt.competenciaCurta(p.projecao.prazo) }}</dt><dd class="dado">{{ fmt.percentual(p.projecao.projecaoNoPrazo) }}</dd></div>
+          }
+        </dl>
+        <p class="metodo">
+          Ritmo atual: média das novas ligações nos últimos {{ p.projecao.mesesNaBase }} meses com a rede do tamanho
+          atual (meses em que a rede mudou ficam fora). A projeção não prevê expansão da rede.
+        </p>
+      } @else {
+        <p class="metodo">Sem meta aplicável: não há projeção para esta unidade.</p>
+      }
+    </section>
+
+    <section class="cartao serie" aria-labelledby="serie-titulo">
+      <div class="cartao-topo">
+        <h2 id="serie-titulo">Série histórica</h2>
+        <button class="botao" type="button" (click)="verComoTabela.set(!verComoTabela())"
+                [attr.aria-pressed]="verComoTabela()">
+          {{ verComoTabela() ? 'Ver como gráfico' : 'Ver como tabela' }}
+        </button>
+      </div>
+      @if (verComoTabela()) {
+        <table>
+          <thead><tr><th scope="col">Competência</th><th scope="col" class="num">Adesão</th><th scope="col" class="num">Ligados</th><th scope="col" class="num">Com rede</th></tr></thead>
+          <tbody>
+            @for (ponto of p.serie; track ponto.competencia) {
+              <tr>
+                <td>{{ fmt.competenciaCurta(ponto.competencia) }}</td>
+                <td class="num dado">{{ fmt.percentual(ponto.percentual) }}</td>
+                <td class="num dado">{{ fmt.numero(ponto.ligados) }}</td>
+                <td class="num dado">{{ fmt.numero(ponto.comRede) }}</td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      } @else {
+        @defer (on viewport) {
+          <aurora-grafico-adesao [serie]="p.serie" [meta]="p.meta" [projecao]="p.projecao" />
+        } @placeholder {
+          <div class="esqueleto grafico" aria-hidden="true"></div>
+        }
+      }
+    </section>
+
+    @if (p.unidades.length > 0) {
+      <section class="cartao unidades" aria-labelledby="unidades-titulo">
+        <h2 id="unidades-titulo">Por unidade</h2>
+        <table>
+          <thead>
+            <tr>
+              <th scope="col">Unidade</th>
+              <th scope="col">Adesão</th>
+              <th scope="col">Situação</th>
+              <th scope="col">Meta</th>
+              <th scope="col" class="num">Variação</th>
+              <th scope="col" class="num">Ligados / com rede</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (linha of p.unidades; track linha.unidade.id) {
+              <tr>
+                <td><button class="link" type="button" (click)="abrirUnidade(linha)">{{ linha.unidade.nome }}</button></td>
+                <td class="adesao">
+                  <span class="dado">{{ fmt.percentual(linha.adesao.percentual) }}</span>
+                  <aurora-barra-adesao [percentual]="linha.adesao.percentual" [meta]="linha.meta?.valor ?? null" />
+                </td>
+                <td><aurora-selo-situacao [situacao]="linha.situacao" /></td>
+                <td class="meta-linha">{{ metaDaLinha(linha.meta) }}</td>
+                <td class="num dado variacao" [class]="tendencia(linha.variacaoPp)">{{ fmt.pontosPercentuais(linha.variacaoPp) }}</td>
+                <td class="num dado">{{ fmt.numero(linha.adesao.ligados) }} / {{ fmt.numero(linha.adesao.comRede) }}</td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </section>
+    }
+  </div>
+} @else if (naoEncontrado()) {
+  <section class="cartao vazio" role="status">
+    <span class="rotulo">Sem dados</span>
+    <p>Não há medições de adesão para esta unidade ou competência no seu escopo.</p>
+  </section>
+} @else if (dados.error()) {
+  <section class="cartao vazio" role="alert">
+    <span class="rotulo">Erro</span>
+    <p>Não foi possível carregar o painel. Tente novamente em instantes.</p>
+    <button class="botao" type="button" (click)="dados.reload()">Tentar de novo</button>
+  </section>
+} @else {
+  <div class="grade" aria-busy="true" aria-label="Carregando o painel">
+    <div class="esqueleto kpi"></div>
+    <div class="esqueleto no-ritmo"></div>
+    <div class="esqueleto serie"></div>
+  </div>
+}

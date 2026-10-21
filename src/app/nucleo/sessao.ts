@@ -1,15 +1,8 @@
 import { httpResource } from '@angular/common/http';
 import { Injectable, computed, inject } from '@angular/core';
 import { OidcSecurityService } from 'angular-auth-oidc-client';
+import type { Eu } from '../api/tipos';
 
-export interface Eu {
-  usuarioId: string;
-  nome: string;
-  email: string;
-  tenantId: string;
-  tenant: string;
-  permissoes: string[];
-}
 
 /** Usuário autenticado como a API o enxerga (tenant, permissões efetivas). */
 @Injectable({ providedIn: 'root' })

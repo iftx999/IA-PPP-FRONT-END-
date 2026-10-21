@@ -7,8 +7,7 @@ const emConstrucao = () => import('./paginas/em-construcao').then((m) => m.EmCon
 /** Telas na ordem da barra lateral (docs/01, seção 1.4). */
 const telas: Routes = [
   { path: '', pathMatch: 'full', redirectTo: 'painel' },
-  { path: 'painel', title: 'Painel · Aurora', loadComponent: emConstrucao,
-    data: { secao: 'Adesão', titulo: 'Painel', marco: 'Marco 1 — Acesso e núcleo' } },
+  { path: 'painel', title: 'Painel · Aurora', loadComponent: () => import('./paginas/painel/painel').then((m) => m.Painel) },
   { path: 'metas', title: 'Metas · Aurora', loadComponent: emConstrucao,
     data: { secao: 'Adesão', titulo: 'Metas', marco: 'Marco 1 — Acesso e núcleo' } },
   { path: 'sem-ligacao', title: 'Sem ligação · Aurora', loadComponent: emConstrucao,

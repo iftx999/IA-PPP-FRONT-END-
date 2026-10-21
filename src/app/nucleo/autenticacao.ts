@@ -14,7 +14,7 @@ export function provideAutenticacao(): EnvironmentProviders {
         clientId: 'aurora-web',
         redirectUrl: origem,
         postLogoutRedirectUri: origem,
-        scope: 'openid profile email offline_access',
+        scope: 'openid profile email',
         responseType: 'code',
         silentRenew: true,
         useRefreshToken: true,
