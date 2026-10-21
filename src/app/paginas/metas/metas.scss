@@ -1,0 +1,56 @@
+.cabecalho {
+  display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: space-between; gap: var(--space-4);
+  margin-bottom: var(--space-5);
+}
+.titulo { display: grid; gap: var(--space-1); }
+h1 { font: 700 var(--fs-h1) var(--font-display); }
+.resumo { margin: 0; color: var(--text-2); font-size: var(--fs-small); }
+
+.filtros { display: flex; flex-wrap: wrap; gap: var(--space-4); margin-bottom: var(--space-4); }
+.filtros label, .dialogo label { display: grid; gap: var(--space-1); }
+input, select {
+  padding: var(--space-2) var(--space-3);
+  border: var(--border); border-radius: var(--radius-s);
+  background: var(--bg-2); color: var(--text-1); font: inherit;
+}
+
+.lista { padding: 0; overflow-x: auto; }
+table { width: 100%; border-collapse: collapse; }
+th {
+  text-align: left; font-weight: 500; font-size: var(--fs-small); color: var(--text-3);
+  padding: var(--space-3) var(--space-4); border-bottom: var(--border);
+}
+td { padding: var(--space-2) var(--space-4); border-bottom: var(--border); vertical-align: middle; }
+tbody tr:hover { background: var(--bg-3); }
+.num { text-align: right; }
+.unidade { font-weight: 500; }
+.herdada { color: var(--text-2); font-style: italic; }
+.origem { font-size: var(--fs-small); color: var(--text-2); }
+.origem.contrato { color: var(--accent); }
+.competencia { margin-left: var(--space-1); font-size: var(--fs-label); color: var(--text-3); }
+.acoes { text-align: right; white-space: nowrap; }
+.vazio { color: var(--text-2); }
+.oculto { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); }
+
+.dialogo {
+  width: min(520px, calc(100vw - 32px));
+  padding: var(--space-5);
+  border: var(--border); border-radius: var(--radius-m);
+  background: var(--bg-2); color: var(--text-1);
+  box-shadow: var(--shadow-card);
+  &::backdrop { background: rgba(0, 0, 0, .55); }
+  form { display: grid; gap: var(--space-4); }
+  h2 { font: 600 var(--fs-h2) var(--font-ui); }
+}
+.dupla { display: grid; grid-template-columns: 1fr 1fr; gap: var(--space-3); }
+.ajuda { margin: 0; font-size: var(--fs-small); color: var(--text-3); }
+.erro { margin: 0; color: var(--danger); font-size: var(--fs-small); }
+.botoes { display: flex; justify-content: flex-end; gap: var(--space-2); }
+
+.esqueleto {
+  min-height: 360px; border-radius: var(--radius-m);
+  background: linear-gradient(90deg, var(--bg-2), var(--bg-3), var(--bg-2)); background-size: 200% 100%;
+  animation: brilho 1.2s ease-in-out infinite;
+}
+@keyframes brilho { from { background-position: 100% 0; } to { background-position: -100% 0; } }
+.sem-medicao { font-size: var(--fs-small); color: var(--text-3); }

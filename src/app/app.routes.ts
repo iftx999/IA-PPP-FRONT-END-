@@ -8,8 +8,7 @@ const emConstrucao = () => import('./paginas/em-construcao').then((m) => m.EmCon
 const telas: Routes = [
   { path: '', pathMatch: 'full', redirectTo: 'painel' },
   { path: 'painel', title: 'Painel · Aurora', loadComponent: () => import('./paginas/painel/painel').then((m) => m.Painel) },
-  { path: 'metas', title: 'Metas · Aurora', loadComponent: emConstrucao,
-    data: { secao: 'Adesão', titulo: 'Metas', marco: 'Marco 1 — Acesso e núcleo' } },
+  { path: 'metas', title: 'Metas · Aurora', loadComponent: () => import('./paginas/metas/metas').then((m) => m.Metas) },
   { path: 'sem-ligacao', title: 'Sem ligação · Aurora', loadComponent: () => import('./paginas/sem-ligacao/sem-ligacao').then((m) => m.SemLigacao) },
   { path: 'mapa', title: 'Mapa · Aurora', loadComponent: emConstrucao,
     data: { secao: 'Adesão', titulo: 'Mapa', marco: 'Marco 5 — GIS' } },

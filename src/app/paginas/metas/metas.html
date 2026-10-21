@@ -1,0 +1,159 @@
+<header class="cabecalho">
+  <div class="titulo">
+    <span class="rotulo">Adesão</span>
+    <h1>Metas</h1>
+    @if (metas(); as m) {
+      <p class="resumo">
+        <span class="dado">{{ fmt.numero(m.resumo.cadastradas) }}</span> metas cadastradas ·
+        <span class="dado">{{ fmt.numero(m.resumo.doContrato) }}</span> do contrato ·
+        <span class="dado">{{ fmt.numero(m.resumo.seguemAcima) }}</span> unidades seguem a unidade acima
+      </p>
+    }
+  </div>
+  @if (sessao.pode('indicador:gerenciar')) {
+    <button class="botao primario" type="button" (click)="abrirNova()">Nova meta</button>
+  }
+</header>
+
+<div class="filtros" role="search">
+  <label>
+    <span class="rotulo">Unidade</span>
+    <input type="search" placeholder="Buscar unidade" [value]="busca()" (input)="busca.set($any($event.target).value)" />
+  </label>
+  <label>
+    <span class="rotulo">Situação</span>
+    <select [value]="filtroSituacao()" (change)="filtroSituacao.set($any($event.target).value)">
+      <option value="TODAS">Todas</option>
+      <option value="META_ATINGIDA">Meta atingida</option>
+      <option value="ATENCAO">Atenção</option>
+      <option value="ABAIXO_DO_ALERTA">Abaixo do alerta</option>
+      <option value="SEM_META">Sem meta</option>
+    </select>
+  </label>
+  <label>
+    <span class="rotulo">Origem</span>
+    <select [value]="filtroOrigem()" (change)="filtroOrigem.set($any($event.target).value)">
+      <option value="TODAS">Todas</option>
+      <option value="CONTRATO">Contrato</option>
+      <option value="MANUAL">Manual</option>
+      <option value="HERDADA">Segue a unidade acima</option>
+      <option value="SEM_META">Sem meta</option>
+    </select>
+  </label>
+</div>
+
+@if (metas()) {
+  <section class="cartao lista" aria-label="Metas por unidade">
+    <table>
+      <thead>
+        <tr>
+          <th scope="col">Unidade</th>
+          <th scope="col">Meta</th>
+          <th scope="col" class="num">Alerta</th>
+          <th scope="col">Vigência</th>
+          <th scope="col">Origem</th>
+          <th scope="col">Adesão</th>
+          <th scope="col">Situação</th>
+          @if (sessao.pode('indicador:gerenciar')) { <th scope="col"><span class="oculto">Ações</span></th> }
+        </tr>
+      </thead>
+      <tbody>
+        @for (l of linhas(); track l.unidadeId) {
+          <tr>
+            <td [style.padding-left.px]="16 + (l.nivel - 1) * 20">
+              <span class="unidade">{{ l.unidadeNome }}</span>
+            </td>
+            @if (l.propria; as p) {
+              <td class="dado">{{ fmt.percentual(p.valor) }}</td>
+              <td class="dado num">{{ p.alerta != null ? fmt.percentual(p.alerta) : '—' }}</td>
+              <td>{{ vigencia(p.vigenciaInicio, p.vigenciaFim) }}</td>
+              <td>
+                @if (p.origem || p.doContrato) {
+                  <span class="origem contrato" [title]="p.origem ?? ''">{{ p.origem ?? 'Contrato' }}</span>
+                } @else {
+                  <span class="origem">Manual</span>
+                }
+              </td>
+            } @else if (l.herdada; as h) {
+              <td class="herdada" colspan="4">Segue {{ h.unidadeNome }} · {{ fmt.percentual(h.valor) }}</td>
+            } @else {
+              <td class="herdada" colspan="4">Sem meta</td>
+            }
+            <td class="dado">
+              {{ l.adesao != null ? fmt.percentual(l.adesao) : '—' }}
+              @if (l.competenciaAdesao) { <span class="competencia">{{ fmt.competenciaCurta(l.competenciaAdesao) }}</span> }
+            </td>
+            <td>
+              @if (l.adesao != null) {
+                <aurora-selo-situacao [situacao]="l.situacao" />
+              } @else {
+                <span class="sem-medicao">Sem medição</span>
+              }
+            </td>
+            @if (sessao.pode('indicador:gerenciar')) {
+              <td class="acoes">
+                @if (l.propria && !l.propria.doContrato && !l.propria.origem) {
+                  <button class="botao" type="button" (click)="abrirEncerrar(l)">Encerrar</button>
+                } @else if (!l.propria) {
+                  <button class="botao" type="button" (click)="abrirNova(l)">Meta própria</button>
+                }
+              </td>
+            }
+          </tr>
+        } @empty {
+          <tr><td colspan="8" class="vazio">Nenhuma unidade com esses filtros.</td></tr>
+        }
+      </tbody>
+    </table>
+  </section>
+} @else if (dados.error()) {
+  <section class="cartao" role="alert">
+    <p>Não foi possível carregar as metas.</p>
+    <button class="botao" type="button" (click)="dados.reload()">Tentar de novo</button>
+  </section>
+} @else {
+  <div class="esqueleto" aria-busy="true" aria-label="Carregando as metas"></div>
+}
+
+<dialog #dialogoNova class="dialogo" aria-labelledby="titulo-nova">
+  <form [formGroup]="formulario" (ngSubmit)="salvarNova()">
+    <h2 id="titulo-nova">Meta própria</h2>
+    <p class="ajuda">Substitui a meta herdada nesta unidade e passa a valer para as unidades abaixo dela.</p>
+    <label>
+      <span>Unidade</span>
+      <select formControlName="unidadeId" required>
+        <option value="" disabled>Escolha a unidade</option>
+        @for (l of metas()?.linhas ?? []; track l.unidadeId) {
+          <option [value]="l.unidadeId">{{ l.unidadeNome }}</option>
+        }
+      </select>
+    </label>
+    <div class="dupla">
+      <label><span>Meta (%)</span><input type="number" formControlName="valor" min="0.01" max="100" step="0.01" required /></label>
+      <label><span>Limite de alerta (%)</span><input type="number" formControlName="alerta" min="0" max="100" step="0.01" required /></label>
+    </div>
+    <div class="dupla">
+      <label><span>Início da vigência</span><input type="date" formControlName="vigenciaInicio" required /></label>
+      <label><span>Fim (vazio = sem fim)</span><input type="date" formControlName="vigenciaFim" /></label>
+    </div>
+    @if (erro()) { <p class="erro" role="alert">{{ erro() }}</p> }
+    <p class="ajuda">A definição fica registrada na auditoria.</p>
+    <div class="botoes">
+      <button class="botao" type="button" (click)="fechar(dialogoNova)">Cancelar</button>
+      <button class="botao primario" type="submit" [disabled]="salvando()">{{ salvando() ? 'Salvando…' : 'Salvar meta' }}</button>
+    </div>
+  </form>
+</dialog>
+
+<dialog #dialogoEncerrar class="dialogo" aria-labelledby="titulo-encerrar">
+  <form (ngSubmit)="confirmarEncerramento()">
+    <h2 id="titulo-encerrar">Encerrar meta de {{ emEncerramento()?.unidadeNome }}</h2>
+    <p class="ajuda">A meta deixa de valer depois desta data. O histórico é mantido; a unidade volta a seguir a meta acima.</p>
+    <label><span>Último dia de vigência</span><input type="date" [formControl]="encerramento" required /></label>
+    @if (erro()) { <p class="erro" role="alert">{{ erro() }}</p> }
+    <div class="botoes">
+      <button class="botao" type="button" (click)="fechar(dialogoEncerrar)">Cancelar</button>
+      <button class="botao primario" type="submit" [disabled]="salvando()">{{ salvando() ? 'Encerrando…' : 'Encerrar' }}</button>
+    </div>
+  </form>
+</dialog>

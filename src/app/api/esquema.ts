@@ -4,7 +4,7 @@
  */
 
 export interface paths {
-  '/api/v1/unidades': {
+  '/api/v1/metas': {
     parameters: {
       query?: never;
       header?: never;
@@ -12,6 +12,38 @@ export interface paths {
       cookie?: never;
     };
     get: operations['listar'];
+    put?: never;
+    post: operations['criar'];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/api/v1/metas/{id}/encerramento': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    post: operations['encerrar'];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/api/v1/unidades': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get: operations['listar_1'];
     put?: never;
     post?: never;
     delete?: never;
@@ -59,7 +91,7 @@ export interface paths {
       path?: never;
       cookie?: never;
     };
-    get: operations['listar_1'];
+    get: operations['listar_2'];
     put?: never;
     post?: never;
     delete?: never;
@@ -104,6 +136,24 @@ export interface paths {
 export type webhooks = Record<string, never>;
 export interface components {
   schemas: {
+    NovaMetaRequest: {
+      /** Format: uuid */
+      unidadeId: string;
+      valor: number;
+      alerta: number;
+      /** Format: date */
+      vigenciaInicio: string;
+      /** Format: date */
+      vigenciaFim: string | null;
+    };
+    MetaCriada: {
+      /** Format: uuid */
+      id: string;
+    };
+    EncerramentoRequest: {
+      /** Format: date */
+      fim: string;
+    };
     UnidadeResponse: {
       /** Format: uuid */
       id: string;
@@ -187,6 +237,55 @@ export interface components {
       nome: string;
       tipo: string | null;
     };
+    LinhaMetaDto: {
+      /** Format: uuid */
+      unidadeId: string;
+      unidadeNome: string;
+      tipo: string;
+      /** Format: uuid */
+      unidadePaiId: string | null;
+      /** Format: int32 */
+      nivel: number;
+      propria: components['schemas']['MetaPropriaDto'] | null;
+      herdada: components['schemas']['MetaHerdadaDto'] | null;
+      adesao: number | null;
+      competenciaAdesao: string | null;
+      /** @enum {string} */
+      situacao: 'META_ATINGIDA' | 'ATENCAO' | 'ABAIXO_DO_ALERTA' | 'SEM_META';
+    };
+    MetaHerdadaDto: {
+      /** Format: uuid */
+      unidadeId: string;
+      unidadeNome: string;
+      valor: number;
+      alerta: number | null;
+    };
+    MetaPropriaDto: {
+      /** Format: uuid */
+      id: string;
+      valor: number;
+      alerta: number | null;
+      /** Format: date */
+      vigenciaInicio: string;
+      /** Format: date */
+      vigenciaFim: string | null;
+      origem: string | null;
+      doContrato: boolean;
+    };
+    MetasResponse: {
+      /** Format: date */
+      referencia: string;
+      resumo: components['schemas']['ResumoMetasDto'];
+      linhas: components['schemas']['LinhaMetaDto'][];
+    };
+    ResumoMetasDto: {
+      /** Format: int64 */
+      cadastradas: number;
+      /** Format: int64 */
+      doContrato: number;
+      /** Format: int64 */
+      seguemAcima: number;
+    };
     ItemDto: {
       matricula: string;
       /** Format: uuid */
@@ -251,6 +350,74 @@ export interface operations {
           [name: string]: unknown;
         };
         content: {
+          '*/*': components['schemas']['MetasResponse'];
+        };
+      };
+    };
+  };
+  criar: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        'application/json': components['schemas']['NovaMetaRequest'];
+      };
+    };
+    responses: {
+      /** @description OK */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          '*/*': components['schemas']['MetaCriada'];
+        };
+      };
+    };
+  };
+  encerrar: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        id: string;
+      };
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        'application/json': components['schemas']['EncerramentoRequest'];
+      };
+    };
+    responses: {
+      /** @description OK */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
+      };
+    };
+  };
+  listar_1: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description OK */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
           '*/*': components['schemas']['UnidadeResponse'][];
         };
       };
@@ -301,7 +468,7 @@ export interface operations {
       };
     };
   };
-  listar_1: {
+  listar_2: {
     parameters: {
       query?: {
         unidade?: string;

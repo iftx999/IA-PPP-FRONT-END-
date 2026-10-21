@@ -13,3 +13,5 @@ export type PontoSerie = Esquemas['PontoDto'];
 export type SemLigacao = Esquemas['SemLigacaoResponse'];
 export type ImovelSemLigacao = Esquemas['ItemDto'];
 export type SituacaoImovel = ImovelSemLigacao['situacao'];
+export type Metas = Esquemas['MetasResponse'];
+export type LinhaMeta = Metas['linhas'][number];
