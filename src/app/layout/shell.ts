@@ -1,0 +1,48 @@
+import { Component, inject } from '@angular/core';
+import { RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
+import { TemaService } from '../nucleo/tema';
+
+interface ItemMenu {
+  rota: string;
+  rotulo: string;
+}
+
+/** Estrutura da aplicação: barra lateral fixa + cabeçalho + conteúdo (docs/07, seções 7.4 e 7.5). */
+@Component({
+  selector: 'aurora-shell',
+  imports: [RouterOutlet, RouterLink, RouterLinkActive],
+  templateUrl: './shell.html',
+  styleUrl: './shell.scss',
+})
+export class Shell {
+  protected readonly tema = inject(TemaService);
+
+  protected readonly secoes: { titulo: string; itens: ItemMenu[] }[] = [
+    {
+      titulo: 'Adesão',
+      itens: [
+        { rota: '/painel', rotulo: 'Painel' },
+        { rota: '/metas', rotulo: 'Metas' },
+        { rota: '/sem-ligacao', rotulo: 'Sem ligação' },
+        { rota: '/mapa', rotulo: 'Mapa' },
+        { rota: '/alertas', rotulo: 'Alertas' },
+      ],
+    },
+    {
+      titulo: 'Contrato',
+      itens: [
+        { rota: '/contratos', rotulo: 'Contratos' },
+        { rota: '/assistente', rotulo: 'Assistente' },
+      ],
+    },
+    {
+      titulo: 'Administração',
+      itens: [
+        { rota: '/admin/unidades', rotulo: 'Unidades' },
+        { rota: '/admin/usuarios', rotulo: 'Usuários' },
+        { rota: '/admin/perfis', rotulo: 'Perfis' },
+        { rota: '/admin/integracoes', rotulo: 'Integrações' },
+      ],
+    },
+  ];
+}

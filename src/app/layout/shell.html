@@ -1,0 +1,48 @@
+<aside class="lateral">
+  <a class="marca" routerLink="/painel" aria-label="Aurora, ir para o painel">
+    <span class="logo" aria-hidden="true"></span>
+    <span class="nome">Aurora</span>
+  </a>
+
+  <div class="escopo">
+    <span class="rotulo">Seu escopo</span>
+    <span class="escopo-nome">—</span>
+  </div>
+
+  <nav aria-label="Menu principal">
+    @for (secao of secoes; track secao.titulo) {
+      <p class="rotulo secao">{{ secao.titulo }}</p>
+      <ul>
+        @for (item of secao.itens; track item.rota) {
+          <li>
+            <a [routerLink]="item.rota" routerLinkActive="ativo" ariaCurrentWhenActive="page">{{ item.rotulo }}</a>
+          </li>
+        }
+      </ul>
+    }
+  </nav>
+
+  <p class="rodape">
+    <span class="ponto" aria-hidden="true"></span>
+    Dados fictícios de demonstração
+  </p>
+</aside>
+
+<header class="topo">
+  <button class="busca" type="button" aria-keyshortcuts="Control+K">
+    Buscar unidade, matrícula ou contrato <kbd>Ctrl K</kbd>
+  </button>
+  <div class="acoes">
+    <button class="botao" type="button" aria-keyshortcuts="Control+J">
+      <span class="ponto" aria-hidden="true"></span> Assistente <kbd>Ctrl J</kbd>
+    </button>
+    <button class="botao" type="button" (click)="tema.alternar()"
+            [attr.aria-label]="tema.tema() === 'dark' ? 'Usar tema claro' : 'Usar tema escuro'">
+      {{ tema.tema() === 'dark' ? 'Tema claro' : 'Tema escuro' }}
+    </button>
+  </div>
+</header>
+
+<main class="conteudo">
+  <router-outlet />
+</main>

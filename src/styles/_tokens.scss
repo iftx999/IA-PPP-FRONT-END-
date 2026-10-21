@@ -1,0 +1,38 @@
+// Design tokens da Aurora (docs/07-identidade-visual.md). Nenhum valor de cor fixo nos componentes.
+:root {
+  --bg-0: #051313; --bg-1: #081018; --bg-2: #0c181c; --bg-3: #12212a; --line: #1c2e36;
+  --text-1: #e8f0ee; --text-2: #b4c1c3; --text-3: #6f8288;
+  --accent: #4ad7bc; --accent-2: #1acbd8; --accent-3: #2c9aeb;
+  --accent-glow: rgba(74, 215, 188, .35);
+  --on-accent: #04201b;
+  --ok: #3de693; --warn: #ecc32a; --danger: #e76069; --danger-soft: #ee7a62; --neutral: #86929e;
+  --net-confirmed: #43c3c5; --net-presumed: #e0c573;
+
+  --space-1: 4px; --space-2: 8px; --space-3: 12px; --space-4: 16px; --space-5: 24px; --space-6: 32px;
+  --radius-s: 8px; --radius-m: 14px; --radius-l: 20px;
+  --border: 1px solid var(--line);
+  --shadow-card: 0 8px 30px rgba(0, 0, 0, .35);
+  --shadow-focus: 0 0 0 1px var(--accent), 0 0 24px var(--accent-glow);
+
+  --font-display: 'Archivo', system-ui, sans-serif;
+  --font-ui: 'Inter', system-ui, sans-serif;
+  --font-data: 'JetBrains Mono', ui-monospace, monospace;
+
+  --fs-kpi: 4.5rem; --fs-h1: 1.75rem; --fs-h2: 1.125rem;
+  --fs-body: .9375rem; --fs-small: .8125rem; --fs-label: .6875rem;
+
+  --logo-gradiente: conic-gradient(from 210deg, #1acbd8, #2c9aeb, #4ad7bc, #1acbd8);
+  --sidebar-largura: 220px;
+
+  color-scheme: dark;
+}
+
+:root[data-theme='light'] {
+  --bg-0: #e9f1ef; --bg-1: #f4f8f7; --bg-2: #ffffff; --bg-3: #e9f1ef; --line: #d3e0dd;
+  --text-1: #0b1a1f; --text-2: #3d5359; --text-3: #5b6f74;
+  --accent: #0f9d86;
+  --accent-glow: rgba(15, 157, 134, .25);
+  --on-accent: #ffffff;
+  --shadow-card: 0 8px 30px rgba(11, 26, 31, .08);
+  color-scheme: light;
+}
