@@ -2,50 +2,66 @@
   display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: space-between; gap: var(--space-4);
   margin-bottom: var(--space-5);
 }
-.titulo { display: grid; gap: var(--space-1); }
+.titulo { display: grid; gap: var(--space-2); }
 h1 { font: 700 var(--fs-h1) var(--font-display); }
-.resumo { margin: 0; color: var(--text-2); font-size: var(--fs-small); }
-
-.filtros { display: flex; flex-wrap: wrap; gap: var(--space-4); margin-bottom: var(--space-4); }
-.filtros label, .dialogo label { display: grid; gap: var(--space-1); }
-input, select {
-  padding: var(--space-2) var(--space-3);
-  border: var(--border); border-radius: var(--radius-s);
-  background: var(--bg-2); color: var(--text-1); font: inherit;
+.resumo { display: flex; flex-wrap: wrap; gap: var(--space-2); }
+.indicador {
+  padding: 4px 12px; border: var(--border); border-radius: 999px;
+  font-size: var(--fs-small); color: var(--text-2); background: var(--bg-2);
+  b { color: var(--text-1); font-weight: 600; margin-right: 4px; }
 }
 
-.lista { padding: 0; overflow-x: auto; }
-table { width: 100%; border-collapse: collapse; }
-th {
-  text-align: left; font-weight: 500; font-size: var(--fs-small); color: var(--text-3);
-  padding: var(--space-3) var(--space-4); border-bottom: var(--border);
-}
-td { padding: var(--space-2) var(--space-4); border-bottom: var(--border); vertical-align: middle; }
-tbody tr:hover { background: var(--bg-3); }
+.barra-filtros { display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-3); margin-bottom: var(--space-4); }
+.busca { width: min(340px, 100%); }
+.filtro { width: 220px; }
+.prefixo { margin: 0 4px 0 10px; color: var(--text-3); }
+.opcao-icone { display: inline-flex; align-items: center; gap: 8px; .material-symbols-rounded { font-size: 18px; color: var(--text-3); } }
+
+.tabela { padding: 0; overflow: auto; max-height: calc(100vh - 300px); }
+.tabela table { width: 100%; table-layout: fixed; }
+// Larguras proporcionais: a tabela cabe na tela e textos longos ganham reticências (o completo fica na dica).
+.mat-column-unidade { width: 22%; }
+.mat-column-meta { width: 15%; }
+.mat-column-vigencia { width: 16%; }
+.mat-column-origem { width: 15%; }
+.mat-column-adesao { width: 15%; }
+.mat-column-situacao { width: 14%; }
+.mat-column-acoes { width: 56px; }
+.mat-mdc-cell { overflow: hidden; }
+.unidade { display: flex; align-items: center; gap: 2px; min-width: 0; }
+.nome { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.texto-curto { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.alternar { --mat-icon-button-state-layer-size: 32px; width: 32px; height: 32px; padding: 4px; color: var(--text-2); }
+.sem-alternar { width: 32px; flex: none; }
+.nome { font-weight: 500; }
+.forte { font-weight: 600; }
+.secundario { display: block; margin-top: 2px; font-size: var(--fs-label); color: var(--text-3); }
 .num { text-align: right; }
-.unidade { font-weight: 500; }
-.herdada { color: var(--text-2); font-style: italic; }
-.origem { font-size: var(--fs-small); color: var(--text-2); }
-.origem.contrato { color: var(--accent); }
-.competencia { margin-left: var(--space-1); font-size: var(--fs-label); color: var(--text-3); }
-.acoes { text-align: right; white-space: nowrap; }
-.vazio { color: var(--text-2); }
-.oculto { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); }
-
-.dialogo {
-  width: min(520px, calc(100vw - 32px));
-  padding: var(--space-5);
-  border: var(--border); border-radius: var(--radius-m);
-  background: var(--bg-2); color: var(--text-1);
-  box-shadow: var(--shadow-card);
-  &::backdrop { background: rgba(0, 0, 0, .55); }
-  form { display: grid; gap: var(--space-4); }
-  h2 { font: 600 var(--fs-h2) var(--font-ui); }
+.vigencia { color: var(--text-2); }
+.etiqueta {
+  margin-left: 6px; padding: 1px 8px; border-radius: 999px;
+  background: var(--bg-3); color: var(--text-3); font-size: var(--fs-label);
 }
-.dupla { display: grid; grid-template-columns: 1fr 1fr; gap: var(--space-3); }
-.ajuda { margin: 0; font-size: var(--fs-small); color: var(--text-3); }
-.erro { margin: 0; color: var(--danger); font-size: var(--fs-small); }
-.botoes { display: flex; justify-content: flex-end; gap: var(--space-2); }
+.origem {
+  display: inline-flex; align-items: center; gap: 6px; max-width: 100%;
+  .texto { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  font-size: var(--fs-small); color: var(--text-2);
+  .material-symbols-rounded { font-size: 16px; }
+}
+.origem.contrato { color: var(--accent); }
+.herdada {
+  display: inline-flex; align-items: center; gap: 4px; color: var(--text-3); white-space: nowrap;
+  .material-symbols-rounded { font-size: 16px; }
+}
+.adesao { display: grid; grid-template-columns: 3.4rem minmax(40px, 1fr); align-items: center; gap: var(--space-2); }
+.competencia { display: block; margin-top: 2px; font-size: var(--fs-label); color: var(--text-3); }
+.sem-medicao { font-size: var(--fs-small); color: var(--text-3); }
+.acoes { text-align: right; white-space: nowrap; width: 1%; }
+.mat-column-meta { white-space: nowrap; }
+.acoes button { color: var(--text-2); }
+.acoes button:hover { color: var(--accent); }
+.vazio { padding: var(--space-5); color: var(--text-2); text-align: center; }
+.oculto { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); }
 
 .esqueleto {
   min-height: 360px; border-radius: var(--radius-m);
@@ -53,4 +69,3 @@ tbody tr:hover { background: var(--bg-3); }
   animation: brilho 1.2s ease-in-out infinite;
 }
 @keyframes brilho { from { background-position: 100% 0; } to { background-position: -100% 0; } }
-.sem-medicao { font-size: var(--fs-small); color: var(--text-3); }

@@ -7,13 +7,8 @@ h1 { font: 700 var(--fs-h1) var(--font-display); }
 h2 { font: 600 var(--fs-h2) var(--font-ui); }
 .voltar { font-size: var(--fs-small); text-decoration: none; }
 
-.competencia { display: grid; gap: var(--space-1); }
-select {
-  padding: var(--space-2) var(--space-3);
-  border: var(--border); border-radius: var(--radius-s);
-  background: var(--bg-2); color: var(--text-1);
-  font: inherit;
-}
+.competencia { width: 240px; }
+.prefixo { margin: 0 2px 0 10px; color: var(--text-3); font-size: 20px; }
 
 .grade {
   display: grid; gap: var(--space-4);
@@ -47,17 +42,10 @@ dd { margin: 0; font-size: 1.125rem; }
 .veredito { margin: 0; font-size: 1.0625rem; color: var(--text-1); }
 .numeros dd { font-weight: 600; }
 
-table { width: 100%; border-collapse: collapse; }
-th {
-  text-align: left; font-weight: 500;
-  font-size: var(--fs-small); color: var(--text-3);
-  padding: var(--space-2) var(--space-3);
-  border-bottom: var(--border);
-}
-td { padding: var(--space-2) var(--space-3); border-bottom: var(--border); }
-tbody tr:hover { background: var(--bg-3); }
+table { width: 100%; }
 .num { text-align: right; }
-td.adesao { display: grid; grid-template-columns: 4.5rem minmax(80px, 1fr); align-items: center; gap: var(--space-3); }
+.adesao { display: grid; grid-template-columns: 4rem minmax(80px, 1fr); align-items: center; gap: var(--space-3); }
+.serie, .unidades { padding-bottom: var(--space-2); }
 .meta-linha { color: var(--text-2); font-size: var(--fs-small); }
 .link {
   padding: 0; border: 0; background: none; cursor: pointer;

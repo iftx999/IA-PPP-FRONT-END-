@@ -1,7 +1,16 @@
 import { HttpClient, httpResource } from '@angular/common/http';
-import { Component, computed, inject, input, linkedSignal, signal } from '@angular/core';
+import { Component, DestroyRef, computed, effect, inject, input, linkedSignal, signal } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { FormControl, ReactiveFormsModule } from '@angular/forms';
+import { MatButtonModule } from '@angular/material/button';
+import { MatButtonToggleModule } from '@angular/material/button-toggle';
+import { MatFormFieldModule } from '@angular/material/form-field';
+import { MatInputModule } from '@angular/material/input';
+import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
+import { MatTableModule } from '@angular/material/table';
+import { MatTooltipModule } from '@angular/material/tooltip';
 import { Router } from '@angular/router';
-import { firstValueFrom } from 'rxjs';
+import { debounceTime, distinctUntilChanged, firstValueFrom } from 'rxjs';
 import type { ImovelSemLigacao, SemLigacao as DadosSemLigacao, SituacaoImovel } from '../../api/tipos';
 import { DownloadService } from '../../nucleo/download';
 import { competenciaCurta, competenciaLonga, numero } from '../../nucleo/formato';
@@ -18,7 +27,10 @@ const LIMITE = 50;
  */
 @Component({
   selector: 'aurora-sem-ligacao',
-  imports: [Selo],
+  imports: [
+    ReactiveFormsModule, MatButtonModule, MatButtonToggleModule, MatFormFieldModule, MatInputModule,
+    MatTableModule, MatTooltipModule, MatProgressSpinnerModule, Selo,
+  ],
   templateUrl: './sem-ligacao.html',
   styleUrl: './sem-ligacao.scss',
 })
@@ -69,6 +81,24 @@ export class SemLigacao {
   );
 
   protected readonly fmt = { numero, competenciaCurta, competenciaLonga };
+  protected readonly colunas = ['matricula', 'unidade', 'situacao', 'tempo', 'origem'];
+
+  /** Busca por matrícula enquanto digita (espera 400 ms entre teclas). */
+  protected readonly campoBusca = new FormControl('', { nonNullable: true });
+
+  constructor() {
+    this.campoBusca.valueChanges
+      .pipe(debounceTime(400), distinctUntilChanged(), takeUntilDestroyed(inject(DestroyRef)))
+      .subscribe((valor) => this.buscar(valor));
+    // Mantém o campo igual à URL (ex.: ao voltar no navegador) sem disparar nova busca.
+    effect(() => {
+      const atual = this.matricula() ?? '';
+      if (this.campoBusca.value !== atual) {
+        this.campoBusca.setValue(atual, { emitEvent: false });
+      }
+    });
+  }
+
 
   protected escolherAba(aba: Aba): void {
     this.filtrar({ situacao: aba === 'TODOS' ? null : aba });
@@ -76,7 +106,10 @@ export class SemLigacao {
 
   protected buscar(valor: string): void {
     const limpo = valor.trim();
-    this.filtrar({ matricula: /^[\p{L}\p{N}./-]{1,40}$/u.test(limpo) ? limpo : null });
+    const valido = /^[\p{L}\p{N}./-]{1,40}$/u.test(limpo) ? limpo : null;
+    if (valido !== (this.matricula() ?? null)) {
+      this.filtrar({ matricula: valido });
+    }
   }
 
   protected async carregarMais(): Promise<void> {

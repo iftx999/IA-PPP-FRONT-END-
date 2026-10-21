@@ -54,15 +54,25 @@ describe('Metas', () => {
     expect(texto).toContain('3 metas cadastradas');
     expect(texto).toContain('1 do contrato');
     expect(texto).toContain('Contrato 001/2025, cláusula 7.2, p. 2');
-    expect(texto).toContain('Segue Cidade A · 85,0%');
-    expect(texto).toContain('desde jan/2025 · sem fim');
+    expect(texto).toContain('segue Cidade A');
+    expect(texto).toContain('alerta 75,0%');
+    expect(texto).toContain('desde jan/2025');
+    expect(texto).toContain('sem fim');
     // Meta de contrato não tem "Encerrar"; a manual tem; a herdada oferece "Meta própria".
-    expect(elemento.querySelectorAll('td.acoes button').length).toBe(2);
+    expect(elemento.querySelector('[aria-label="Encerrar meta de Cidade A"]')).not.toBeNull();
+    expect(elemento.querySelector('[aria-label="Encerrar meta de Concessão A"]')).toBeNull();
+    expect(elemento.querySelector('[aria-label="Definir meta própria para Cidade A Norte"]')).not.toBeNull();
+    expect(elemento.querySelectorAll('tr.mat-mdc-row').length).toBe(3);
 
-    const origem = elemento.querySelectorAll('select')[1] as HTMLSelectElement;
-    origem.value = 'HERDADA';
-    origem.dispatchEvent(new Event('change'));
+    // Recolher a Cidade A esconde as filhas.
+    (elemento.querySelector('[aria-label="Recolher Cidade A"]') as HTMLButtonElement).click();
     await fixture.whenStable();
-    expect(elemento.querySelectorAll('tbody tr').length).toBe(1);
+    expect(elemento.querySelectorAll('tr.mat-mdc-row').length).toBe(2);
+
+    (fixture.componentInstance as unknown as { filtroOrigem: { setValue(v: string): void } }).filtroOrigem.setValue('HERDADA');
+    await fixture.whenStable();
+    const linhas = elemento.querySelectorAll('tr.mat-mdc-row');
+    expect(linhas.length).toBe(1);
+    expect(linhas[0]!.textContent).toContain('Cidade A Norte');
   });
 });

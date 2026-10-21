@@ -1,5 +1,11 @@
 import { httpResource } from '@angular/common/http';
 import { Component, computed, inject, input, signal } from '@angular/core';
+import { MatButtonModule } from '@angular/material/button';
+import { MatButtonToggleModule } from '@angular/material/button-toggle';
+import { MatFormFieldModule } from '@angular/material/form-field';
+import { MatSelectModule } from '@angular/material/select';
+import { MatSortModule, type Sort } from '@angular/material/sort';
+import { MatTableModule } from '@angular/material/table';
 import { Router, RouterLink } from '@angular/router';
 import type { LinhaUnidade, Meta, Painel as DadosPainel, Projecao } from '../../api/tipos';
 import {
@@ -19,7 +25,10 @@ import { GraficoAdesao } from './grafico-adesao';
  */
 @Component({
   selector: 'aurora-painel',
-  imports: [RouterLink, SeloSituacao, BarraAdesao, GraficoAdesao],
+  imports: [
+    RouterLink, MatButtonModule, MatButtonToggleModule, MatFormFieldModule, MatSelectModule, MatSortModule,
+    MatTableModule, SeloSituacao, BarraAdesao, GraficoAdesao,
+  ],
   templateUrl: './painel.html',
   styleUrl: './painel.scss',
 })
@@ -44,6 +53,28 @@ export class Painel {
     () => (this.dados.error() as { status?: number } | undefined)?.status === 404,
   );
   protected readonly verComoTabela = signal(false);
+  protected readonly colunasUnidades = ['unidade', 'adesao', 'situacao', 'meta', 'variacao', 'ligados'];
+  protected readonly colunasSerie = ['competencia', 'percentual', 'ligados', 'comRede'];
+  protected readonly ordem = signal<Sort>({ active: '', direction: '' });
+
+  /** Tabela por unidade na ordem escolhida (B4). */
+  protected readonly unidadesOrdenadas = computed(() => {
+    const linhas = [...(this.painel()?.unidades ?? [])];
+    const { active, direction } = this.ordem();
+    if (!direction) {
+      return linhas;
+    }
+    const valor = (l: LinhaUnidade): string | number =>
+      active === 'unidade' ? l.unidade.nome
+        : active === 'variacao' ? (l.variacaoPp ?? -Infinity)
+          : (l.adesao.percentual ?? -Infinity);
+    const fator = direction === 'asc' ? 1 : -1;
+    return linhas.sort((a, b) => {
+      const va = valor(a);
+      const vb = valor(b);
+      return (typeof va === 'string' ? va.localeCompare(vb as string, 'pt-BR') : va - (vb as number)) * fator;
+    });
+  });
 
   protected readonly fmt = { numero, percentual, pontosPercentuais, competenciaCurta, competenciaLonga };
 

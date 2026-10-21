@@ -8,9 +8,11 @@ test.describe('Imóveis sem ligação', () => {
     await page.getByRole('link', { name: /Ver os 2\.639 imóveis sem ligação/ }).click();
 
     await expect(page.getByRole('heading', { level: 1 })).toHaveText('Concessão A');
-    await expect(page.getByRole('tab', { name: /Todos 2\.639/ })).toHaveAttribute('aria-selected', 'true');
-    await expect(page.getByRole('tab', { name: /Factíveis 2\.431/ })).toBeVisible();
-    await expect(page.getByRole('tab', { name: /Cortados 208/ })).toBeVisible();
+    const abas = page.locator('mat-button-toggle-group[aria-label="Situação"]');
+    await expect(abas.locator('mat-button-toggle', { hasText: 'Todos' })).toHaveClass(/mat-button-toggle-checked/);
+    await expect(abas).toContainText('Todos 2.639');
+    await expect(abas).toContainText('Factíveis 2.431');
+    await expect(abas).toContainText('Cortados 208');
     await expect(page.getByText('Mostrando 50 de 2.639')).toBeVisible();
     await expect(page.getByText('Matrículas parcialmente ocultas')).toHaveCount(0);
 
@@ -18,7 +20,7 @@ test.describe('Imóveis sem ligação', () => {
     await expect(page.getByText('Mostrando 100 de 2.639')).toBeVisible();
     await page.screenshot({ path: 'e2e/capturas/sem-ligacao.png' });
 
-    await page.getByRole('tab', { name: /Cortados/ }).click();
+    await abas.getByText('Cortados').click();
     await expect(page.getByText('Mostrando 50 de 208')).toBeVisible();
 
     const download = page.waitForEvent('download');

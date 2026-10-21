@@ -9,14 +9,15 @@
         </a>
       }
     </div>
-    <label class="competencia">
-      <span class="rotulo">Competência</span>
-      <select [value]="p.competencia" (change)="navegar({ competencia: $any($event.target).value })">
+    <mat-form-field class="competencia">
+      <mat-label>Competência</mat-label>
+      <span matPrefix class="material-symbols-rounded prefixo" aria-hidden="true">calendar_month</span>
+      <mat-select [value]="p.competencia" (selectionChange)="navegar({ competencia: $event.value })">
         @for (c of p.competenciasDisponiveis; track c) {
-          <option [value]="c">{{ fmt.competenciaLonga(c) }}</option>
+          <mat-option [value]="c">{{ fmt.competenciaLonga(c) }}</mat-option>
         }
-      </select>
-    </label>
+      </mat-select>
+    </mat-form-field>
   </header>
 
   <div class="grade">
@@ -85,24 +86,32 @@
     <section class="cartao serie" aria-labelledby="serie-titulo">
       <div class="cartao-topo">
         <h2 id="serie-titulo">Série histórica</h2>
-        <button class="botao" type="button" (click)="verComoTabela.set(!verComoTabela())"
-                [attr.aria-pressed]="verComoTabela()">
-          {{ verComoTabela() ? 'Ver como gráfico' : 'Ver como tabela' }}
-        </button>
+        <mat-button-toggle-group [value]="verComoTabela() ? 'tabela' : 'grafico'" hideSingleSelectionIndicator
+                                 (change)="verComoTabela.set($event.value === 'tabela')" aria-label="Forma de exibição">
+          <mat-button-toggle value="grafico"><span class="material-symbols-rounded" aria-hidden="true">show_chart</span> Gráfico</mat-button-toggle>
+          <mat-button-toggle value="tabela"><span class="material-symbols-rounded" aria-hidden="true">table_rows</span> Ver como tabela</mat-button-toggle>
+        </mat-button-toggle-group>
       </div>
       @if (verComoTabela()) {
-        <table>
-          <thead><tr><th scope="col">Competência</th><th scope="col" class="num">Adesão</th><th scope="col" class="num">Ligados</th><th scope="col" class="num">Com rede</th></tr></thead>
-          <tbody>
-            @for (ponto of p.serie; track ponto.competencia) {
-              <tr>
-                <td>{{ fmt.competenciaCurta(ponto.competencia) }}</td>
-                <td class="num dado">{{ fmt.percentual(ponto.percentual) }}</td>
-                <td class="num dado">{{ fmt.numero(ponto.ligados) }}</td>
-                <td class="num dado">{{ fmt.numero(ponto.comRede) }}</td>
-              </tr>
-            }
-          </tbody>
+        <table mat-table [dataSource]="p.serie">
+          <ng-container matColumnDef="competencia">
+            <th mat-header-cell *matHeaderCellDef>Competência</th>
+            <td mat-cell *matCellDef="let ponto">{{ fmt.competenciaCurta(ponto.competencia) }}</td>
+          </ng-container>
+          <ng-container matColumnDef="percentual">
+            <th mat-header-cell *matHeaderCellDef class="num">Adesão</th>
+            <td mat-cell *matCellDef="let ponto" class="num dado">{{ fmt.percentual(ponto.percentual) }}</td>
+          </ng-container>
+          <ng-container matColumnDef="ligados">
+            <th mat-header-cell *matHeaderCellDef class="num">Ligados</th>
+            <td mat-cell *matCellDef="let ponto" class="num dado">{{ fmt.numero(ponto.ligados) }}</td>
+          </ng-container>
+          <ng-container matColumnDef="comRede">
+            <th mat-header-cell *matHeaderCellDef class="num">Com rede</th>
+            <td mat-cell *matCellDef="let ponto" class="num dado">{{ fmt.numero(ponto.comRede) }}</td>
+          </ng-container>
+          <tr mat-header-row *matHeaderRowDef="colunasSerie"></tr>
+          <tr mat-row *matRowDef="let ponto; columns: colunasSerie"></tr>
         </table>
       } @else {
         @defer (on viewport) {
@@ -116,32 +125,44 @@
     @if (p.unidades.length > 0) {
       <section class="cartao unidades" aria-labelledby="unidades-titulo">
         <h2 id="unidades-titulo">Por unidade</h2>
-        <table>
-          <thead>
-            <tr>
-              <th scope="col">Unidade</th>
-              <th scope="col">Adesão</th>
-              <th scope="col">Situação</th>
-              <th scope="col">Meta</th>
-              <th scope="col" class="num">Variação</th>
-              <th scope="col" class="num">Ligados / com rede</th>
-            </tr>
-          </thead>
-          <tbody>
-            @for (linha of p.unidades; track linha.unidade.id) {
-              <tr>
-                <td><button class="link" type="button" (click)="abrirUnidade(linha)">{{ linha.unidade.nome }}</button></td>
-                <td class="adesao">
-                  <span class="dado">{{ fmt.percentual(linha.adesao.percentual) }}</span>
-                  <aurora-barra-adesao [percentual]="linha.adesao.percentual" [meta]="linha.meta?.valor ?? null" />
-                </td>
-                <td><aurora-selo-situacao [situacao]="linha.situacao" /></td>
-                <td class="meta-linha">{{ metaDaLinha(linha.meta) }}</td>
-                <td class="num dado variacao" [class]="tendencia(linha.variacaoPp)">{{ fmt.pontosPercentuais(linha.variacaoPp) }}</td>
-                <td class="num dado">{{ fmt.numero(linha.adesao.ligados) }} / {{ fmt.numero(linha.adesao.comRede) }}</td>
-              </tr>
-            }
-          </tbody>
+        <table mat-table [dataSource]="unidadesOrdenadas()" matSort (matSortChange)="ordem.set($event)">
+          <ng-container matColumnDef="unidade">
+            <th mat-header-cell *matHeaderCellDef mat-sort-header>Unidade</th>
+            <td mat-cell *matCellDef="let linha">
+              <button class="link" type="button" (click)="abrirUnidade(linha)">{{ linha.unidade.nome }}</button>
+            </td>
+          </ng-container>
+          <ng-container matColumnDef="adesao">
+            <th mat-header-cell *matHeaderCellDef mat-sort-header start="desc">Adesão</th>
+            <td mat-cell *matCellDef="let linha">
+              <div class="adesao">
+                <span class="dado">{{ fmt.percentual(linha.adesao.percentual) }}</span>
+                <aurora-barra-adesao [percentual]="linha.adesao.percentual" [meta]="linha.meta?.valor ?? null" />
+              </div>
+            </td>
+          </ng-container>
+          <ng-container matColumnDef="situacao">
+            <th mat-header-cell *matHeaderCellDef>Situação</th>
+            <td mat-cell *matCellDef="let linha"><aurora-selo-situacao [situacao]="linha.situacao" /></td>
+          </ng-container>
+          <ng-container matColumnDef="meta">
+            <th mat-header-cell *matHeaderCellDef>Meta</th>
+            <td mat-cell *matCellDef="let linha" class="meta-linha">{{ metaDaLinha(linha.meta) }}</td>
+          </ng-container>
+          <ng-container matColumnDef="variacao">
+            <th mat-header-cell *matHeaderCellDef mat-sort-header start="desc" arrowPosition="before" class="num">Variação</th>
+            <td mat-cell *matCellDef="let linha" class="num dado variacao" [class]="tendencia(linha.variacaoPp)">
+              {{ fmt.pontosPercentuais(linha.variacaoPp) }}
+            </td>
+          </ng-container>
+          <ng-container matColumnDef="ligados">
+            <th mat-header-cell *matHeaderCellDef class="num">Ligados / com rede</th>
+            <td mat-cell *matCellDef="let linha" class="num dado">
+              {{ fmt.numero(linha.adesao.ligados) }} / {{ fmt.numero(linha.adesao.comRede) }}
+            </td>
+          </ng-container>
+          <tr mat-header-row *matHeaderRowDef="colunasUnidades"></tr>
+          <tr mat-row *matRowDef="let linha; columns: colunasUnidades"></tr>
         </table>
       </section>
     }
@@ -155,7 +176,7 @@
   <section class="cartao vazio" role="alert">
     <span class="rotulo">Erro</span>
     <p>Não foi possível carregar o painel. Tente novamente em instantes.</p>
-    <button class="botao" type="button" (click)="dados.reload()">Tentar de novo</button>
+    <button matButton="outlined" type="button" (click)="dados.reload()">Tentar de novo</button>
   </section>
 } @else {
   <div class="grade" aria-busy="true" aria-label="Carregando o painel">

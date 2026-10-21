@@ -1,4 +1,6 @@
 import { Component, inject } from '@angular/core';
+import { MatButtonModule } from '@angular/material/button';
+import { MatTooltipModule } from '@angular/material/tooltip';
 import { RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
 import { SessaoService } from '../nucleo/sessao';
 import { TemaService } from '../nucleo/tema';
@@ -11,7 +13,7 @@ interface ItemMenu {
 /** Estrutura da aplicação: barra lateral fixa + cabeçalho + conteúdo (docs/07, seções 7.4 e 7.5). */
 @Component({
   selector: 'aurora-shell',
-  imports: [RouterOutlet, RouterLink, RouterLinkActive],
+  imports: [RouterOutlet, RouterLink, RouterLinkActive, MatButtonModule, MatTooltipModule],
   templateUrl: './shell.html',
   styleUrl: './shell.scss',
 })

@@ -3,157 +3,251 @@
     <span class="rotulo">Adesão</span>
     <h1>Metas</h1>
     @if (metas(); as m) {
-      <p class="resumo">
-        <span class="dado">{{ fmt.numero(m.resumo.cadastradas) }}</span> metas cadastradas ·
-        <span class="dado">{{ fmt.numero(m.resumo.doContrato) }}</span> do contrato ·
-        <span class="dado">{{ fmt.numero(m.resumo.seguemAcima) }}</span> unidades seguem a unidade acima
-      </p>
+      <div class="resumo">
+        <span class="indicador"><b class="dado">{{ fmt.numero(m.resumo.cadastradas) }}</b> metas cadastradas</span>
+        <span class="indicador"><b class="dado">{{ fmt.numero(m.resumo.doContrato) }}</b> do contrato</span>
+        <span class="indicador"><b class="dado">{{ fmt.numero(m.resumo.seguemAcima) }}</b> seguem a unidade acima</span>
+      </div>
     }
   </div>
   @if (sessao.pode('indicador:gerenciar')) {
-    <button class="botao primario" type="button" (click)="abrirNova()">Nova meta</button>
+    <button matButton="filled" type="button" (click)="abrirNova()">
+      <span class="material-symbols-rounded" aria-hidden="true">add</span> Nova meta
+    </button>
   }
 </header>
 
-<div class="filtros" role="search">
-  <label>
-    <span class="rotulo">Unidade</span>
-    <input type="search" placeholder="Buscar unidade" [value]="busca()" (input)="busca.set($any($event.target).value)" />
-  </label>
-  <label>
-    <span class="rotulo">Situação</span>
-    <select [value]="filtroSituacao()" (change)="filtroSituacao.set($any($event.target).value)">
-      <option value="TODAS">Todas</option>
-      <option value="META_ATINGIDA">Meta atingida</option>
-      <option value="ATENCAO">Atenção</option>
-      <option value="ABAIXO_DO_ALERTA">Abaixo do alerta</option>
-      <option value="SEM_META">Sem meta</option>
-    </select>
-  </label>
-  <label>
-    <span class="rotulo">Origem</span>
-    <select [value]="filtroOrigem()" (change)="filtroOrigem.set($any($event.target).value)">
-      <option value="TODAS">Todas</option>
-      <option value="CONTRATO">Contrato</option>
-      <option value="MANUAL">Manual</option>
-      <option value="HERDADA">Segue a unidade acima</option>
-      <option value="SEM_META">Sem meta</option>
-    </select>
-  </label>
+<div class="barra-filtros" role="search">
+  <mat-form-field class="busca">
+    <span matPrefix class="material-symbols-rounded prefixo" aria-hidden="true">search</span>
+    <input matInput type="search" placeholder="Buscar unidade" aria-label="Buscar unidade" [formControl]="busca" />
+  </mat-form-field>
+  <mat-form-field class="filtro">
+    <mat-select [formControl]="filtroSituacao" placeholder="Situação" aria-label="Situação">
+      <mat-option [value]="null">Todas as situações</mat-option>
+      @for (s of situacoes; track s.valor) {
+        <mat-option [value]="s.valor"><aurora-selo-situacao [situacao]="s.valor" /></mat-option>
+      }
+    </mat-select>
+  </mat-form-field>
+  <mat-form-field class="filtro">
+    <mat-select [formControl]="filtroOrigem" placeholder="Origem" aria-label="Origem">
+      <mat-option [value]="null">Todas as origens</mat-option>
+      @for (o of origens; track o.valor) {
+        <mat-option [value]="o.valor">
+          <span class="opcao-icone"><span class="material-symbols-rounded" aria-hidden="true">{{ o.icone }}</span>{{ o.rotulo }}</span>
+        </mat-option>
+      }
+    </mat-select>
+  </mat-form-field>
+  @if (filtrando()) {
+    <button matButton type="button" (click)="limparFiltros()">
+      <span class="material-symbols-rounded" aria-hidden="true">filter_alt_off</span> Limpar filtros
+    </button>
+  }
 </div>
 
 @if (metas()) {
-  <section class="cartao lista" aria-label="Metas por unidade">
-    <table>
-      <thead>
-        <tr>
-          <th scope="col">Unidade</th>
-          <th scope="col">Meta</th>
-          <th scope="col" class="num">Alerta</th>
-          <th scope="col">Vigência</th>
-          <th scope="col">Origem</th>
-          <th scope="col">Adesão</th>
-          <th scope="col">Situação</th>
-          @if (sessao.pode('indicador:gerenciar')) { <th scope="col"><span class="oculto">Ações</span></th> }
-        </tr>
-      </thead>
-      <tbody>
-        @for (l of linhas(); track l.unidadeId) {
-          <tr>
-            <td [style.padding-left.px]="16 + (l.nivel - 1) * 20">
-              <span class="unidade">{{ l.unidadeNome }}</span>
-            </td>
-            @if (l.propria; as p) {
-              <td class="dado">{{ fmt.percentual(p.valor) }}</td>
-              <td class="dado num">{{ p.alerta != null ? fmt.percentual(p.alerta) : '—' }}</td>
-              <td>{{ vigencia(p.vigenciaInicio, p.vigenciaFim) }}</td>
-              <td>
-                @if (p.origem || p.doContrato) {
-                  <span class="origem contrato" [title]="p.origem ?? ''">{{ p.origem ?? 'Contrato' }}</span>
-                } @else {
-                  <span class="origem">Manual</span>
-                }
-              </td>
-            } @else if (l.herdada; as h) {
-              <td class="herdada" colspan="4">Segue {{ h.unidadeNome }} · {{ fmt.percentual(h.valor) }}</td>
+  <section class="cartao tabela" aria-label="Metas por unidade">
+    <table mat-table [dataSource]="linhasVisiveis()" [trackBy]="rastrear">
+      <ng-container matColumnDef="unidade">
+        <th mat-header-cell *matHeaderCellDef>Unidade</th>
+        <td mat-cell *matCellDef="let r">
+          <div class="unidade" [style.padding-left.px]="r.profundidade * 22">
+            @if (r.temFilhas) {
+              <button matIconButton type="button" class="alternar" (click)="alternar(r.linha.unidadeId)"
+                      [attr.aria-expanded]="!recolhidas().has(r.linha.unidadeId)"
+                      [attr.aria-label]="(recolhidas().has(r.linha.unidadeId) ? 'Expandir ' : 'Recolher ') + r.linha.unidadeNome">
+                <span class="material-symbols-rounded">{{ recolhidas().has(r.linha.unidadeId) ? 'chevron_right' : 'expand_more' }}</span>
+              </button>
             } @else {
-              <td class="herdada" colspan="4">Sem meta</td>
+              <span class="sem-alternar" aria-hidden="true"></span>
             }
-            <td class="dado">
-              {{ l.adesao != null ? fmt.percentual(l.adesao) : '—' }}
-              @if (l.competenciaAdesao) { <span class="competencia">{{ fmt.competenciaCurta(l.competenciaAdesao) }}</span> }
-            </td>
-            <td>
-              @if (l.adesao != null) {
-                <aurora-selo-situacao [situacao]="l.situacao" />
-              } @else {
-                <span class="sem-medicao">Sem medição</span>
-              }
-            </td>
-            @if (sessao.pode('indicador:gerenciar')) {
-              <td class="acoes">
-                @if (l.propria && !l.propria.doContrato && !l.propria.origem) {
-                  <button class="botao" type="button" (click)="abrirEncerrar(l)">Encerrar</button>
-                } @else if (!l.propria) {
-                  <button class="botao" type="button" (click)="abrirNova(l)">Meta própria</button>
-                }
-              </td>
+            <span class="nome" [matTooltip]="r.linha.unidadeNome" matTooltipShowDelay="600">{{ r.linha.unidadeNome }}</span>
+          </div>
+        </td>
+      </ng-container>
+
+      <ng-container matColumnDef="meta">
+        <th mat-header-cell *matHeaderCellDef>Meta</th>
+        <td mat-cell *matCellDef="let r">
+          @if (r.linha.propria; as p) {
+            <span class="dado forte">{{ fmt.percentual(p.valor) }}</span>
+            @if (p.alerta != null) { <span class="secundario">alerta <span class="dado">{{ fmt.percentual(p.alerta) }}</span></span> }
+          } @else if (r.linha.herdada; as h) {
+            <span class="herdada" [matTooltip]="'Sem meta própria: segue ' + h.unidadeNome">
+              <span class="material-symbols-rounded" aria-hidden="true">subdirectory_arrow_right</span>
+              <span class="dado">{{ fmt.percentual(h.valor) }}</span>
+            </span>
+            <span class="secundario texto-curto">segue {{ h.unidadeNome }}</span>
+          } @else {
+            <span class="herdada">Sem meta</span>
+          }
+        </td>
+      </ng-container>
+
+
+      <ng-container matColumnDef="vigencia">
+        <th mat-header-cell *matHeaderCellDef>Vigência</th>
+        <td mat-cell *matCellDef="let r" class="vigencia">
+          @if (r.linha.propria; as p) {
+            {{ vigencia(p.vigenciaInicio, p.vigenciaFim) }}
+            @if (!p.vigenciaFim) { <span class="etiqueta">sem fim</span> }
+          }
+        </td>
+      </ng-container>
+
+      <ng-container matColumnDef="origem">
+        <th mat-header-cell *matHeaderCellDef>Origem</th>
+        <td mat-cell *matCellDef="let r">
+          @if (r.linha.propria; as p) {
+            @if (p.origem || p.doContrato) {
+              <span class="origem contrato" [matTooltip]="p.origem ?? 'Contrato'">
+                <span class="material-symbols-rounded" aria-hidden="true">description</span>
+                <span class="texto">{{ p.origem ?? 'Contrato' }}</span>
+              </span>
+            } @else {
+              <span class="origem"><span class="material-symbols-rounded" aria-hidden="true">edit</span>Manual</span>
             }
-          </tr>
-        } @empty {
-          <tr><td colspan="8" class="vazio">Nenhuma unidade com esses filtros.</td></tr>
-        }
-      </tbody>
+          }
+        </td>
+      </ng-container>
+
+      <ng-container matColumnDef="adesao">
+        <th mat-header-cell *matHeaderCellDef>Adesão</th>
+        <td mat-cell *matCellDef="let r">
+          @if (r.linha.adesao != null) {
+            <div class="adesao">
+              <span class="dado">{{ fmt.percentual(r.linha.adesao) }}</span>
+              <aurora-barra-adesao [percentual]="r.linha.adesao"
+                                   [meta]="r.linha.propria?.valor ?? r.linha.herdada?.valor ?? null" />
+            </div>
+            <span class="competencia">{{ fmt.competenciaCurta(r.linha.competenciaAdesao) }}</span>
+          } @else {
+            <span class="sem-medicao">Sem medição</span>
+          }
+        </td>
+      </ng-container>
+
+      <ng-container matColumnDef="situacao">
+        <th mat-header-cell *matHeaderCellDef>Situação</th>
+        <td mat-cell *matCellDef="let r">
+          @if (r.linha.adesao != null) { <aurora-selo-situacao [situacao]="r.linha.situacao" /> }
+        </td>
+      </ng-container>
+
+      <ng-container matColumnDef="acoes">
+        <th mat-header-cell *matHeaderCellDef><span class="oculto">Ações</span></th>
+        <td mat-cell *matCellDef="let r" class="acoes">
+          @if (r.linha.propria && !r.linha.propria.doContrato && !r.linha.propria.origem) {
+            <button matIconButton type="button" matTooltip="Encerrar meta" [attr.aria-label]="'Encerrar meta de ' + r.linha.unidadeNome"
+                    (click)="abrirEncerrar(r.linha)">
+              <span class="material-symbols-rounded">event_busy</span>
+            </button>
+          } @else if (!r.linha.propria) {
+            <button matIconButton type="button" matTooltip="Definir meta própria"
+                    [attr.aria-label]="'Definir meta própria para ' + r.linha.unidadeNome" (click)="abrirNova(r.linha)">
+              <span class="material-symbols-rounded">add_circle</span>
+            </button>
+          }
+        </td>
+      </ng-container>
+
+      <tr mat-header-row *matHeaderRowDef="colunas(); sticky: true"></tr>
+      <tr mat-row *matRowDef="let r; columns: colunas()"></tr>
+      <tr class="mat-mdc-no-data-row" *matNoDataRow>
+        <td class="vazio" [attr.colspan]="colunas().length">Nenhuma unidade com esses filtros.</td>
+      </tr>
     </table>
   </section>
 } @else if (dados.error()) {
   <section class="cartao" role="alert">
     <p>Não foi possível carregar as metas.</p>
-    <button class="botao" type="button" (click)="dados.reload()">Tentar de novo</button>
+    <button matButton="outlined" type="button" (click)="dados.reload()">Tentar de novo</button>
   </section>
 } @else {
   <div class="esqueleto" aria-busy="true" aria-label="Carregando as metas"></div>
 }
 
-<dialog #dialogoNova class="dialogo" aria-labelledby="titulo-nova">
-  <form [formGroup]="formulario" (ngSubmit)="salvarNova()">
-    <h2 id="titulo-nova">Meta própria</h2>
-    <p class="ajuda">Substitui a meta herdada nesta unidade e passa a valer para as unidades abaixo dela.</p>
-    <label>
-      <span>Unidade</span>
-      <select formControlName="unidadeId" required>
-        <option value="" disabled>Escolha a unidade</option>
-        @for (l of metas()?.linhas ?? []; track l.unidadeId) {
-          <option [value]="l.unidadeId">{{ l.unidadeNome }}</option>
-        }
-      </select>
-    </label>
-    <div class="dupla">
-      <label><span>Meta (%)</span><input type="number" formControlName="valor" min="0.01" max="100" step="0.01" required /></label>
-      <label><span>Limite de alerta (%)</span><input type="number" formControlName="alerta" min="0" max="100" step="0.01" required /></label>
-    </div>
-    <div class="dupla">
-      <label><span>Início da vigência</span><input type="date" formControlName="vigenciaInicio" required /></label>
-      <label><span>Fim (vazio = sem fim)</span><input type="date" formControlName="vigenciaFim" /></label>
-    </div>
-    @if (erro()) { <p class="erro" role="alert">{{ erro() }}</p> }
-    <p class="ajuda">A definição fica registrada na auditoria.</p>
-    <div class="botoes">
-      <button class="botao" type="button" (click)="fechar(dialogoNova)">Cancelar</button>
-      <button class="botao primario" type="submit" [disabled]="salvando()">{{ salvando() ? 'Salvando…' : 'Salvar meta' }}</button>
-    </div>
-  </form>
-</dialog>
+<ng-template #modeloNova>
+  <h2 mat-dialog-title>Meta própria</h2>
+  <mat-dialog-content>
+    <form id="form-meta" class="formulario" [formGroup]="formulario" (ngSubmit)="salvarNova()">
+      <p class="ajuda">Substitui a meta herdada nesta unidade e passa a valer para as unidades abaixo dela.</p>
+      <mat-form-field>
+        <mat-label>Unidade</mat-label>
+        <span matPrefix class="material-symbols-rounded prefixo" aria-hidden="true">account_tree</span>
+        <input matInput [formControl]="unidadeEscolhida" [matAutocomplete]="listaUnidades" placeholder="Buscar unidade" />
+        <mat-autocomplete #listaUnidades="matAutocomplete" [displayWith]="exibirUnidade" autoActiveFirstOption>
+          @for (o of opcoesUnidade(); track o.valor) {
+            <mat-option [value]="o">{{ o.rotulo }}</mat-option>
+          }
+        </mat-autocomplete>
+        @if (unidadeEscolhida.touched && unidadeEscolhida.invalid) { <mat-error>Escolha uma unidade da lista.</mat-error> }
+      </mat-form-field>
+      <div class="dupla">
+        <mat-form-field>
+          <mat-label>Meta</mat-label>
+          <input matInput type="number" formControlName="valor" min="0.01" max="100" step="0.01" />
+          <span matTextSuffix>%</span>
+          <mat-error>De 0,01 a 100.</mat-error>
+        </mat-form-field>
+        <mat-form-field>
+          <mat-label>Limite de alerta</mat-label>
+          <input matInput type="number" formControlName="alerta" min="0" max="100" step="0.01" />
+          <span matTextSuffix>%</span>
+          <mat-error>De 0 a 100.</mat-error>
+        </mat-form-field>
+      </div>
+      <div class="dupla">
+        <mat-form-field>
+          <mat-label>Início da vigência</mat-label>
+          <input matInput [matDatepicker]="calendarioInicio" formControlName="vigenciaInicio" placeholder="dd/mm/aaaa" />
+          <mat-datepicker-toggle matIconSuffix [for]="calendarioInicio" />
+          <mat-datepicker #calendarioInicio />
+          <mat-error>Informe uma data válida.</mat-error>
+        </mat-form-field>
+        <mat-form-field>
+          <mat-label>Fim (opcional)</mat-label>
+          <input matInput [matDatepicker]="calendarioFim" formControlName="vigenciaFim" placeholder="Sem fim" />
+          <mat-datepicker-toggle matIconSuffix [for]="calendarioFim" />
+          <mat-datepicker #calendarioFim />
+        </mat-form-field>
+      </div>
+      @if (erro()) {
+        <p class="erro" role="alert"><span class="material-symbols-rounded" aria-hidden="true">error</span>{{ erro() }}</p>
+      }
+      <p class="ajuda"><span class="material-symbols-rounded" aria-hidden="true">shield</span> A definição fica registrada na auditoria.</p>
+    </form>
+  </mat-dialog-content>
+  <mat-dialog-actions align="end">
+    <button matButton type="button" (click)="fechar()">Cancelar</button>
+    <button matButton="filled" type="submit" form="form-meta" [disabled]="salvando()">
+      @if (salvando()) { <mat-spinner diameter="18" /> } Salvar meta
+    </button>
+  </mat-dialog-actions>
+</ng-template>
 
-<dialog #dialogoEncerrar class="dialogo" aria-labelledby="titulo-encerrar">
-  <form (ngSubmit)="confirmarEncerramento()">
-    <h2 id="titulo-encerrar">Encerrar meta de {{ emEncerramento()?.unidadeNome }}</h2>
-    <p class="ajuda">A meta deixa de valer depois desta data. O histórico é mantido; a unidade volta a seguir a meta acima.</p>
-    <label><span>Último dia de vigência</span><input type="date" [formControl]="encerramento" required /></label>
-    @if (erro()) { <p class="erro" role="alert">{{ erro() }}</p> }
-    <div class="botoes">
-      <button class="botao" type="button" (click)="fechar(dialogoEncerrar)">Cancelar</button>
-      <button class="botao primario" type="submit" [disabled]="salvando()">{{ salvando() ? 'Encerrando…' : 'Encerrar' }}</button>
-    </div>
-  </form>
-</dialog>
+<ng-template #modeloEncerrar>
+  <h2 mat-dialog-title>Encerrar meta de {{ emEncerramento()?.unidadeNome }}</h2>
+  <mat-dialog-content>
+    <form id="form-encerrar" class="formulario" (ngSubmit)="confirmarEncerramento()">
+      <p class="ajuda">A meta deixa de valer depois desta data. O histórico é mantido e a unidade volta a seguir a meta acima.</p>
+      <mat-form-field>
+        <mat-label>Último dia de vigência</mat-label>
+        <input matInput [matDatepicker]="calendarioEncerrar" [formControl]="fimEncerramento" [min]="inicioDaMeta()"
+               placeholder="dd/mm/aaaa" />
+        <mat-datepicker-toggle matIconSuffix [for]="calendarioEncerrar" />
+        <mat-datepicker #calendarioEncerrar />
+        <mat-error>Informe uma data a partir do início da vigência.</mat-error>
+      </mat-form-field>
+      @if (erro()) {
+        <p class="erro" role="alert"><span class="material-symbols-rounded" aria-hidden="true">error</span>{{ erro() }}</p>
+      }
+    </form>
+  </mat-dialog-content>
+  <mat-dialog-actions align="end">
+    <button matButton type="button" (click)="fechar()">Cancelar</button>
+    <button matButton="filled" type="submit" form="form-encerrar" class="perigo" [disabled]="salvando()">Encerrar</button>
+  </mat-dialog-actions>
+</ng-template>

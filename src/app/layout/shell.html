@@ -30,15 +30,18 @@
 
 <header class="topo">
   <button class="busca" type="button" aria-keyshortcuts="Control+K">
-    Buscar unidade, matrícula ou contrato <kbd>Ctrl K</kbd>
+    <span class="material-symbols-rounded" aria-hidden="true">search</span>
+    <span class="texto">Buscar unidade, matrícula ou contrato</span>
+    <kbd>Ctrl K</kbd>
   </button>
   <div class="acoes">
-    <button class="botao" type="button" aria-keyshortcuts="Control+J">
-      <span class="ponto" aria-hidden="true"></span> Assistente <kbd>Ctrl J</kbd>
+    <button matButton="outlined" type="button" aria-keyshortcuts="Control+J">
+      <span class="material-symbols-rounded" aria-hidden="true">auto_awesome</span> Assistente <kbd>Ctrl J</kbd>
     </button>
-    <button class="botao" type="button" (click)="tema.alternar()"
+    <button matIconButton type="button" (click)="tema.alternar()"
+            [matTooltip]="tema.tema() === 'dark' ? 'Usar tema claro' : 'Usar tema escuro'"
             [attr.aria-label]="tema.tema() === 'dark' ? 'Usar tema claro' : 'Usar tema escuro'">
-      {{ tema.tema() === 'dark' ? 'Tema claro' : 'Tema escuro' }}
+      <span class="material-symbols-rounded">{{ tema.tema() === 'dark' ? 'light_mode' : 'dark_mode' }}</span>
     </button>
     @if (sessao.usuario(); as eu) {
       <div class="usuario">
@@ -49,7 +52,9 @@
         </span>
       </div>
     }
-    <button class="botao" type="button" (click)="sessao.sair()">Sair</button>
+    <button matIconButton type="button" (click)="sessao.sair()" matTooltip="Sair" aria-label="Sair">
+      <span class="material-symbols-rounded">logout</span>
+    </button>
   </div>
 </header>
 

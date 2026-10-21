@@ -10,80 +10,81 @@
     </div>
     @if (sessao.pode('relatorio:exportar')) {
       <div class="exportar">
-        <button class="botao" type="button" (click)="exportar(p)" [disabled]="exportando()">
-          {{ exportando() ? 'Gerando planilha…' : 'Exportar CSV' }}
+        <button matButton="filled" type="button" (click)="exportar(p)" [disabled]="exportando()">
+          @if (exportando()) { <mat-spinner diameter="18" /> } @else {
+            <span class="material-symbols-rounded" aria-hidden="true">download</span>
+          }
+          Exportar CSV
         </button>
-        <span class="aviso-auditoria">A emissão fica registrada na auditoria.</span>
-        @if (erroExportacao()) {
-          <span class="erro" role="alert">Não foi possível exportar. Tente de novo.</span>
-        }
+        <span class="aviso-auditoria">
+          <span class="material-symbols-rounded" aria-hidden="true">shield</span> A emissão fica registrada na auditoria.
+        </span>
+        @if (erroExportacao()) { <span class="erro" role="alert">Não foi possível exportar. Tente de novo.</span> }
       </div>
     }
   </header>
 
   <div class="barra">
-    <div class="abas" role="tablist" aria-label="Situação">
-      <button role="tab" type="button" [attr.aria-selected]="aba() === 'TODOS'" (click)="escolherAba('TODOS')">
-        Todos <span class="dado">{{ fmt.numero(p.totais.todos) }}</span>
-      </button>
-      <button role="tab" type="button" [attr.aria-selected]="aba() === 'FACTIVEL'" (click)="escolherAba('FACTIVEL')">
-        Factíveis <span class="dado">{{ fmt.numero(p.totais.factiveis) }}</span>
-      </button>
-      <button role="tab" type="button" [attr.aria-selected]="aba() === 'CORTADO'" (click)="escolherAba('CORTADO')">
-        Cortados <span class="dado">{{ fmt.numero(p.totais.cortados) }}</span>
-      </button>
-    </div>
-    <form class="busca" role="search" (submit)="$event.preventDefault(); buscar(campoBusca.value)">
-      <label for="busca-matricula" class="rotulo">Matrícula</label>
-      <input #campoBusca id="busca-matricula" type="search" inputmode="numeric" autocomplete="off"
-             placeholder="Início da matrícula" maxlength="40" [value]="matricula() ?? ''"
-             (search)="buscar(campoBusca.value)" />
-    </form>
+    <mat-button-toggle-group class="abas" [value]="aba()" (change)="escolherAba($event.value)" aria-label="Situação"
+                             hideSingleSelectionIndicator>
+      <mat-button-toggle value="TODOS">Todos <span class="contagem dado">{{ fmt.numero(p.totais.todos) }}</span></mat-button-toggle>
+      <mat-button-toggle value="FACTIVEL">Factíveis <span class="contagem dado">{{ fmt.numero(p.totais.factiveis) }}</span></mat-button-toggle>
+      <mat-button-toggle value="CORTADO">Cortados <span class="contagem dado">{{ fmt.numero(p.totais.cortados) }}</span></mat-button-toggle>
+    </mat-button-toggle-group>
+    <mat-form-field class="busca">
+      <span matPrefix class="material-symbols-rounded prefixo" aria-hidden="true">search</span>
+      <input matInput type="search" inputmode="numeric" autocomplete="off" maxlength="40" placeholder="Buscar matrícula"
+             aria-label="Buscar matrícula" [formControl]="campoBusca" />
+    </mat-form-field>
   </div>
 
   @if (!p.matriculasVisiveis) {
     <p class="mascaradas" role="note">
+      <span class="material-symbols-rounded" aria-hidden="true">visibility_off</span>
       Matrículas parcialmente ocultas: seu perfil não inclui acesso a dados pessoais.
     </p>
   }
 
   <section class="cartao lista" aria-label="Imóveis sem ligação">
-    @if (itens().length === 0) {
-      <p class="vazio">Nenhum imóvel sem ligação com esses filtros.</p>
-    } @else {
-      <table>
-        <thead>
-          <tr>
-            <th scope="col">Matrícula</th>
-            <th scope="col">Unidade</th>
-            <th scope="col">Situação</th>
-            <th scope="col">Sem ligação há</th>
-            <th scope="col">Origem</th>
-          </tr>
-        </thead>
-        <tbody>
-          @for (item of itens(); track item.matricula + item.unidadeId) {
-            <tr>
-              <td class="dado matricula">{{ item.matricula }}</td>
-              <td>{{ item.unidadeNome }}</td>
-              <td>
-                <aurora-selo [tom]="item.situacao === 'CORTADO' ? 'perigo' : 'atencao'">
-                  {{ item.situacao === 'CORTADO' ? 'Cortado' : 'Factível' }}
-                </aurora-selo>
-              </td>
-              <td class="dado">{{ tempoSemLigacao(item) }}</td>
-              <td class="origem">{{ origem(item) }}</td>
-            </tr>
-          }
-        </tbody>
+    <div class="rolagem">
+      <table mat-table [dataSource]="itens()">
+        <ng-container matColumnDef="matricula">
+          <th mat-header-cell *matHeaderCellDef>Matrícula</th>
+          <td mat-cell *matCellDef="let item" class="dado matricula">{{ item.matricula }}</td>
+        </ng-container>
+        <ng-container matColumnDef="unidade">
+          <th mat-header-cell *matHeaderCellDef>Unidade</th>
+          <td mat-cell *matCellDef="let item">{{ item.unidadeNome }}</td>
+        </ng-container>
+        <ng-container matColumnDef="situacao">
+          <th mat-header-cell *matHeaderCellDef>Situação</th>
+          <td mat-cell *matCellDef="let item">
+            <aurora-selo [tom]="item.situacao === 'CORTADO' ? 'perigo' : 'atencao'">
+              {{ item.situacao === 'CORTADO' ? 'Cortado' : 'Factível' }}
+            </aurora-selo>
+          </td>
+        </ng-container>
+        <ng-container matColumnDef="tempo">
+          <th mat-header-cell *matHeaderCellDef>Sem ligação há</th>
+          <td mat-cell *matCellDef="let item" class="dado">{{ tempoSemLigacao(item) }}</td>
+        </ng-container>
+        <ng-container matColumnDef="origem">
+          <th mat-header-cell *matHeaderCellDef>Origem</th>
+          <td mat-cell *matCellDef="let item" class="origem">{{ origem(item) }}</td>
+        </ng-container>
+        <tr mat-header-row *matHeaderRowDef="colunas; sticky: true"></tr>
+        <tr mat-row *matRowDef="let item; columns: colunas"></tr>
+        <tr class="mat-mdc-no-data-row" *matNoDataRow>
+          <td class="vazio" [attr.colspan]="colunas.length">Nenhum imóvel sem ligação com esses filtros.</td>
+        </tr>
       </table>
-    }
+    </div>
     <footer class="rodape">
       <span>Mostrando <span class="dado">{{ fmt.numero(itens().length) }}</span> de
         <span class="dado">{{ fmt.numero(totalDaAba()) }}</span></span>
       @if (proximo()) {
-        <button class="botao" type="button" (click)="carregarMais()" [disabled]="carregandoMais()">
-          {{ carregandoMais() ? 'Carregando…' : 'Carregar mais' }}
+        <button matButton="outlined" type="button" (click)="carregarMais()" [disabled]="carregandoMais()">
+          @if (carregandoMais()) { <mat-spinner diameter="16" /> Carregando… } @else { Carregar mais }
         </button>
       }
     </footer>
@@ -97,7 +98,7 @@
   <section class="cartao vazio-cartao" role="alert">
     <span class="rotulo">Erro</span>
     <p>Não foi possível carregar a lista. Tente novamente em instantes.</p>
-    <button class="botao" type="button" (click)="primeiraPagina.reload()">Tentar de novo</button>
+    <button matButton="outlined" type="button" (click)="primeiraPagina.reload()">Tentar de novo</button>
   </section>
 } @else {
   <div class="esqueleto" aria-busy="true" aria-label="Carregando a lista"></div>

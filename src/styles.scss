@@ -1,4 +1,115 @@
+@use '@angular/material' as mat;
 @use 'styles/tokens';
+@use 'styles/theme-colors' as cores;
+@use '@fontsource-variable/inter';
+@use '@fontsource-variable/archivo/wdth.css';
+@use '@fontsource-variable/jetbrains-mono';
+@use 'material-symbols/rounded.css';
+
+// Angular Material (MIT) com a identidade da Aurora (docs/07, ADR 0010). As variáveis de sistema do Material
+// apontam para os tokens da Aurora, então o tema claro/escuro continua vindo só de data-theme.
+html {
+  @include mat.theme((
+    color: (primary: cores.$primary-palette, tertiary: cores.$tertiary-palette, theme-type: color-scheme),
+    typography: (plain-family: var(--font-ui), brand-family: var(--font-display)),
+    density: 0,
+  ));
+  @include mat.theme-overrides((
+    primary: var(--accent),
+    on-primary: var(--on-accent),
+    primary-container: color-mix(in srgb, var(--accent) 16%, transparent),
+    on-primary-container: var(--text-1),
+    secondary-container: color-mix(in srgb, var(--accent) 14%, transparent),
+    on-secondary-container: var(--text-1),
+    surface: var(--bg-1),
+    on-surface: var(--text-1),
+    on-surface-variant: var(--text-2),
+    surface-container-lowest: var(--bg-1),
+    surface-container-low: var(--bg-2),
+    surface-container: var(--bg-2),
+    surface-container-high: var(--bg-3),
+    surface-container-highest: var(--bg-3),
+    outline: color-mix(in srgb, var(--text-3) 55%, var(--line)),
+    outline-variant: var(--line),
+    error: var(--danger),
+    corner-extra-small: 6px,
+    corner-small: 8px,
+    corner-medium: 12px,
+    corner-large: 16px,
+  ));
+
+  // Tipografia: sem o espaçamento entre letras do Material 3 (a identidade usa Inter sem tracking).
+  @each $papel in (display, headline, title, body, label) {
+    @each $tamanho in (large, medium, small) {
+      --mat-sys-#{$papel}-#{$tamanho}-tracking: 0;
+    }
+  }
+
+  // Campos: contorno fino, raio 10, foco na cor de destaque; altura compacta.
+  @include mat.form-field-density(-3);
+  @include mat.form-field-overrides((
+    outlined-container-shape: 10px,
+    outlined-outline-color: var(--line),
+    outlined-hover-outline-color: color-mix(in srgb, var(--text-3) 60%, var(--line)),
+    outlined-focus-outline-color: var(--accent),
+    outlined-focus-outline-width: 1px,
+    outlined-input-text-placeholder-color: var(--text-3),
+    container-text-size: var(--fs-body),
+  ));
+  @include mat.select-overrides((
+    panel-background-color: var(--bg-3),
+    trigger-text-size: var(--fs-body),
+  ));
+  @include mat.autocomplete-overrides((background-color: var(--bg-3)));
+  @include mat.option-overrides((
+    selected-state-label-text-color: var(--accent),
+    selected-state-layer-color: color-mix(in srgb, var(--accent) 12%, transparent),
+    label-text-size: var(--fs-body),
+  ));
+  @include mat.button-overrides((
+    filled-container-shape: 10px,
+    filled-container-color: var(--accent),
+    filled-label-text-color: var(--on-accent),
+    filled-label-text-weight: 600,
+    outlined-container-shape: 10px,
+    outlined-outline-color: var(--line),
+    outlined-label-text-color: var(--text-1),
+    text-container-shape: 10px,
+    text-label-text-color: var(--accent),
+  ));
+  @include mat.button-toggle-overrides((
+    shape: 10px,
+    divider-color: var(--line),
+    selected-state-background-color: color-mix(in srgb, var(--accent) 14%, transparent),
+    selected-state-text-color: var(--text-1),
+    text-color: var(--text-2),
+  ));
+  @include mat.table-overrides((
+    background-color: transparent,
+    header-headline-color: var(--text-3),
+    header-headline-size: var(--fs-small),
+    header-headline-weight: 500,
+    row-item-outline-color: var(--line),
+    row-item-label-text-size: var(--fs-body),
+    header-container-height: 44px,
+    row-item-container-height: 52px,
+  ));
+  @include mat.dialog-overrides((
+    container-color: var(--bg-2),
+    container-shape: 16px,
+    subhead-color: var(--text-1),
+    supporting-text-color: var(--text-2),
+  ));
+  @include mat.datepicker-overrides((
+    calendar-container-background-color: var(--bg-3),
+    calendar-container-shape: 14px,
+    calendar-date-selected-state-background-color: var(--accent),
+    calendar-date-selected-state-text-color: var(--on-accent),
+    calendar-date-today-outline-color: var(--accent),
+  ));
+  @include mat.sort-overrides((arrow-color: var(--text-3)));
+  @include mat.progress-spinner-overrides((active-indicator-color: var(--on-accent)));
+}
 
 *, *::before, *::after { box-sizing: border-box; }
 
@@ -18,6 +129,8 @@ a { color: var(--accent); }
 :focus-visible { outline: none; box-shadow: var(--shadow-focus); border-radius: var(--radius-s); }
 
 // Números: monoespaçados e tabulares (o número é o herói).
+.material-symbols-rounded { font-size: 20px; line-height: 1; vertical-align: middle; }
+
 .dado { font-family: var(--font-data); font-variant-numeric: tabular-nums; }
 
 .rotulo {
@@ -58,3 +171,27 @@ kbd {
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { animation: none !important; transition: none !important; }
 }
+
+// ---------- Diálogos e formulários (conteúdo é renderizado fora dos componentes) ----------
+.formulario { display: grid; gap: var(--space-4); padding-top: var(--space-1); }
+.formulario .dupla { display: grid; grid-template-columns: 1fr 1fr; gap: var(--space-3); }
+.formulario mat-form-field { width: 100%; }
+.formulario .ajuda {
+  display: flex; align-items: center; gap: 6px; margin: 0;
+  font-size: var(--fs-small); color: var(--text-3);
+  .material-symbols-rounded { font-size: 16px; }
+}
+.formulario .erro {
+  display: flex; align-items: center; gap: 8px; margin: 0; padding: var(--space-2) var(--space-3);
+  border-radius: var(--radius-s); background: color-mix(in srgb, var(--danger) 12%, transparent);
+  color: var(--danger); font-size: var(--fs-small);
+  .material-symbols-rounded { font-size: 18px; }
+}
+.formulario .prefixo { margin: 0 4px 0 10px; color: var(--text-3); }
+@media (max-width: 640px) { .formulario .dupla { grid-template-columns: 1fr; } }
+
+button.perigo { --mat-button-filled-container-color: var(--danger); --mat-button-filled-label-text-color: #fff; }
+.mat-mdc-button .material-symbols-rounded, .mat-mdc-unelevated-button .material-symbols-rounded,
+.mat-mdc-outlined-button .material-symbols-rounded { font-size: 18px; margin-right: 2px; }
+.mat-mdc-row:hover .mat-mdc-cell { background: color-mix(in srgb, var(--bg-3) 70%, transparent); }
+.mat-mdc-header-cell { background: var(--bg-2); }
