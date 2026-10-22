@@ -13,10 +13,10 @@ import { MatSlideToggleModule } from '@angular/material/slide-toggle';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { firstValueFrom } from 'rxjs';
-import type { CredencialApi, CredencialGerada, ExecucaoApi, FonteApi, PedidoFonte } from '../../api/tipos';
+import type { CredencialApi, CredencialGerada, ExecucaoApi, FonteApi, PedidoFonte, ResultadoCarga } from '../../api/tipos';
 import { AlertasService } from '../../nucleo/alertas';
 import { mensagemDeErro } from '../../nucleo/erro-api';
-import { data, dataEHora, haQuantoTempo, numero } from '../../nucleo/formato';
+import { competenciaCurta, data, dataEHora, haQuantoTempo, numero } from '../../nucleo/formato';
 import { SessaoService } from '../../nucleo/sessao';
 import { Selo, type Tom } from '../../ui/selo';
 
@@ -36,6 +36,18 @@ export function atraso(horas: number): string {
   }
   return `${horas} ${horas === 1 ? 'hora' : 'horas'}`;
 }
+
+/** As últimas competências, da atual para trás ("2026-10" → "out/2026"). */
+export function ultimasCompetencias(quantidade: number, hoje = new Date()): { valor: string; rotulo: string }[] {
+  return Array.from({ length: quantidade }, (_, i) => {
+    const d = new Date(hoje.getFullYear(), hoje.getMonth() - i, 1);
+    const valor = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
+    return { valor, rotulo: competenciaCurta(valor) };
+  });
+}
+
+/** Modelo do CSV de carga (o mesmo formato que o servidor lê). */
+export const MODELO_CSV = 'matricula;unidade;situacao\n100001;CA-CENTRO;LIGADO\n100002;CA-CENTRO;FACTIVEL\n100003;CB-SUL;CORTADO\n100004;CB-SUL;POTENCIAL\n';
 
 export function situacaoFonte(f: FonteApi): { rotulo: string; tom: Tom } {
   if (!f.ativo) {
@@ -77,7 +89,7 @@ export class Integracoes {
   });
 
   protected readonly tipos = Object.entries(TIPOS_FONTE).map(([codigo, rotulo]) => ({ codigo: codigo as FonteApi['tipo'], rotulo }));
-  protected readonly fmt = { data, dataEHora, haQuantoTempo, numero, atraso };
+  protected readonly fmt = { competenciaCurta, data, dataEHora, haQuantoTempo, numero, atraso };
   protected readonly situacao = situacaoFonte;
   protected readonly rotuloTipo = (t: FonteApi['tipo']) => TIPOS_FONTE[t];
 
@@ -85,6 +97,7 @@ export class Integracoes {
   private readonly modeloFonte = viewChild.required<TemplateRef<unknown>>('modeloFonte');
   private readonly modeloHistorico = viewChild.required<TemplateRef<unknown>>('modeloHistorico');
   private readonly modeloCredenciais = viewChild.required<TemplateRef<unknown>>('modeloCredenciais');
+  private readonly modeloCarga = viewChild.required<TemplateRef<unknown>>('modeloCarga');
   private dialogoAberto?: MatDialogRef<unknown>;
 
   protected readonly emEdicao = signal<FonteApi | null>(null);
@@ -103,6 +116,14 @@ export class Integracoes {
   protected readonly execucoes = signal<ExecucaoApi[] | null>(null);
   protected readonly credenciais = signal<CredencialApi[] | null>(null);
   protected readonly chaveGerada = signal<CredencialGerada | null>(null);
+
+  // ----- Carga por arquivo -----
+  protected readonly competencias = ultimasCompetencias(24);
+  protected readonly competencia = new FormControl(this.competencias[1]!.valor, { nonNullable: true });
+  /** Só para o (ngSubmit): sem [formGroup] o envio seria o submit nativo. */
+  protected readonly formCarga = new FormGroup({ competencia: this.competencia });
+  protected readonly arquivoCarga = signal<File | null>(null);
+  protected readonly resultadoCarga = signal<ResultadoCarga | null>(null);
 
   protected abrirNova(): void {
     this.erro.set(null);
@@ -202,6 +223,61 @@ export class Integracoes {
   protected duracao(inicio: string, fim: string): string {
     const segundos = Math.max(0, Math.round((new Date(fim).getTime() - new Date(inicio).getTime()) / 1000));
     return segundos < 60 ? `${segundos} s` : segundos < 3600 ? `${Math.round(segundos / 60)} min` : `${(segundos / 3600).toFixed(1).replace('.', ',')} h`;
+  }
+
+  protected abrirCarga(f: FonteApi): void {
+    this.emEdicao.set(f);
+    this.erro.set(null);
+    this.arquivoCarga.set(null);
+    this.resultadoCarga.set(null);
+    this.competencia.reset(this.competencias[1]!.valor);
+    this.dialogoAberto = this.dialogos.open(this.modeloCarga(), { width: '720px' });
+  }
+
+  protected escolherArquivo(evento: Event): void {
+    const campo = evento.target as HTMLInputElement;
+    this.arquivoCarga.set(campo.files?.[0] ?? null);
+    campo.value = '';
+    this.resultadoCarga.set(null);
+    this.erro.set(null);
+  }
+
+  protected baixarModelo(): void {
+    const url = URL.createObjectURL(new Blob(['\uFEFF' + MODELO_CSV], { type: 'text/csv;charset=utf-8' }));
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = 'modelo-carga.csv';
+    link.click();
+    URL.revokeObjectURL(url);
+  }
+
+  protected async enviarCarga(): Promise<void> {
+    const f = this.emEdicao();
+    const arquivo = this.arquivoCarga();
+    if (!f || !arquivo) {
+      this.erro.set('Escolha o arquivo CSV.');
+      return;
+    }
+    const corpo = new FormData();
+    corpo.append('arquivo', arquivo, arquivo.name);
+    this.salvando.set(true);
+    this.erro.set(null);
+    try {
+      this.resultadoCarga.set(
+        await firstValueFrom(
+          this.http.post<ResultadoCarga>(`/api/v1/integracoes/fontes/${f.id}/cargas`, corpo, {
+            params: { competencia: this.competencia.value },
+          }),
+        ),
+      );
+      this.arquivoCarga.set(null);
+      this.dados.reload();
+      this.alertas.resumo.reload();
+    } catch (falha) {
+      this.erro.set(mensagemDeErro(falha, 'Não foi possível processar a carga.'));
+    } finally {
+      this.salvando.set(false);
+    }
   }
 
   protected copiar(chave: string): void {

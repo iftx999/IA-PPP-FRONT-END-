@@ -276,6 +276,22 @@ export interface paths {
     patch?: never;
     trace?: never;
   };
+  '/api/v1/integracoes/fontes/{id}/cargas': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    post: operations['carregar'];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
   '/api/v1/integracoes/credenciais/{prefixo}/revogacao': {
     parameters: {
       query?: never;
@@ -414,6 +430,22 @@ export interface paths {
     get?: never;
     put?: never;
     post: operations['avaliar'];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/api/agente/v1/cargas': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    post: operations['carregar_1'];
     delete?: never;
     options?: never;
     head?: never;
@@ -724,6 +756,22 @@ export interface paths {
     patch?: never;
     trace?: never;
   };
+  '/api/agente/v1/situacao': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get: operations['situacao'];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
 }
 export type webhooks = Record<string, never>;
 export interface components {
@@ -850,6 +898,30 @@ export interface components {
       prefixo: string;
       chave: string;
     };
+    CargaResponse: {
+      /** Format: uuid */
+      execucao: string;
+      competencia: string;
+      /** Format: int64 */
+      lidos: number;
+      /** Format: int64 */
+      novos: number;
+      /** Format: int64 */
+      atualizados: number;
+      /** Format: int64 */
+      inalterados: number;
+      /** Format: int64 */
+      rejeitados: number;
+      rejeicoes: components['schemas']['Rejeicao'][];
+      /** Format: int32 */
+      medicoesRecalculadas: number;
+    };
+    Rejeicao: {
+      /** Format: int32 */
+      linha?: number;
+      matricula?: string;
+      motivo?: string;
+    };
     ContratoRequest: {
       numero: string;
       /** Format: uuid */
@@ -881,6 +953,33 @@ export interface components {
       atualizados: number;
       /** Format: int32 */
       resolvidos: number;
+    };
+    CargaAgenteRequest: {
+      competencia: string;
+      registros: components['schemas']['RegistroAgente'][];
+    };
+    RegistroAgente: {
+      matricula: string | null;
+      unidade: string | null;
+      situacao: string | null;
+    };
+    ResultadoCargaResponse: {
+      /** Format: uuid */
+      execucao: string;
+      competencia: string;
+      /** Format: int64 */
+      lidos: number;
+      /** Format: int64 */
+      novos: number;
+      /** Format: int64 */
+      atualizados: number;
+      /** Format: int64 */
+      inalterados: number;
+      /** Format: int64 */
+      rejeitados: number;
+      rejeicoes: components['schemas']['Rejeicao'][];
+      /** Format: int32 */
+      medicoesRecalculadas: number;
     };
     ConcessaoResponse: {
       /** Format: uuid */
@@ -1364,6 +1463,14 @@ export interface components {
       reconhecidos: number;
       competencia: string | null;
       fontesAtrasadas: components['schemas']['FonteAtrasadaDto'][];
+    };
+    SituacaoAgenteResponse: {
+      /** Format: uuid */
+      fonte: string;
+      nome: string;
+      ativa: boolean;
+      /** Format: date-time */
+      ultimaCarga: string | null;
     };
   };
   responses: never;
@@ -1936,6 +2043,37 @@ export interface operations {
       };
     };
   };
+  carregar: {
+    parameters: {
+      query: {
+        competencia: string;
+      };
+      header?: never;
+      path: {
+        id: string;
+      };
+      cookie?: never;
+    };
+    requestBody?: {
+      content: {
+        'multipart/form-data': {
+          /** Format: binary */
+          arquivo: string;
+        };
+      };
+    };
+    responses: {
+      /** @description OK */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          '*/*': components['schemas']['CargaResponse'];
+        };
+      };
+    };
+  };
   revogar: {
     parameters: {
       query?: never;
@@ -2182,6 +2320,30 @@ export interface operations {
         };
         content: {
           '*/*': components['schemas']['AvaliacaoResponse'];
+        };
+      };
+    };
+  };
+  carregar_1: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        'application/json': components['schemas']['CargaAgenteRequest'];
+      };
+    };
+    responses: {
+      /** @description OK */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          '*/*': components['schemas']['ResultadoCargaResponse'];
         };
       };
     };
@@ -2605,6 +2767,26 @@ export interface operations {
         };
         content: {
           '*/*': components['schemas']['ResumoAlertasResponse'];
+        };
+      };
+    };
+  };
+  situacao: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description OK */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          '*/*': components['schemas']['SituacaoAgenteResponse'];
         };
       };
     };

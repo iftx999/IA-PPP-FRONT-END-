@@ -39,3 +39,8 @@ button.perigo:not([matButton="filled"]) { color: var(--danger); }
 .esqueleto { min-height: 300px; border-radius: var(--radius-m);
   background: linear-gradient(90deg, var(--bg-2), var(--bg-3), var(--bg-2)); background-size: 200% 100%; animation: brilho 1.2s ease-in-out infinite; }
 @keyframes brilho { from { background-position: 100% 0; } to { background-position: -100% 0; } }
+.arquivo { display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-2); }
+.resultado { padding: var(--space-3); border: var(--border); border-radius: var(--radius-m); display: grid; gap: var(--space-3); }
+.resultado-titulo { margin: 0; display: flex; align-items: center; gap: var(--space-2); font-weight: 600;
+  .material-symbols-rounded { color: var(--ok); } }
+.rejeitados { color: var(--warn); }

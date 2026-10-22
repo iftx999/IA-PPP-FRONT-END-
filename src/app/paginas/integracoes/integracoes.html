@@ -59,6 +59,11 @@
             <span class="material-symbols-rounded">more_vert</span>
           </button>
           <mat-menu #menu="matMenu" xPosition="before">
+            @if (f.ativo) {
+              <button mat-menu-item type="button" (click)="abrirCarga(f)">
+                <span class="material-symbols-rounded" aria-hidden="true">upload_file</span> Enviar carga (CSV)
+              </button>
+            }
             <button mat-menu-item type="button" (click)="abrirHistorico(f)">
               <span class="material-symbols-rounded" aria-hidden="true">history</span> Histórico de cargas
             </button>
@@ -226,6 +231,75 @@
     <button matButton type="button" (click)="fechar()">Fechar</button>
     <button matButton="filled" type="button" (click)="gerarCredencial()" [disabled]="salvando()">
       <span class="material-symbols-rounded" aria-hidden="true">key</span> Gerar credencial
+    </button>
+  </mat-dialog-actions>
+</ng-template>
+
+<ng-template #modeloCarga>
+  <h2 mat-dialog-title>Carga de {{ emEdicao()?.nome }}</h2>
+  <mat-dialog-content>
+    <form id="form-carga" class="formulario" [formGroup]="formCarga" (ngSubmit)="enviarCarga()">
+      <p class="ajuda">
+        <span class="material-symbols-rounded" aria-hidden="true">info</span>
+        <span>
+          CSV com as colunas <code>matricula;unidade;situacao</code> (código da unidade; situação LIGADO, FACTIVEL,
+          CORTADO ou POTENCIAL). Só matrícula: nome e endereço não entram na Aurora. A adesão da competência é recalculada.
+        </span>
+      </p>
+      <div class="dupla">
+        <mat-form-field>
+          <mat-label>Competência</mat-label>
+          <mat-select formControlName="competencia">
+            @for (c of competencias; track c.valor) { <mat-option [value]="c.valor">{{ c.rotulo }}</mat-option> }
+          </mat-select>
+        </mat-form-field>
+        <div class="arquivo">
+          <button matButton="outlined" type="button" (click)="seletorCsv.click()">
+            <span class="material-symbols-rounded" aria-hidden="true">attach_file</span>
+            {{ arquivoCarga() ? arquivoCarga()!.name : 'Escolher arquivo' }}
+          </button>
+          <input #seletorCsv type="file" accept=".csv,text/csv" hidden (change)="escolherArquivo($event)" aria-label="Arquivo CSV da carga" />
+          <button matButton type="button" (click)="baixarModelo()">Baixar modelo</button>
+        </div>
+      </div>
+      @if (resultadoCarga(); as r) {
+        <div class="resultado" role="status">
+          <p class="resultado-titulo">
+            <span class="material-symbols-rounded" aria-hidden="true">{{ r.rejeitados ? 'rule' : 'task_alt' }}</span>
+            Carga de {{ fmt.competenciaCurta(r.competencia) }} concluída
+          </p>
+          <dl class="numeros">
+            <div><dt>Lidos</dt><dd class="dado">{{ fmt.numero(r.lidos) }}</dd></div>
+            <div><dt>Novos</dt><dd class="dado">{{ fmt.numero(r.novos) }}</dd></div>
+            <div><dt>Atualizados</dt><dd class="dado">{{ fmt.numero(r.atualizados) }}</dd></div>
+            <div><dt>Sem mudança</dt><dd class="dado">{{ fmt.numero(r.inalterados) }}</dd></div>
+            <div><dt>Recusados</dt><dd class="dado" [class.rejeitados]="r.rejeitados">{{ fmt.numero(r.rejeitados) }}</dd></div>
+            <div><dt>Unidades recalculadas</dt><dd class="dado">{{ r.medicoesRecalculadas }}</dd></div>
+          </dl>
+          @if (r.rejeicoes.length) {
+            <table class="tabela-cargas" aria-label="Linhas recusadas">
+              <thead><tr><th scope="col">Linha</th><th scope="col">Matrícula</th><th scope="col">Motivo</th></tr></thead>
+              <tbody>
+                @for (rej of r.rejeicoes; track rej.linha) {
+                  <tr><td class="dado">{{ rej.linha }}</td><td class="dado">{{ rej.matricula ?? '—' }}</td><td>{{ rej.motivo }}</td></tr>
+                }
+              </tbody>
+            </table>
+            @if (r.rejeitados > r.rejeicoes.length) {
+              <p class="nota">Mostrando as {{ r.rejeicoes.length }} primeiras de {{ fmt.numero(r.rejeitados) }} recusas.</p>
+            }
+          }
+        </div>
+      }
+      @if (erro()) {
+        <p class="erro" role="alert"><span class="material-symbols-rounded" aria-hidden="true">error</span>{{ erro() }}</p>
+      }
+    </form>
+  </mat-dialog-content>
+  <mat-dialog-actions align="end">
+    <button matButton type="button" (click)="fechar()">Fechar</button>
+    <button matButton="filled" type="submit" form="form-carga" [disabled]="salvando() || !arquivoCarga()">
+      @if (salvando()) { <mat-spinner diameter="16" /> } Enviar carga
     </button>
   </mat-dialog-actions>
 </ng-template>

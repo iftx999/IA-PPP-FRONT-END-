@@ -49,3 +49,4 @@ export type PedidoFonte = Esquemas['FonteRequest'];
 export type ExecucaoApi = Esquemas['ExecucaoResponse'];
 export type CredencialApi = Esquemas['CredencialResponse'];
 export type CredencialGerada = Esquemas['CredencialGeradaResponse'];
+export type ResultadoCarga = Esquemas['CargaResponse'];

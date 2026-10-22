@@ -1,4 +1,5 @@
 import { expect, test } from '@playwright/test';
+import { join } from 'node:path';
 import { entrar } from './login';
 
 test.describe('Operação', () => {
@@ -51,6 +52,21 @@ test.describe('Operação', () => {
     await dialogo.getByRole('button', { name: 'Revogar' }).click();
     await expect(dialogo.getByText('Revogada')).toBeVisible();
     await dialogo.getByRole('button', { name: 'Fechar' }).click();
+
+    // Carga por CSV numa competência antiga (matrículas fixas: repetir o teste não muda nada além da 1ª vez).
+    await cartao.getByRole('button', { name: `Ações da fonte ${nome}` }).click();
+    await page.getByRole('menuitem', { name: 'Enviar carga (CSV)' }).click();
+    dialogo = page.getByRole('dialog', { name: /^Carga de / });
+    await dialogo.getByRole('combobox', { name: 'Competência' }).click();
+    await page.getByRole('option').last().click();
+    await dialogo.getByLabel('Arquivo CSV da carga').setInputFiles(join(__dirname, 'exemplos', 'carga-exemplo.csv'));
+    await dialogo.getByRole('button', { name: 'Enviar carga' }).click();
+    const resultado = dialogo.getByRole('status');
+    await expect(resultado).toContainText('concluída');
+    await expect(resultado.getByRole('table', { name: 'Linhas recusadas' })).toContainText('Unidade desconhecida ou inativa: NAO-EXISTE.');
+    await page.screenshot({ path: 'e2e/capturas/integracoes-carga.png' });
+    await dialogo.getByRole('button', { name: 'Fechar' }).click();
+    await expect(cartao).toContainText(/Última carga concluída\s*agora há pouco/);
 
     // Desativa a fonte de teste: inativa não gera alerta de atraso no banco de desenvolvimento.
     await cartao.getByRole('button', { name: `Ações da fonte ${nome}` }).click();

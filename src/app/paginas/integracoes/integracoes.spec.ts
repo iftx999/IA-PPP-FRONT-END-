@@ -1,6 +1,6 @@
 import type { FonteApi } from '../../api/tipos';
 import { destino } from '../alertas/alertas';
-import { atraso, situacaoFonte } from './integracoes';
+import { atraso, situacaoFonte, ultimasCompetencias } from './integracoes';
 
 const fonte = (mudancas: Partial<FonteApi>): FonteApi => ({
   id: 'f', nome: 'Comercial', tipo: 'AGENTE', sistemaOrigem: null, frequencia: null, atrasoMaximoHoras: 48, ativo: true,
@@ -26,5 +26,13 @@ describe('Integrações e alertas', () => {
     expect(destino('/painel?unidade=u1')).toEqual({ rota: '/painel', params: { unidade: 'u1' } });
     expect(destino('/admin/integracoes')).toEqual({ rota: '/admin/integracoes', params: {} });
     expect(destino(null)).toBeNull();
+  });
+
+  it('lista as últimas competências da atual para trás', () => {
+    expect(ultimasCompetencias(3, new Date(2026, 0, 15))).toEqual([
+      { valor: '2026-01', rotulo: 'jan/2026' },
+      { valor: '2025-12', rotulo: 'dez/2025' },
+      { valor: '2025-11', rotulo: 'nov/2025' },
+    ]);
   });
 });
