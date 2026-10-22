@@ -22,8 +22,7 @@ const telas: Routes = [
     data: { secao: 'Administração', titulo: 'Unidades', marco: 'Marco 1 — Acesso e núcleo' } },
   { path: 'admin/usuarios', title: 'Usuários · Aurora', loadComponent: emConstrucao,
     data: { secao: 'Administração', titulo: 'Usuários', marco: 'Marco 1 — Acesso e núcleo' } },
-  { path: 'admin/perfis', title: 'Perfis · Aurora', loadComponent: emConstrucao,
-    data: { secao: 'Administração', titulo: 'Perfis', marco: 'Marco 1 — Acesso e núcleo' } },
+  { path: 'admin/perfis', title: 'Perfis · Aurora', loadComponent: () => import('./paginas/perfis/perfis').then((m) => m.Perfis) },
   { path: 'admin/integracoes', title: 'Integrações · Aurora', loadComponent: emConstrucao,
     data: { secao: 'Administração', titulo: 'Integrações', marco: 'Marco 3 — Operação' } },
 ];

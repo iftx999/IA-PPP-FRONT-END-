@@ -4,7 +4,23 @@
  */
 
 export interface paths {
-  '/api/v1/metas': {
+  '/api/v1/perfis/{id}': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put: operations['alterar'];
+    post?: never;
+    delete: operations['remover'];
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/api/v1/perfis': {
     parameters: {
       query?: never;
       header?: never;
@@ -14,6 +30,22 @@ export interface paths {
     get: operations['listar'];
     put?: never;
     post: operations['criar'];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/api/v1/metas': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get: operations['listar_1'];
+    put?: never;
+    post: operations['criar_1'];
     delete?: never;
     options?: never;
     head?: never;
@@ -43,7 +75,7 @@ export interface paths {
       path?: never;
       cookie?: never;
     };
-    get: operations['listar_1'];
+    get: operations['listar_2'];
     put?: never;
     post?: never;
     delete?: never;
@@ -60,6 +92,22 @@ export interface paths {
       cookie?: never;
     };
     get: operations['detalhar'];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/api/v1/permissoes': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get: operations['catalogo'];
     put?: never;
     post?: never;
     delete?: never;
@@ -91,7 +139,7 @@ export interface paths {
       path?: never;
       cookie?: never;
     };
-    get: operations['listar_2'];
+    get: operations['listar_3'];
     put?: never;
     post?: never;
     delete?: never;
@@ -136,6 +184,15 @@ export interface paths {
 export type webhooks = Record<string, never>;
 export interface components {
   schemas: {
+    PerfilRequest: {
+      nome: string;
+      descricao: string | null;
+      permissoes: string[];
+    };
+    PerfilCriado: {
+      /** Format: uuid */
+      id: string;
+    };
     NovaMetaRequest: {
       /** Format: uuid */
       unidadeId: string;
@@ -163,6 +220,21 @@ export interface components {
       codigo: string;
       nome: string;
       codigoIbge: string | null;
+    };
+    PermissaoResponse: {
+      codigo: string;
+      descricao: string;
+      area: string;
+    };
+    PerfilResponse: {
+      /** Format: uuid */
+      id: string;
+      nome: string;
+      descricao: string | null;
+      sistema: boolean;
+      permissoes: string[];
+      /** Format: int64 */
+      usuarios: number;
     };
     AdesaoDto: {
       percentual: number | null;
@@ -335,7 +407,95 @@ export interface components {
 }
 export type $defs = Record<string, never>;
 export interface operations {
+  alterar: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        id: string;
+      };
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        'application/json': components['schemas']['PerfilRequest'];
+      };
+    };
+    responses: {
+      /** @description OK */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
+      };
+    };
+  };
+  remover: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        id: string;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description OK */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
+      };
+    };
+  };
   listar: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description OK */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          '*/*': components['schemas']['PerfilResponse'][];
+        };
+      };
+    };
+  };
+  criar: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        'application/json': components['schemas']['PerfilRequest'];
+      };
+    };
+    responses: {
+      /** @description OK */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          '*/*': components['schemas']['PerfilCriado'];
+        };
+      };
+    };
+  };
+  listar_1: {
     parameters: {
       query?: never;
       header?: never;
@@ -355,7 +515,7 @@ export interface operations {
       };
     };
   };
-  criar: {
+  criar_1: {
     parameters: {
       query?: never;
       header?: never;
@@ -403,7 +563,7 @@ export interface operations {
       };
     };
   };
-  listar_1: {
+  listar_2: {
     parameters: {
       query?: never;
       header?: never;
@@ -445,6 +605,26 @@ export interface operations {
       };
     };
   };
+  catalogo: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description OK */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          '*/*': components['schemas']['PermissaoResponse'][];
+        };
+      };
+    };
+  };
   painel: {
     parameters: {
       query?: {
@@ -468,7 +648,7 @@ export interface operations {
       };
     };
   };
-  listar_2: {
+  listar_3: {
     parameters: {
       query?: {
         unidade?: string;

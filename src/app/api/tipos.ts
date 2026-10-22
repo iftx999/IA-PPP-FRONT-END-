@@ -15,3 +15,6 @@ export type ImovelSemLigacao = Esquemas['ItemDto'];
 export type SituacaoImovel = ImovelSemLigacao['situacao'];
 export type Metas = Esquemas['MetasResponse'];
 export type LinhaMeta = Metas['linhas'][number];
+export type Permissao = Esquemas['PermissaoResponse'];
+export type Perfil = Esquemas['PerfilResponse'];
+export type PedidoPerfil = Esquemas['PerfilRequest'];

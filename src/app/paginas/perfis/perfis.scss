@@ -1,0 +1,63 @@
+.cabecalho {
+  display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: space-between; gap: var(--space-4);
+  margin-bottom: var(--space-4);
+}
+.titulo { display: grid; gap: var(--space-2); }
+h1 { font: 700 var(--fs-h1) var(--font-display); }
+.resumo { display: flex; flex-wrap: wrap; gap: var(--space-2); }
+.indicador {
+  padding: 4px 12px; border: var(--border); border-radius: 999px;
+  font-size: var(--fs-small); color: var(--text-2); background: var(--bg-2);
+  b { color: var(--text-1); font-weight: 600; margin-right: 4px; }
+}
+.legenda { margin: 0 0 var(--space-3); font-size: var(--fs-small); color: var(--text-2); }
+.aviso { display: grid; gap: var(--space-2); max-width: 520px; p { margin: 0; } }
+
+// Matriz: primeira coluna e cabeçalho fixos; os perfis rolam na horizontal quando não cabem.
+.tabela { padding: 0; overflow: auto; max-height: calc(100vh - 280px); }
+.matriz { width: 100%; border-collapse: separate; border-spacing: 0; font-size: var(--fs-small); }
+.matriz th, .matriz td { padding: 10px 12px; border-bottom: var(--border); text-align: left; font-weight: 400; }
+.matriz thead th { position: sticky; top: 0; z-index: 2; background: var(--bg-2); vertical-align: top; }
+.matriz .permissao { position: sticky; left: 0; z-index: 1; min-width: 280px; background: var(--bg-2); }
+.matriz thead .permissao { z-index: 3; background: var(--bg-2); color: var(--text-2); font-weight: 500; }
+.matriz tbody tr:not(.area):hover > * { background: color-mix(in srgb, var(--bg-3) 70%, var(--bg-2)); }
+
+.perfil { min-width: 150px; }
+.perfil-topo { display: flex; align-items: center; justify-content: space-between; gap: 4px; }
+.perfil-nome {
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 180px;
+  font-weight: 600; color: var(--text-1);
+}
+.menu { --mat-icon-button-state-layer-size: 28px; width: 28px; height: 28px; padding: 2px; color: var(--text-2); flex: none; }
+.perfil-meta { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; margin-top: 2px; }
+.usuarios { color: var(--text-3); font-size: var(--fs-label); }
+.etiqueta {
+  display: inline-flex; align-items: center; gap: 2px; padding: 1px 8px; border-radius: 999px;
+  background: var(--bg-3); color: var(--text-2); font-size: var(--fs-label);
+  .material-symbols-rounded { font-size: 13px; }
+}
+
+.matriz .area > * { background: color-mix(in srgb, var(--bg-3) 55%, var(--bg-2)); }
+.area .permissao { font-weight: 600; color: var(--text-1); }
+.contagem { color: var(--text-3); font-size: var(--fs-label); }
+.descricao { display: block; color: var(--text-1); }
+.codigo { font-family: var(--font-data); font-size: var(--fs-label); color: var(--text-3); }
+.celula { text-align: center; }
+.sim { color: var(--ok); font-size: 18px; }
+.nao { color: var(--text-3); }
+
+// Editor
+.permissoes { margin: 0; padding: 0; border: 0; display: grid; gap: var(--space-2); }
+.permissoes legend { margin-bottom: var(--space-2); }
+.grupo { padding: var(--space-2) var(--space-3); border: var(--border); border-radius: var(--radius-m); }
+.grupo-titulo { font-weight: 600; }
+.grupo-itens { display: grid; grid-template-columns: 1fr 1fr; padding-left: 28px; }
+.item { display: grid; line-height: 1.3; }
+@media (max-width: 640px) { .grupo-itens { grid-template-columns: 1fr; } }
+
+.esqueleto {
+  min-height: 360px; border-radius: var(--radius-m);
+  background: linear-gradient(90deg, var(--bg-2), var(--bg-3), var(--bg-2)); background-size: 200% 100%;
+  animation: brilho 1.2s ease-in-out infinite;
+}
+@keyframes brilho { from { background-position: 100% 0; } to { background-position: -100% 0; } }

@@ -1,0 +1,208 @@
+<header class="cabecalho">
+  <div class="titulo">
+    <span class="rotulo">Administração</span>
+    <h1>Perfis</h1>
+    @if (perfis()) {
+      <div class="resumo">
+        <span class="indicador"><b class="dado">{{ fmt.numero(resumo().total) }}</b> perfis</span>
+        <span class="indicador"><b class="dado">{{ fmt.numero(resumo().sistema) }}</b> do sistema</span>
+        <span class="indicador"><b class="dado">{{ fmt.numero(resumo().total - resumo().sistema) }}</b> personalizados</span>
+      </div>
+    }
+  </div>
+  @if (perfis()) {
+    <button matButton="filled" type="button" (click)="abrirNovo()">
+      <span class="material-symbols-rounded" aria-hidden="true">add</span> Novo perfil
+    </button>
+  }
+</header>
+
+@if (!sessao.usuario()) {
+  <div class="esqueleto" aria-busy="true" aria-label="Carregando"></div>
+} @else if (!sessao.pode('usuario:gerenciar')) {
+  <section class="cartao aviso" role="alert">
+    <p class="rotulo">Sem acesso</p>
+    <p>Seu perfil não permite gerenciar perfis e permissões.</p>
+  </section>
+} @else if (grupos() && perfis()) {
+  <p class="legenda">
+    Cada coluna é um perfil; cada linha, uma permissão. Perfis do sistema servem de modelo: duplique-os para personalizar.
+  </p>
+  <section class="cartao tabela" aria-label="Matriz de permissões por perfil">
+    <table class="matriz">
+      <thead>
+        <tr>
+          <th scope="col" class="permissao">Permissão</th>
+          @for (p of perfis(); track p.id) {
+            <th scope="col" class="perfil">
+              <div class="perfil-topo">
+                <span class="perfil-nome" [matTooltip]="p.descricao ?? p.nome" matTooltipShowDelay="400">{{ p.nome }}</span>
+                <button matIconButton type="button" class="menu" [matMenuTriggerFor]="acoes"
+                        [attr.aria-label]="'Ações do perfil ' + p.nome">
+                  <span class="material-symbols-rounded">more_vert</span>
+                </button>
+                <mat-menu #acoes="matMenu" xPosition="before">
+                  <button mat-menu-item type="button" (click)="abrirEdicao(p)">
+                    <span class="material-symbols-rounded" aria-hidden="true">{{ p.sistema ? 'visibility' : 'edit' }}</span>
+                    {{ p.sistema ? 'Ver detalhes' : 'Editar' }}
+                  </button>
+                  <button mat-menu-item type="button" (click)="duplicar(p)">
+                    <span class="material-symbols-rounded" aria-hidden="true">content_copy</span> Duplicar
+                  </button>
+                  @if (!p.sistema) {
+                    <button mat-menu-item type="button" (click)="abrirRemocao(p)">
+                      <span class="material-symbols-rounded" aria-hidden="true">delete</span> Remover
+                    </button>
+                  }
+                </mat-menu>
+              </div>
+              <div class="perfil-meta">
+                @if (p.sistema) {
+                  <span class="etiqueta" matTooltip="Perfil padrão, não editável">
+                    <span class="material-symbols-rounded" aria-hidden="true">lock</span> Sistema
+                  </span>
+                }
+                <span class="usuarios">{{ usuarios(p) }}</span>
+              </div>
+            </th>
+          }
+        </tr>
+      </thead>
+      @for (g of grupos(); track g.area) {
+        <tbody>
+          <tr class="area">
+            <th scope="rowgroup" class="permissao">{{ g.rotulo }}</th>
+            @for (p of perfis(); track p.id) {
+              <td class="contagem dado">{{ naArea(p, g) }}/{{ g.permissoes.length }}</td>
+            }
+          </tr>
+          @for (perm of g.permissoes; track perm.codigo) {
+            <tr>
+              <th scope="row" class="permissao">
+                <span class="descricao">{{ perm.descricao }}</span>
+                <code class="codigo">{{ perm.codigo }}</code>
+              </th>
+              @for (p of perfis(); track p.id) {
+                <td class="celula">
+                  @if (tem(p, perm.codigo)) {
+                    <span class="material-symbols-rounded sim" role="img" [attr.aria-label]="p.nome + ': permitido'">check_circle</span>
+                  } @else {
+                    <span class="nao" role="img" [attr.aria-label]="p.nome + ': não permitido'">—</span>
+                  }
+                </td>
+              }
+            </tr>
+          }
+        </tbody>
+      }
+    </table>
+  </section>
+} @else if (falhou()) {
+  <section class="cartao" role="alert">
+    <p>Não foi possível carregar os perfis.</p>
+    <button matButton="outlined" type="button" (click)="dadosCatalogo.reload(); dadosPerfis.reload()">Tentar de novo</button>
+  </section>
+} @else {
+  <div class="esqueleto" aria-busy="true" aria-label="Carregando os perfis"></div>
+}
+
+<ng-template #modeloEditor>
+  <h2 mat-dialog-title>
+    @switch (modo()) {
+      @case ('novo') { Novo perfil }
+      @case ('editar') { Editar perfil }
+      @default { {{ emEdicao()?.nome }} }
+    }
+  </h2>
+  <mat-dialog-content>
+    <form id="form-perfil" class="formulario" [formGroup]="formulario" (ngSubmit)="salvar()">
+      @if (modo() === 'ver') {
+        <p class="ajuda">
+          <span class="material-symbols-rounded" aria-hidden="true">lock</span>
+          Perfil do sistema: não pode ser alterado. Duplique-o para criar uma versão personalizada.
+        </p>
+      } @else {
+        <mat-form-field>
+          <mat-label>Nome</mat-label>
+          <input matInput formControlName="nome" maxlength="80" />
+          <mat-error>Informe um nome de até 80 caracteres.</mat-error>
+        </mat-form-field>
+        <mat-form-field>
+          <mat-label>Descrição (opcional)</mat-label>
+          <textarea matInput formControlName="descricao" rows="2" maxlength="300"></textarea>
+          <mat-hint align="end">{{ formulario.controls.descricao.value.length }}/300</mat-hint>
+        </mat-form-field>
+      }
+
+      <fieldset class="permissoes" [disabled]="modo() === 'ver'">
+        <legend class="rotulo">Permissões · <span class="dado">{{ marcadas().size }}</span> marcadas</legend>
+        @for (g of grupos(); track g.area) {
+          <div class="grupo" role="group" [attr.aria-label]="g.rotulo">
+            <mat-checkbox class="grupo-titulo" [checked]="estadoDaArea(g) === 'todas'"
+                          [indeterminate]="estadoDaArea(g) === 'algumas'" [disabled]="modo() === 'ver'"
+                          (change)="alternarArea(g, $event.checked)">
+              {{ g.rotulo }}
+            </mat-checkbox>
+            <div class="grupo-itens">
+              @for (perm of g.permissoes; track perm.codigo) {
+                <mat-checkbox [checked]="marcada(perm.codigo)" [disabled]="modo() === 'ver'"
+                              (change)="alternarPermissao(perm.codigo, $event.checked)">
+                  <span class="item">
+                    <span>{{ perm.descricao }}</span>
+                    <code class="codigo">{{ perm.codigo }}</code>
+                  </span>
+                </mat-checkbox>
+              }
+            </div>
+          </div>
+        }
+      </fieldset>
+
+      @if (erro()) {
+        <p class="erro" role="alert"><span class="material-symbols-rounded" aria-hidden="true">error</span>{{ erro() }}</p>
+      }
+      @if (modo() !== 'ver') {
+        <p class="ajuda">
+          <span class="material-symbols-rounded" aria-hidden="true">shield</span>
+          A mudança vale para todos os usuários com este perfil e fica registrada na auditoria.
+        </p>
+      }
+    </form>
+  </mat-dialog-content>
+  <mat-dialog-actions align="end">
+    @if (modo() === 'ver') {
+      <button matButton type="button" (click)="fechar()">Fechar</button>
+      <button matButton="filled" type="button" (click)="duplicar(emEdicao()!)">
+        <span class="material-symbols-rounded" aria-hidden="true">content_copy</span> Duplicar
+      </button>
+    } @else {
+      <button matButton type="button" (click)="fechar()">Cancelar</button>
+      <button matButton="filled" type="submit" form="form-perfil" [disabled]="salvando()">
+        @if (salvando()) { <mat-spinner diameter="18" /> } Salvar perfil
+      </button>
+    }
+  </mat-dialog-actions>
+</ng-template>
+
+<ng-template #modeloRemover>
+  <h2 mat-dialog-title>Remover {{ emEdicao()?.nome }}</h2>
+  <mat-dialog-content>
+    <div class="formulario">
+      @if (emEdicao()?.usuarios) {
+        <p class="ajuda">
+          Este perfil está em uso por {{ usuarios(emEdicao()!) }}. Retire-o dos usuários antes de remover.
+        </p>
+      } @else {
+        <p class="ajuda">O perfil deixa de existir. A remoção fica registrada na auditoria.</p>
+      }
+      @if (erro()) {
+        <p class="erro" role="alert"><span class="material-symbols-rounded" aria-hidden="true">error</span>{{ erro() }}</p>
+      }
+    </div>
+  </mat-dialog-content>
+  <mat-dialog-actions align="end">
+    <button matButton type="button" (click)="fechar()">Cancelar</button>
+    <button matButton="filled" type="button" class="perigo" (click)="confirmarRemocao()"
+            [disabled]="salvando() || !!emEdicao()?.usuarios">Remover</button>
+  </mat-dialog-actions>
+</ng-template>
