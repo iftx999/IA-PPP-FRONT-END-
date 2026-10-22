@@ -1,6 +1,6 @@
 import { Routes } from '@angular/router';
-import { autoLoginPartialRoutesGuard } from 'angular-auth-oidc-client';
 import { Shell } from './layout/shell';
+import { ROTA_RETORNO, RetornoDoLogin, exigirLogin } from './nucleo/autenticacao';
 
 const emConstrucao = () => import('./paginas/em-construcao').then((m) => m.EmConstrucao);
 
@@ -12,8 +12,7 @@ const telas: Routes = [
   { path: 'sem-ligacao', title: 'Sem ligação · Aurora', loadComponent: () => import('./paginas/sem-ligacao/sem-ligacao').then((m) => m.SemLigacao) },
   { path: 'mapa', title: 'Mapa · Aurora', loadComponent: emConstrucao,
     data: { secao: 'Adesão', titulo: 'Mapa', marco: 'Marco 5 — GIS' } },
-  { path: 'alertas', title: 'Alertas · Aurora', loadComponent: emConstrucao,
-    data: { secao: 'Adesão', titulo: 'Alertas', marco: 'Marco 3 — Operação' } },
+  { path: 'alertas', title: 'Alertas · Aurora', loadComponent: () => import('./paginas/alertas/alertas').then((m) => m.Alertas) },
   { path: 'contratos', title: 'Contratos · Aurora', loadComponent: () => import('./paginas/contratos/contratos').then((m) => m.Contratos) },
   { path: 'contratos/:id', title: 'Contrato · Aurora', loadComponent: () => import('./paginas/contratos/contrato').then((m) => m.ContratoPagina) },
   { path: 'assistente', title: 'Assistente · Aurora', loadComponent: emConstrucao,
@@ -22,12 +21,12 @@ const telas: Routes = [
   { path: 'admin/usuarios', title: 'Usuários · Aurora', loadComponent: () => import('./paginas/usuarios/usuarios').then((m) => m.Usuarios) },
   { path: 'admin/perfis', title: 'Perfis · Aurora', loadComponent: () => import('./paginas/perfis/perfis').then((m) => m.Perfis) },
   { path: 'admin/auditoria', title: 'Auditoria · Aurora', loadComponent: () => import('./paginas/auditoria/auditoria').then((m) => m.Auditoria) },
-  { path: 'admin/integracoes', title: 'Integrações · Aurora', loadComponent: emConstrucao,
-    data: { secao: 'Administração', titulo: 'Integrações', marco: 'Marco 3 — Operação' } },
+  { path: 'admin/integracoes', title: 'Integrações · Aurora', loadComponent: () => import('./paginas/integracoes/integracoes').then((m) => m.Integracoes) },
 ];
 
-/** Tudo exige login: sem sessão, o guard leva ao Keycloak e volta para a rota pedida. */
+/** Tudo exige login: sem sessão, o guard guarda a rota pedida e leva ao Keycloak; a volta é por /entrar. */
 export const routes: Routes = [
-  { path: '', component: Shell, canActivate: [autoLoginPartialRoutesGuard], children: telas },
+  { path: ROTA_RETORNO, component: RetornoDoLogin },
+  { path: '', component: Shell, canActivate: [exigirLogin], children: telas },
   { path: '**', redirectTo: '' },
 ];

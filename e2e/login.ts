@@ -9,4 +9,7 @@ export async function entrar(page: Page, email: string, caminho = '/painel'): Pr
   await page.locator('#kc-login').click();
   await page.waitForURL((url) => url.origin === new URL(page.url()).origin && url.port === '4200');
   await expect(page.getByRole('navigation', { name: 'Menu principal' })).toBeVisible();
+  // Volta exatamente para a rota pedida (antes, uma corrida no retorno às vezes levava ao Painel).
+  const pedido = new URL(caminho, 'http://x').pathname;
+  await expect(page).toHaveURL((url) => url.pathname === pedido);
 }

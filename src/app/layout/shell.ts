@@ -2,6 +2,7 @@ import { Component, inject } from '@angular/core';
 import { MatButtonModule } from '@angular/material/button';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
+import { AlertasService } from '../nucleo/alertas';
 import { SessaoService } from '../nucleo/sessao';
 import { TemaService } from '../nucleo/tema';
 
@@ -20,6 +21,7 @@ interface ItemMenu {
 export class Shell {
   protected readonly tema = inject(TemaService);
   protected readonly sessao = inject(SessaoService);
+  protected readonly alertas = inject(AlertasService);
 
   protected readonly secoes: { titulo: string; itens: ItemMenu[] }[] = [
     {

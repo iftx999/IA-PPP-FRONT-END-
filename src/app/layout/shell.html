@@ -15,17 +15,40 @@
       <ul>
         @for (item of secao.itens; track item.rota) {
           <li>
-            <a [routerLink]="item.rota" routerLinkActive="ativo" ariaCurrentWhenActive="page">{{ item.rotulo }}</a>
+            <a [routerLink]="item.rota" routerLinkActive="ativo" ariaCurrentWhenActive="page">
+              {{ item.rotulo }}
+              @if (item.rota === '/alertas' && alertas.pendentes()) {
+                <span class="contador" [class.critico]="alertas.criticos()" [attr.aria-label]="alertas.pendentes() + ' alertas pendentes'">{{ alertas.pendentes() }}</span>
+              }
+            </a>
           </li>
         }
       </ul>
     }
   </nav>
 
-  <p class="rodape">
-    <span class="ponto" aria-hidden="true"></span>
-    Dados fictícios de demonstração
-  </p>
+  <div class="rodape">
+    @if (alertas.dadosDe(); as dados) {
+      <p class="dados">
+        <span class="material-symbols-rounded" aria-hidden="true">calendar_month</span>
+        <span>
+          {{ dados }}
+          @if (alertas.fontesAtrasadas().length; as atrasadas) {
+            ·
+            @if (sessao.pode('integracao:gerenciar')) {
+              <a routerLink="/admin/integracoes" class="atrasadas">{{ atrasadas }} {{ atrasadas === 1 ? 'fonte atrasada' : 'fontes atrasadas' }}</a>
+            } @else {
+              <span class="atrasadas">{{ atrasadas }} {{ atrasadas === 1 ? 'fonte atrasada' : 'fontes atrasadas' }}</span>
+            }
+          }
+        </span>
+      </p>
+    }
+    <p class="demo">
+      <span class="ponto" aria-hidden="true"></span>
+      Dados fictícios de demonstração
+    </p>
+  </div>
 </aside>
 
 <header class="topo">
@@ -38,6 +61,16 @@
     <button matButton="outlined" type="button" aria-keyshortcuts="Control+J">
       <span class="material-symbols-rounded" aria-hidden="true">auto_awesome</span> Assistente <kbd>Ctrl J</kbd>
     </button>
+    @if (sessao.pode('indicador:ler')) {
+      <a matIconButton routerLink="/alertas" class="sino" [class.com-alertas]="alertas.pendentes()"
+         [matTooltip]="alertas.pendentes() ? alertas.pendentes() + ' alertas pedem atenção' : 'Nenhum alerta pendente'"
+         [attr.aria-label]="alertas.pendentes() ? 'Alertas: ' + alertas.pendentes() + ' pendentes' : 'Alertas: nenhum pendente'">
+        <span class="material-symbols-rounded">{{ alertas.pendentes() ? 'notifications_active' : 'notifications' }}</span>
+        @if (alertas.pendentes()) {
+          <span class="selo-sino" [class.critico]="alertas.criticos()" aria-hidden="true">{{ alertas.pendentes() > 99 ? '99+' : alertas.pendentes() }}</span>
+        }
+      </a>
+    }
     <button matIconButton type="button" (click)="tema.alternar()"
             [matTooltip]="tema.tema() === 'dark' ? 'Usar tema claro' : 'Usar tema escuro'"
             [attr.aria-label]="tema.tema() === 'dark' ? 'Usar tema claro' : 'Usar tema escuro'">

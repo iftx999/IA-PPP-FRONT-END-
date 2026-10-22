@@ -1,0 +1,81 @@
+<header class="cabecalho">
+  <div class="titulo">
+    <span class="rotulo">Adesão</span>
+    <h1>Alertas</h1>
+    <p class="legenda">Verificados a cada 15 minutos. Um alerta se resolve sozinho quando a condição deixa de valer.</p>
+  </div>
+  @if (sessao.pode('indicador:gerenciar')) {
+    <button matButton="outlined" type="button" (click)="avaliarAgora()" [disabled]="avaliando()">
+      @if (avaliando()) { <mat-spinner diameter="16" /> } @else { <span class="material-symbols-rounded" aria-hidden="true">refresh</span> }
+      Verificar agora
+    </button>
+  }
+</header>
+
+@if (!sessao.usuario()) {
+  <div class="esqueleto" aria-busy="true" aria-label="Carregando"></div>
+} @else if (!sessao.pode('indicador:ler')) {
+  <section class="cartao aviso" role="alert">
+    <p class="rotulo">Sem acesso</p>
+    <p>Seu perfil não permite ver os alertas.</p>
+  </section>
+} @else {
+  <mat-button-toggle-group [value]="estado()" (change)="estado.set($event.value)" aria-label="Situação dos alertas"
+                           hideSingleSelectionIndicator class="filtro">
+    <mat-button-toggle value="ABERTOS">
+      Abertos
+      @if (resumo.pendentes()) { <span class="contagem">{{ resumo.pendentes() }}</span> }
+    </mat-button-toggle>
+    <mat-button-toggle value="RECONHECIDOS">Reconhecidos</mat-button-toggle>
+    <mat-button-toggle value="RESOLVIDOS">Resolvidos</mat-button-toggle>
+  </mat-button-toggle-group>
+
+  @if (alertas(); as lista) {
+    @if (lista.length === 0) {
+      <section class="cartao vazio">
+        <span class="material-symbols-rounded" aria-hidden="true">{{ estado() === 'RESOLVIDOS' ? 'history' : 'task_alt' }}</span>
+        <p>{{ estado() === 'ABERTOS' ? 'Nenhum alerta aberto. Tudo dentro das metas.' : 'Nenhum alerta nesta situação.' }}</p>
+      </section>
+    } @else {
+      <ul class="lista" aria-label="Alertas">
+        @for (a of lista; track a.id) {
+          <li class="cartao alerta" [class.critico]="a.severidade === 'CRITICO'" [class.reconhecido]="!!a.reconhecidoEm"
+              [class.resolvido]="!!a.resolvidoEm">
+            <span class="material-symbols-rounded icone" aria-hidden="true">{{ icone(a) }}</span>
+            <div class="corpo">
+              <div class="linha-titulo">
+                <span class="severidade">{{ a.severidade === 'CRITICO' ? 'Crítico' : 'Atenção' }}</span>
+                <h2>{{ a.titulo }}</h2>
+              </div>
+              <p class="descricao">{{ a.descricao }}</p>
+              <p class="meta">
+                <span [matTooltip]="fmt.dataEHora(a.criadoEm)">aberto {{ fmt.haQuantoTempo(a.criadoEm) }}</span>
+                @if (a.reconhecidoEm) {
+                  <span>reconhecido por {{ a.reconhecidoPor ?? 'Sistema' }} {{ fmt.haQuantoTempo(a.reconhecidoEm) }}</span>
+                }
+                @if (a.resolvidoEm) {
+                  <span [matTooltip]="fmt.dataEHora(a.resolvidoEm)">resolvido {{ fmt.haQuantoTempo(a.resolvidoEm) }}</span>
+                }
+              </p>
+            </div>
+            <div class="acoes">
+              @if (destino(a.link); as d) {
+                <a matButton="outlined" [routerLink]="d.rota" [queryParams]="d.params">Ver</a>
+              }
+              @if (!a.resolvidoEm && !a.reconhecidoEm) {
+                <button matButton="filled" type="button" (click)="reconhecer(a)" [disabled]="reconhecendo() === a.id">Reconhecer</button>
+              }
+            </div>
+          </li>
+        }
+      </ul>
+    }
+  } @else if (dados.error()) {
+    <section class="cartao" role="alert">
+      <p>Não foi possível carregar os alertas.</p>
+      <button matButton="outlined" type="button" (click)="dados.reload()">Tentar de novo</button>
+    </section>
+  } @else {
+    <div class="esqueleto" aria-busy="true" aria-label="Carregando os alertas"></div>
+  }
+}

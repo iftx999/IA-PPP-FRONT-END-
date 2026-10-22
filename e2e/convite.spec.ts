@@ -48,14 +48,16 @@ test('convite completo: e-mail, criação de senha, primeiro acesso e desativaç
   await convidada.locator('#password-new').fill('Senha-forte-123');
   await convidada.locator('#password-confirm').fill('Senha-forte-123');
   await convidada.locator('[type=submit]').click();
+  // Depois da senha, o Keycloak pode mostrar "conta atualizada" (com link de volta), o login ou já a Aurora;
+  // sob carga essa página demora, então espera qualquer um dos três.
   const voltar = convidada.getByRole('link', { name: /voltar|back to application/i });
-  if (await voltar.isVisible({ timeout: 5_000 }).catch(() => false)) {
-    await voltar.click();
-  }
-  // O link de ação não abre sessão: a Aurora leva ao login, agora com a senha criada.
   const menu = convidada.getByRole('navigation', { name: 'Menu principal' });
   const usuario = convidada.locator('#username');
-  await expect(menu.or(usuario)).toBeVisible({ timeout: 20_000 });
+  await expect(menu.or(usuario).or(voltar)).toBeVisible({ timeout: 30_000 });
+  if (await voltar.isVisible()) {
+    await voltar.click();
+    await expect(menu.or(usuario)).toBeVisible({ timeout: 20_000 });
+  }
   if (await usuario.isVisible()) {
     await usuario.fill(email);
     await convidada.locator('#password').fill('Senha-forte-123');

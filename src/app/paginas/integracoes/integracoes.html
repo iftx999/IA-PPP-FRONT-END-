@@ -1,0 +1,231 @@
+<header class="cabecalho">
+  <div class="titulo">
+    <span class="rotulo">Administração</span>
+    <h1>Integrações</h1>
+    @if (fontes()) {
+      <div class="resumo">
+        <span class="indicador"><b class="dado">{{ fmt.numero(resumo().total) }}</b> fontes</span>
+        <span class="indicador" [class.destaque]="resumo().atrasadas"><b class="dado">{{ fmt.numero(resumo().atrasadas) }}</b> atrasadas</span>
+        @if (resumo().inativas) { <span class="indicador"><b class="dado">{{ fmt.numero(resumo().inativas) }}</b> inativas</span> }
+      </div>
+    }
+  </div>
+  @if (fontes()) {
+    <button matButton="filled" type="button" (click)="abrirNova()">
+      <span class="material-symbols-rounded" aria-hidden="true">add</span> Nova fonte
+    </button>
+  }
+</header>
+
+@if (!sessao.usuario()) {
+  <div class="esqueleto" aria-busy="true" aria-label="Carregando"></div>
+} @else if (!sessao.pode('integracao:gerenciar')) {
+  <section class="cartao aviso" role="alert">
+    <p class="rotulo">Sem acesso</p>
+    <p>Seu perfil não permite gerenciar integrações.</p>
+  </section>
+} @else if (fontes(); as lista) {
+  <p class="legenda">
+    Cada fonte tem um atraso máximo: passou dele sem carga concluída, a fonte fica atrasada, os indicadores ganham aviso
+    e um alerta é aberto.
+  </p>
+  @if (lista.length === 0) {
+    <section class="cartao vazio"><p>Nenhuma fonte cadastrada.</p></section>
+  } @else {
+    <ul class="lista" aria-label="Fontes de dados">
+      @for (f of lista; track f.id) {
+        <li class="cartao fonte" [class.atrasada]="f.atrasada">
+          <span class="material-symbols-rounded icone" aria-hidden="true">{{ f.tipo === 'AGENTE' ? 'hub' : f.tipo === 'ARQUIVO' ? 'upload_file' : 'database' }}</span>
+          <div class="corpo">
+            <div class="linha-titulo">
+              <h2>{{ f.nome }}</h2>
+              <aurora-selo [tom]="situacao(f).tom">{{ situacao(f).rotulo }}</aurora-selo>
+            </div>
+            <p class="nota">
+              {{ rotuloTipo(f.tipo) }}
+              @if (f.sistemaOrigem) { · {{ f.sistemaOrigem }} }
+              @if (f.frequencia) { · {{ f.frequencia }} }
+            </p>
+            <dl class="numeros">
+              <div>
+                <dt>Última carga concluída</dt>
+                <dd [matTooltip]="f.ultimaCarga ? fmt.dataEHora(f.ultimaCarga) : ''">{{ f.ultimaCarga ? fmt.haQuantoTempo(f.ultimaCarga) : 'nunca' }}</dd>
+              </div>
+              <div><dt>Atraso máximo</dt><dd>{{ fmt.atraso(f.atrasoMaximoHoras) }}</dd></div>
+              @if (f.tipo === 'AGENTE') { <div><dt>Credenciais ativas</dt><dd class="dado">{{ f.credenciaisAtivas }}</dd></div> }
+            </dl>
+          </div>
+          <button matIconButton type="button" [matMenuTriggerFor]="menu" [attr.aria-label]="'Ações da fonte ' + f.nome">
+            <span class="material-symbols-rounded">more_vert</span>
+          </button>
+          <mat-menu #menu="matMenu" xPosition="before">
+            <button mat-menu-item type="button" (click)="abrirHistorico(f)">
+              <span class="material-symbols-rounded" aria-hidden="true">history</span> Histórico de cargas
+            </button>
+            @if (f.tipo === 'AGENTE') {
+              <button mat-menu-item type="button" (click)="abrirCredenciais(f)">
+                <span class="material-symbols-rounded" aria-hidden="true">key</span> Credenciais do agente
+              </button>
+            }
+            <button mat-menu-item type="button" (click)="abrirEdicao(f)">
+              <span class="material-symbols-rounded" aria-hidden="true">edit</span> Editar
+            </button>
+          </mat-menu>
+        </li>
+      }
+    </ul>
+  }
+} @else if (dados.error()) {
+  <section class="cartao" role="alert">
+    <p>Não foi possível carregar as integrações.</p>
+    <button matButton="outlined" type="button" (click)="dados.reload()">Tentar de novo</button>
+  </section>
+} @else {
+  <div class="esqueleto" aria-busy="true" aria-label="Carregando as integrações"></div>
+}
+
+<ng-template #modeloFonte>
+  <h2 mat-dialog-title>{{ emEdicao() ? 'Editar ' + emEdicao()!.nome : 'Nova fonte' }}</h2>
+  <mat-dialog-content>
+    <form id="form-fonte" class="formulario" [formGroup]="formulario" (ngSubmit)="salvar()">
+      <mat-form-field>
+        <mat-label>Nome</mat-label>
+        <input matInput formControlName="nome" maxlength="120" placeholder="Sistema comercial" />
+        <mat-error>Informe o nome.</mat-error>
+      </mat-form-field>
+      <div class="dupla">
+        <mat-form-field>
+          <mat-label>Como os dados chegam</mat-label>
+          <mat-select formControlName="tipo">
+            @for (t of tipos; track t.codigo) { <mat-option [value]="t.codigo">{{ t.rotulo }}</mat-option> }
+          </mat-select>
+        </mat-form-field>
+        <mat-form-field>
+          <mat-label>Sistema de origem (opcional)</mat-label>
+          <input matInput formControlName="sistemaOrigem" maxlength="120" />
+        </mat-form-field>
+      </div>
+      <div class="dupla">
+        <mat-form-field>
+          <mat-label>Frequência esperada (opcional)</mat-label>
+          <input matInput formControlName="frequencia" maxlength="60" placeholder="diária, mensal…" />
+        </mat-form-field>
+        <div class="atraso">
+          <mat-form-field>
+            <mat-label>Atraso máximo</mat-label>
+            <input matInput type="number" min="1" formControlName="atraso" />
+            <mat-error>Mínimo 1.</mat-error>
+          </mat-form-field>
+          <mat-form-field class="unidade-atraso">
+            <mat-label>Em</mat-label>
+            <mat-select formControlName="unidadeAtraso" aria-label="Unidade do atraso">
+              <mat-option value="horas">horas</mat-option>
+              <mat-option value="dias">dias</mat-option>
+            </mat-select>
+          </mat-form-field>
+        </div>
+      </div>
+      <mat-slide-toggle formControlName="ativo">Fonte ativa (inativa não gera alerta de atraso)</mat-slide-toggle>
+      @if (erro()) {
+        <p class="erro" role="alert"><span class="material-symbols-rounded" aria-hidden="true">error</span>{{ erro() }}</p>
+      }
+    </form>
+  </mat-dialog-content>
+  <mat-dialog-actions align="end">
+    <button matButton type="button" (click)="fechar()">Cancelar</button>
+    <button matButton="filled" type="submit" form="form-fonte" [disabled]="salvando()">Salvar</button>
+  </mat-dialog-actions>
+</ng-template>
+
+<ng-template #modeloHistorico>
+  <h2 mat-dialog-title>Cargas de {{ emEdicao()?.nome }}</h2>
+  <mat-dialog-content>
+    @if (execucoes(); as lista) {
+      @if (lista.length === 0) {
+        <p class="vazio-texto">Nenhuma carga registrada.</p>
+      } @else {
+        <table class="tabela-cargas">
+          <thead>
+            <tr><th scope="col">Início</th><th scope="col">Situação</th><th scope="col">Competência</th><th scope="col">Registros</th><th scope="col">Duração</th></tr>
+          </thead>
+          <tbody>
+            @for (e of lista; track e.id) {
+              <tr>
+                <td>{{ fmt.dataEHora(e.inicio) }}</td>
+                <td>
+                  <aurora-selo [tom]="e.situacao === 'SUCESSO' ? 'ok' : e.situacao === 'FALHA' ? 'perigo' : 'neutro'">
+                    {{ e.situacao === 'SUCESSO' ? 'Concluída' : e.situacao === 'FALHA' ? 'Falhou' : 'Em andamento' }}
+                  </aurora-selo>
+                  @if (e.erro) { <span class="erro-carga">{{ e.erro }}</span> }
+                </td>
+                <td class="dado">{{ e.competencia ? e.competencia.slice(0, 7) : '—' }}</td>
+                <td class="dado">
+                  @if (e.lidos != null) {
+                    {{ fmt.numero(e.lidos) }} lidos
+                    @if (e.novos || e.atualizados) { · {{ fmt.numero(e.novos) }} novos · {{ fmt.numero(e.atualizados) }} atualizados }
+                    @if (e.rejeitados) { · <span class="rejeitados">{{ fmt.numero(e.rejeitados) }} rejeitados</span> }
+                  } @else { — }
+                </td>
+                <td class="dado">{{ e.fim ? duracao(e.inicio, e.fim) : '—' }}</td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      }
+    } @else {
+      <div class="carregando"><mat-spinner diameter="28" /></div>
+    }
+  </mat-dialog-content>
+  <mat-dialog-actions align="end"><button matButton type="button" (click)="fechar()">Fechar</button></mat-dialog-actions>
+</ng-template>
+
+<ng-template #modeloCredenciais>
+  <h2 mat-dialog-title>Credenciais do agente · {{ emEdicao()?.nome }}</h2>
+  <mat-dialog-content>
+    <div class="formulario">
+      <p class="ajuda">
+        <span class="material-symbols-rounded" aria-hidden="true">info</span>
+        O Agente Aurora roda na rede da concessionária e usa esta chave para enviar só matrícula e ponto (RN-09).
+      </p>
+      @if (chaveGerada(); as gerada) {
+        <div class="chave" role="status">
+          <p><b>Copie a chave agora.</b> Ela não será mostrada de novo; só guardamos uma impressão digital dela.</p>
+          <div class="chave-valor">
+            <code class="dado">{{ gerada.chave }}</code>
+            <button matIconButton type="button" (click)="copiar(gerada.chave)" aria-label="Copiar a chave">
+              <span class="material-symbols-rounded">content_copy</span>
+            </button>
+          </div>
+        </div>
+      }
+      @if (credenciais(); as lista) {
+        @if (lista.length) {
+          <ul class="credenciais">
+            @for (c of lista; track c.prefixo) {
+              <li [class.revogada]="!c.ativa">
+                <code class="dado">{{ c.prefixo }}…</code>
+                <span class="nota">criada {{ fmt.haQuantoTempo(c.criadaEm) }}</span>
+                @if (c.ativa) {
+                  <button matButton type="button" class="perigo" (click)="revogar(c)">Revogar</button>
+                } @else {
+                  <aurora-selo>Revogada</aurora-selo>
+                }
+              </li>
+            }
+          </ul>
+        } @else {
+          <p class="vazio-texto">Nenhuma credencial gerada.</p>
+        }
+      }
+      @if (erro()) {
+        <p class="erro" role="alert"><span class="material-symbols-rounded" aria-hidden="true">error</span>{{ erro() }}</p>
+      }
+    </div>
+  </mat-dialog-content>
+  <mat-dialog-actions align="end">
+    <button matButton type="button" (click)="fechar()">Fechar</button>
+    <button matButton="filled" type="button" (click)="gerarCredencial()" [disabled]="salvando()">
+      <span class="material-symbols-rounded" aria-hidden="true">key</span> Gerar credencial
+    </button>
+  </mat-dialog-actions>
+</ng-template>

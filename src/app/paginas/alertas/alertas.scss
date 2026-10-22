@@ -1,0 +1,36 @@
+.cabecalho { display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: space-between; gap: var(--space-4); margin-bottom: var(--space-4); }
+.titulo { display: grid; gap: var(--space-2); }
+h1 { font: 700 var(--fs-h1) var(--font-display); margin: 0; }
+.legenda { margin: 0; color: var(--text-2); font-size: var(--fs-small); }
+.aviso { display: grid; gap: var(--space-2); max-width: 520px; p { margin: 0; } }
+.filtro { margin-bottom: var(--space-3); }
+.contagem { margin-left: 6px; padding: 0 6px; border-radius: 999px; background: color-mix(in srgb, var(--warn) 20%, transparent); color: var(--warn); font-size: var(--fs-label); }
+
+.lista { margin: 0; padding: 0; list-style: none; display: grid; gap: var(--space-2); }
+.alerta {
+  --cor: var(--warn);
+  display: grid; grid-template-columns: auto 1fr auto; gap: var(--space-3); align-items: start;
+  border-left: 4px solid var(--cor);
+}
+.alerta.critico { --cor: var(--danger); }
+.alerta.reconhecido, .alerta.resolvido { --cor: var(--text-3); }
+.alerta.resolvido { opacity: .75; }
+.icone { display: grid; place-items: center; width: 40px; height: 40px; border-radius: 10px; font-size: 22px;
+  background: color-mix(in srgb, var(--cor) 14%, transparent); color: var(--cor); }
+.corpo { display: grid; gap: 4px; min-width: 0; }
+.linha-titulo { display: flex; flex-wrap: wrap; align-items: baseline; gap: var(--space-2); }
+.severidade { font: 600 var(--fs-label) var(--font-ui); text-transform: uppercase; letter-spacing: .06em; color: var(--cor); }
+h2 { margin: 0; font: 600 16px var(--font-ui); color: var(--text-1); }
+.descricao { margin: 0; color: var(--text-2); }
+.meta { margin: 0; display: flex; flex-wrap: wrap; gap: var(--space-3); color: var(--text-3); font-size: var(--fs-label); }
+.acoes { display: flex; gap: var(--space-2); align-items: center; }
+@media (max-width: 720px) { .alerta { grid-template-columns: auto 1fr; } .acoes { grid-column: 1 / -1; } }
+.vazio { display: grid; justify-items: center; gap: var(--space-2); padding: var(--space-6, 48px); color: var(--text-2);
+  .material-symbols-rounded { font-size: 36px; color: var(--ok); } p { margin: 0; } }
+
+.esqueleto {
+  min-height: 300px; border-radius: var(--radius-m);
+  background: linear-gradient(90deg, var(--bg-2), var(--bg-3), var(--bg-2)); background-size: 200% 100%;
+  animation: brilho 1.2s ease-in-out infinite;
+}
+@keyframes brilho { from { background-position: 100% 0; } to { background-position: -100% 0; } }

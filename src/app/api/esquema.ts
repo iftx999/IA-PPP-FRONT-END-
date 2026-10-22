@@ -100,6 +100,22 @@ export interface paths {
     patch?: never;
     trace?: never;
   };
+  '/api/v1/integracoes/fontes/{id}': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put: operations['alterar_2'];
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
   '/api/v1/contratos/itens/{item}': {
     parameters: {
       query?: never;
@@ -228,6 +244,54 @@ export interface paths {
     patch?: never;
     trace?: never;
   };
+  '/api/v1/integracoes/fontes': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get: operations['fontes'];
+    put?: never;
+    post: operations['criar_3'];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/api/v1/integracoes/fontes/{id}/credenciais': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get: operations['credenciais'];
+    put?: never;
+    post: operations['gerarCredencial'];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/api/v1/integracoes/credenciais/{prefixo}/revogacao': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    post: operations['revogar'];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
   '/api/v1/contratos': {
     parameters: {
       query?: never;
@@ -237,7 +301,7 @@ export interface paths {
     };
     get: operations['listar_4'];
     put?: never;
-    post: operations['criar_3'];
+    post: operations['criar_4'];
     delete?: never;
     options?: never;
     head?: never;
@@ -324,6 +388,38 @@ export interface paths {
     patch?: never;
     trace?: never;
   };
+  '/api/v1/alertas/{id}/reconhecimento': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    post: operations['reconhecer'];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/api/v1/alertas/avaliacao': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    post: operations['avaliar'];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
   '/api/v1/usuarios/{id}': {
     parameters: {
       query?: never;
@@ -396,6 +492,22 @@ export interface paths {
       cookie?: never;
     };
     get: operations['painel'];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/api/v1/integracoes/fontes/{id}/execucoes': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get: operations['execucoes'];
     put?: never;
     post?: never;
     delete?: never;
@@ -580,6 +692,38 @@ export interface paths {
     patch?: never;
     trace?: never;
   };
+  '/api/v1/alertas': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get: operations['listar_6'];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/api/v1/alertas/resumo': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get: operations['resumo'];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
 }
 export type webhooks = Record<string, never>;
 export interface components {
@@ -616,6 +760,16 @@ export interface components {
       nome: string;
       descricao: string | null;
       permissoes: string[];
+    };
+    FonteRequest: {
+      nome: string;
+      /** @enum {string} */
+      tipo: 'AGENTE' | 'ARQUIVO' | 'CDC' | 'API' | 'ETL_JDBC';
+      sistemaOrigem: string | null;
+      frequencia: string | null;
+      /** Format: int64 */
+      atrasoMaximoHoras: number;
+      ativo: boolean;
     };
     ItemRequest: {
       /** @enum {string} */
@@ -688,6 +842,14 @@ export interface components {
       /** Format: date */
       fim: string;
     };
+    FonteCriada: {
+      /** Format: uuid */
+      id: string;
+    };
+    CredencialGeradaResponse: {
+      prefixo: string;
+      chave: string;
+    };
     ContratoRequest: {
       numero: string;
       /** Format: uuid */
@@ -711,6 +873,14 @@ export interface components {
     };
     RejeicaoRequest: {
       motivo: string;
+    };
+    AvaliacaoResponse: {
+      /** Format: int32 */
+      abertos: number;
+      /** Format: int32 */
+      atualizados: number;
+      /** Format: int32 */
+      resolvidos: number;
     };
     ConcessaoResponse: {
       /** Format: uuid */
@@ -911,6 +1081,59 @@ export interface components {
       /** Format: int64 */
       seguemAcima: number;
     };
+    FonteResponse: {
+      /** Format: uuid */
+      id: string;
+      nome: string;
+      /** @enum {string} */
+      tipo: 'AGENTE' | 'ARQUIVO' | 'CDC' | 'API' | 'ETL_JDBC';
+      sistemaOrigem: string | null;
+      frequencia: string | null;
+      /** Format: int64 */
+      atrasoMaximoHoras: number;
+      ativo: boolean;
+      /** Format: date-time */
+      criadaEm: string;
+      /** Format: date-time */
+      ultimaCarga: string | null;
+      situacaoUltimaExecucao: string | null;
+      /** Format: date-time */
+      ultimaExecucao: string | null;
+      /** Format: int64 */
+      credenciaisAtivas: number;
+      atrasada: boolean;
+    };
+    ExecucaoResponse: {
+      /** Format: uuid */
+      id: string;
+      /** Format: date-time */
+      inicio: string;
+      /** Format: date-time */
+      fim: string | null;
+      situacao: string;
+      origem: string | null;
+      /** Format: date */
+      competencia: string | null;
+      /** Format: int64 */
+      lidos: number | null;
+      /** Format: int64 */
+      gravados: number | null;
+      /** Format: int64 */
+      rejeitados: number;
+      /** Format: int64 */
+      novos: number;
+      /** Format: int64 */
+      atualizados: number;
+      /** Format: int64 */
+      inalterados: number;
+      erro: string | null;
+    };
+    CredencialResponse: {
+      prefixo: string;
+      /** Format: date-time */
+      criadaEm: string;
+      ativa: boolean;
+    };
     ItemDto: {
       matricula: string;
       /** Format: uuid */
@@ -1094,6 +1317,53 @@ export interface components {
       id: string;
       nome: string;
       email: string;
+    };
+    AlertaResponse: {
+      /** Format: uuid */
+      id: string;
+      /** @enum {string} */
+      tipo:
+        | 'INDICADOR_ABAIXO_DA_META'
+        | 'META_FORA_DO_RITMO'
+        | 'FONTE_ATRASADA'
+        | 'PRAZO_CONTRATUAL'
+        | 'TRILHA_ALTERADA';
+      /** @enum {string} */
+      severidade: 'ATENCAO' | 'CRITICO';
+      /** Format: uuid */
+      unidadeId: string | null;
+      unidadeNome: string | null;
+      titulo: string;
+      descricao: string;
+      link: string | null;
+      /** Format: date-time */
+      criadoEm: string;
+      /** Format: date-time */
+      atualizadoEm: string;
+      reconhecidoPor: string | null;
+      /** Format: date-time */
+      reconhecidoEm: string | null;
+      /** Format: date-time */
+      resolvidoEm: string | null;
+    };
+    FonteAtrasadaDto: {
+      /** Format: uuid */
+      id: string;
+      nome: string;
+      /** Format: date-time */
+      ultimaCarga: string | null;
+      /** Format: int64 */
+      atrasoMaximoHoras: number;
+    };
+    ResumoAlertasResponse: {
+      /** Format: int64 */
+      criticos: number;
+      /** Format: int64 */
+      atencao: number;
+      /** Format: int64 */
+      reconhecidos: number;
+      competencia: string | null;
+      fontesAtrasadas: components['schemas']['FonteAtrasadaDto'][];
     };
   };
   responses: never;
@@ -1280,6 +1550,30 @@ export interface operations {
       cookie?: never;
     };
     requestBody?: never;
+    responses: {
+      /** @description OK */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
+      };
+    };
+  };
+  alterar_2: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        id: string;
+      };
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        'application/json': components['schemas']['FonteRequest'];
+      };
+    };
     responses: {
       /** @description OK */
       200: {
@@ -1554,6 +1848,114 @@ export interface operations {
       };
     };
   };
+  fontes: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description OK */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          '*/*': components['schemas']['FonteResponse'][];
+        };
+      };
+    };
+  };
+  criar_3: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        'application/json': components['schemas']['FonteRequest'];
+      };
+    };
+    responses: {
+      /** @description OK */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          '*/*': components['schemas']['FonteCriada'];
+        };
+      };
+    };
+  };
+  credenciais: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        id: string;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description OK */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          '*/*': components['schemas']['CredencialResponse'][];
+        };
+      };
+    };
+  };
+  gerarCredencial: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        id: string;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description OK */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          '*/*': components['schemas']['CredencialGeradaResponse'];
+        };
+      };
+    };
+  };
+  revogar: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        prefixo: string;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description OK */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
+      };
+    };
+  };
   listar_4: {
     parameters: {
       query?: never;
@@ -1574,7 +1976,7 @@ export interface operations {
       };
     };
   };
-  criar_3: {
+  criar_4: {
     parameters: {
       query?: never;
       header?: never;
@@ -1744,6 +2146,46 @@ export interface operations {
       };
     };
   };
+  reconhecer: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        id: string;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description OK */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
+      };
+    };
+  };
+  avaliar: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description OK */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          '*/*': components['schemas']['AvaliacaoResponse'];
+        };
+      };
+    };
+  };
   detalhar_1: {
     parameters: {
       query?: never;
@@ -1845,6 +2287,30 @@ export interface operations {
         };
         content: {
           '*/*': components['schemas']['PainelResponse'];
+        };
+      };
+    };
+  };
+  execucoes: {
+    parameters: {
+      query?: {
+        limite?: number;
+      };
+      header?: never;
+      path: {
+        id: string;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description OK */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          '*/*': components['schemas']['ExecucaoResponse'][];
         };
       };
     };
@@ -2096,6 +2562,49 @@ export interface operations {
         };
         content: {
           '*/*': components['schemas']['AutorDto'][];
+        };
+      };
+    };
+  };
+  listar_6: {
+    parameters: {
+      query?: {
+        estado?: 'ABERTOS' | 'RECONHECIDOS' | 'RESOLVIDOS';
+        limite?: number;
+      };
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description OK */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          '*/*': components['schemas']['AlertaResponse'][];
+        };
+      };
+    };
+  };
+  resumo: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description OK */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          '*/*': components['schemas']['ResumoAlertasResponse'];
         };
       };
     };
