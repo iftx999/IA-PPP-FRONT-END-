@@ -148,6 +148,8 @@ export class Metas {
     vigenciaFim: new FormControl<Date | null>(null),
   });
   protected readonly fimEncerramento = new FormControl<Date | null>(new Date(), [Validators.required]);
+  /** Formulário do diálogo de encerramento (sem [formGroup], o submit seria o nativo e recarregaria a página). */
+  protected readonly formEncerrar = new FormGroup({ fim: this.fimEncerramento });
   protected readonly emEncerramento = signal<LinhaMeta | null>(null);
   protected readonly salvando = signal(false);
   protected readonly erro = signal<string | null>(null);

@@ -29,3 +29,7 @@ export type TipoUnidade = Esquemas['TipoUnidadeResponse'];
 export type CodigoTipoUnidade = TipoUnidade['codigo'];
 export type PedidoNovaUnidade = Esquemas['NovaUnidadeRequest'];
 export type PedidoDadosUnidade = Esquemas['DadosUnidadeRequest'];
+export type EventoAuditoria = Esquemas['EventoDto'];
+export type PaginaAuditoria = Esquemas['EventosResponse'];
+export type AutorAuditoria = Esquemas['AutorDto'];
+export type VerificacaoAuditoria = Esquemas['VerificacaoResponse'];

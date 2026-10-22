@@ -45,6 +45,7 @@ export class Shell {
         { rota: '/admin/unidades', rotulo: 'Unidades' },
         { rota: '/admin/usuarios', rotulo: 'Usuários' },
         { rota: '/admin/perfis', rotulo: 'Perfis' },
+        { rota: '/admin/auditoria', rotulo: 'Auditoria' },
         { rota: '/admin/integracoes', rotulo: 'Integrações' },
       ],
     },

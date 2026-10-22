@@ -17,7 +17,7 @@ jobs:
       - run: npm ci
       - name: Vulnerabilidades em dependências (alta ou crítica bloqueiam)
         run: npm audit --audit-level=high
-      - run: npx ng lint
+      - run: npm run lint
       - run: npx ng test --watch=false
       - run: npx ng build
 # E2E (npm run e2e) roda contra o ambiente completo (Keycloak, API e banco); ver README.

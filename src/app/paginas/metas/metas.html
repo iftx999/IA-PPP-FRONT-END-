@@ -231,7 +231,7 @@
 <ng-template #modeloEncerrar>
   <h2 mat-dialog-title>Encerrar meta de {{ emEncerramento()?.unidadeNome }}</h2>
   <mat-dialog-content>
-    <form id="form-encerrar" class="formulario" (ngSubmit)="confirmarEncerramento()">
+    <form id="form-encerrar" class="formulario" [formGroup]="formEncerrar" (ngSubmit)="confirmarEncerramento()">
       <p class="ajuda">A meta deixa de valer depois desta data. O histórico é mantido e a unidade volta a seguir a meta acima.</p>
       <mat-form-field>
         <mat-label>Último dia de vigência</mat-label>

@@ -21,6 +21,7 @@ const telas: Routes = [
   { path: 'admin/unidades', title: 'Unidades · Aurora', loadComponent: () => import('./paginas/unidades/unidades').then((m) => m.Unidades) },
   { path: 'admin/usuarios', title: 'Usuários · Aurora', loadComponent: () => import('./paginas/usuarios/usuarios').then((m) => m.Usuarios) },
   { path: 'admin/perfis', title: 'Perfis · Aurora', loadComponent: () => import('./paginas/perfis/perfis').then((m) => m.Perfis) },
+  { path: 'admin/auditoria', title: 'Auditoria · Aurora', loadComponent: () => import('./paginas/auditoria/auditoria').then((m) => m.Auditoria) },
   { path: 'admin/integracoes', title: 'Integrações · Aurora', loadComponent: emConstrucao,
     data: { secao: 'Administração', titulo: 'Integrações', marco: 'Marco 3 — Operação' } },
 ];

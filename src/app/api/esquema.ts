@@ -340,6 +340,86 @@ export interface paths {
     patch?: never;
     trace?: never;
   };
+  '/api/v1/auditoria/verificacao': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get: operations['verificar'];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/api/v1/auditoria/tipos': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get: operations['tipos_1'];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/api/v1/auditoria/eventos': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get: operations['eventos'];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/api/v1/auditoria/eventos/exportacao.csv': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get: operations['exportar_1'];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/api/v1/auditoria/autores': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get: operations['autores'];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
 }
 export type webhooks = Record<string, never>;
 export interface components {
@@ -658,6 +738,82 @@ export interface components {
       tenantId: string;
       tenant: string;
       permissoes: string[];
+    };
+    VerificacaoResponse: {
+      /** Format: int64 */
+      eventos: number;
+      /** Format: int64 */
+      verificados: number;
+      /** Format: int64 */
+      legados: number;
+      /** Format: int64 */
+      primeiraQuebra: number | null;
+      integra: boolean;
+    };
+    EventoDto: {
+      /** Format: int64 */
+      sequencia: number;
+      /** Format: date-time */
+      ocorridoEm: string;
+      tipo: string;
+      recurso: string | null;
+      recursoNome: string | null;
+      /** Format: uuid */
+      usuarioId: string | null;
+      usuarioNome: string | null;
+      usuarioEmail: string | null;
+      ip: string | null;
+      /** Format: uuid */
+      unidadeId: string | null;
+      unidadeNome: string | null;
+      detalhes: components['schemas']['JsonNode'];
+    };
+    EventosResponse: {
+      eventos: components['schemas']['EventoDto'][];
+      proximo: string | null;
+    };
+    JsonNode: {
+      container?: boolean;
+      /** @enum {string} */
+      nodeType?:
+        | 'ARRAY'
+        | 'BINARY'
+        | 'BOOLEAN'
+        | 'MISSING'
+        | 'NULL'
+        | 'NUMBER'
+        | 'OBJECT'
+        | 'POJO'
+        | 'STRING';
+      string?: boolean;
+      integralNumber?: boolean;
+      missingNode?: boolean;
+      valueNode?: boolean;
+      object?: boolean;
+      pojo?: boolean;
+      floatingPointNumber?: boolean;
+      short?: boolean;
+      int?: boolean;
+      long?: boolean;
+      double?: boolean;
+      bigDecimal?: boolean;
+      bigInteger?: boolean;
+      /** @deprecated */
+      textual?: boolean;
+      boolean?: boolean;
+      binary?: boolean;
+      array?: boolean;
+      empty?: boolean;
+      null?: boolean;
+      float?: boolean;
+      number?: boolean;
+      embeddedValue?: boolean;
+    };
+    AutorDto: {
+      /** Format: uuid */
+      id: string;
+      nome: string;
+      email: string;
     };
   };
   responses: never;
@@ -1266,6 +1422,120 @@ export interface operations {
         };
         content: {
           '*/*': components['schemas']['EuResponse'];
+        };
+      };
+    };
+  };
+  verificar: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description OK */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          '*/*': components['schemas']['VerificacaoResponse'];
+        };
+      };
+    };
+  };
+  tipos_1: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description OK */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          '*/*': string[];
+        };
+      };
+    };
+  };
+  eventos: {
+    parameters: {
+      query?: {
+        usuario?: string;
+        tipo?: string[];
+        de?: string;
+        ate?: string;
+        unidade?: string;
+        cursor?: string;
+        limite?: number;
+      };
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description OK */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          '*/*': components['schemas']['EventosResponse'];
+        };
+      };
+    };
+  };
+  exportar_1: {
+    parameters: {
+      query?: {
+        usuario?: string;
+        tipo?: string[];
+        de?: string;
+        ate?: string;
+        unidade?: string;
+      };
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description OK */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          '*/*': string;
+        };
+      };
+    };
+  };
+  autores: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description OK */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          '*/*': components['schemas']['AutorDto'][];
         };
       };
     };

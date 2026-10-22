@@ -1,0 +1,194 @@
+<header class="cabecalho">
+  <div class="titulo">
+    <span class="rotulo">Administração</span>
+    <h1>Auditoria</h1>
+    <p class="legenda">Quem fez o quê, quando e onde. A trilha só aceita inclusões e cada evento é encadeado ao anterior.</p>
+  </div>
+  @if (eventos()) {
+    <div class="acoes-topo">
+      <button matButton="outlined" type="button" (click)="verificar()" [disabled]="verificando()">
+        @if (verificando()) { <mat-spinner diameter="16" /> } @else {
+          <span class="material-symbols-rounded" aria-hidden="true">verified</span>
+        }
+        Verificar integridade
+      </button>
+      @if (podeExportar()) {
+        <button matButton="filled" type="button" (click)="exportar()" [disabled]="exportando()">
+          @if (exportando()) { <mat-spinner diameter="16" /> } @else {
+            <span class="material-symbols-rounded" aria-hidden="true">download</span>
+          }
+          Exportar CSV
+        </button>
+      }
+    </div>
+  }
+</header>
+
+@if (!sessao.usuario()) {
+  <div class="esqueleto" aria-busy="true" aria-label="Carregando"></div>
+} @else if (!sessao.pode('auditoria:ler')) {
+  <section class="cartao aviso" role="alert">
+    <p class="rotulo">Sem acesso</p>
+    <p>Seu perfil não permite consultar a auditoria.</p>
+  </section>
+} @else if (semEscopo()) {
+  <section class="cartao aviso" role="alert">
+    <p class="rotulo">Sem acesso</p>
+    <p>A trilha de auditoria é do cliente inteiro: a permissão precisa estar concedida na unidade principal.</p>
+  </section>
+} @else {
+  @if (verificacao(); as v) {
+    <section class="cartao verificacao" [class.ok]="v.integra" [class.quebra]="!v.integra" role="status">
+      <span class="material-symbols-rounded" aria-hidden="true">{{ v.integra ? 'verified' : 'gpp_bad' }}</span>
+      <div>
+        @if (v.integra) {
+          <p><b>Trilha íntegra.</b> {{ fmt.numero(v.eventos) }} eventos conferidos, nenhum alterado ou removido.</p>
+        } @else {
+          <p><b>Trilha adulterada a partir do evento nº {{ v.primeiraQuebra }}.</b> Acione a segurança da informação.</p>
+        }
+        <p class="nota">
+          {{ fmt.numero(v.verificados) }} com assinatura conferida
+          @if (v.legados) { · {{ fmt.numero(v.legados) }} importados do sistema anterior (só o encadeamento é conferido) }
+        </p>
+      </div>
+      <button matIconButton type="button" (click)="verificacao.set(null)" aria-label="Fechar resultado da verificação">
+        <span class="material-symbols-rounded">close</span>
+      </button>
+    </section>
+  }
+  @if (erroVerificacao() || erroExportacao()) {
+    <p class="erro-linha" role="alert">
+      <span class="material-symbols-rounded" aria-hidden="true">error</span>{{ erroVerificacao() ?? erroExportacao() }}
+    </p>
+  }
+
+  <form class="cartao filtros" [formGroup]="formFiltros" (ngSubmit)="aplicar()" aria-label="Filtros da auditoria">
+    <mat-form-field subscriptSizing="dynamic">
+      <mat-label>Pessoa</mat-label>
+      <mat-select [formControl]="campoUsuario">
+        <mat-option [value]="null">Todas</mat-option>
+        @for (a of autores(); track a.id) {
+          <mat-option [value]="a.id">{{ a.nome }} <span class="opcao-secundaria">{{ a.email }}</span></mat-option>
+        }
+      </mat-select>
+    </mat-form-field>
+    <mat-form-field subscriptSizing="dynamic">
+      <mat-label>Eventos</mat-label>
+      <mat-select [formControl]="campoTipos" multiple placeholder="Todos">
+        @for (g of grupos(); track g.grupo) {
+          <mat-optgroup [label]="g.grupo">
+            @for (t of g.tipos; track t.codigo) {
+              <mat-option [value]="t.codigo">{{ t.rotulo }}</mat-option>
+            }
+          </mat-optgroup>
+        }
+      </mat-select>
+    </mat-form-field>
+    <mat-form-field subscriptSizing="dynamic">
+      <mat-label>Período</mat-label>
+      <mat-date-range-input [rangePicker]="periodo">
+        <input matStartDate [formControl]="campoDe" placeholder="Início" />
+        <input matEndDate [formControl]="campoAte" placeholder="Fim" />
+      </mat-date-range-input>
+      <mat-datepicker-toggle matIconSuffix [for]="periodo" />
+      <mat-date-range-picker #periodo />
+    </mat-form-field>
+    <mat-form-field subscriptSizing="dynamic">
+      <mat-label>Unidade</mat-label>
+      <input matInput [formControl]="campoUnidade" [matAutocomplete]="listaUnidades" placeholder="Todas" />
+      <mat-autocomplete #listaUnidades="matAutocomplete" [displayWith]="exibirUnidade" autoActiveFirstOption>
+        @for (o of opcoesUnidade(); track o.id) {
+          <mat-option [value]="o" [style.padding-left.px]="16 + o.profundidade * 16">{{ o.nome }}</mat-option>
+        }
+      </mat-autocomplete>
+    </mat-form-field>
+    <div class="botoes-filtro">
+      <button matButton="filled" type="submit">Aplicar</button>
+      @if (temFiltros()) {
+        <button matButton type="button" (click)="limpar()">Limpar</button>
+      }
+    </div>
+  </form>
+
+  @if (eventos(); as lista) {
+    <section class="cartao lista" aria-label="Eventos da trilha">
+      @if (lista.length === 0) {
+        <p class="vazio">Nenhum evento com esses filtros.</p>
+      } @else {
+        <table class="eventos">
+          <thead>
+            <tr>
+              <th scope="col">Quando</th>
+              <th scope="col">Evento</th>
+              <th scope="col">Quem</th>
+              <th scope="col">Afetado</th>
+              <th scope="col"><span class="cdk-visually-hidden">Detalhes</span></th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (e of lista; track e.sequencia) {
+              <tr class="evento" [class.aberto]="abertos().has(e.sequencia)" (click)="alternar(e.sequencia)">
+                <td class="quando">
+                  <span [matTooltip]="fmt.dataEHora(e.ocorridoEm)">{{ fmt.haQuantoTempo(e.ocorridoEm) }}</span>
+                  <span class="nota dado">{{ fmt.dataEHora(e.ocorridoEm) }}</span>
+                </td>
+                <td>
+                  <span class="tipo">
+                    <span class="material-symbols-rounded" aria-hidden="true">{{ info(e.tipo).icone }}</span>
+                    {{ info(e.tipo).rotulo }}
+                  </span>
+                </td>
+                <td>
+                  <span class="quem">{{ quem(e) }}</span>
+                  @if (e.usuarioEmail) { <span class="nota">{{ e.usuarioEmail }}</span> }
+                </td>
+                <td>
+                  <span>{{ e.recursoNome ?? e.recurso ?? '—' }}</span>
+                  @if (e.unidadeNome && e.unidadeNome !== e.recursoNome) { <span class="nota">{{ e.unidadeNome }}</span> }
+                </td>
+                <td class="expandir">
+                  <button matIconButton type="button" (click)="alternar(e.sequencia); $event.stopPropagation()"
+                          [attr.aria-expanded]="abertos().has(e.sequencia)"
+                          [attr.aria-label]="(abertos().has(e.sequencia) ? 'Ocultar' : 'Ver') + ' detalhes do evento ' + e.sequencia">
+                    <span class="material-symbols-rounded">{{ abertos().has(e.sequencia) ? 'expand_less' : 'expand_more' }}</span>
+                  </button>
+                </td>
+              </tr>
+              @if (abertos().has(e.sequencia)) {
+                <tr class="detalhe">
+                  <td colspan="5">
+                    <dl class="pares">
+                      <div><dt>nº na trilha</dt><dd class="dado">{{ e.sequencia }}</dd></div>
+                      @if (e.recurso) { <div><dt>recurso</dt><dd class="dado">{{ e.recurso }}</dd></div> }
+                      @if (e.ip) { <div><dt>IP de origem</dt><dd class="dado">{{ e.ip }}</dd></div> }
+                      @for (p of pares(e.detalhes); track p.chave) {
+                        <div><dt>{{ p.chave }}</dt><dd class="dado">{{ p.valor }}</dd></div>
+                      }
+                    </dl>
+                  </td>
+                </tr>
+              }
+            }
+          </tbody>
+        </table>
+        <div class="rodape">
+          <span class="nota">{{ fmt.numero(lista.length) }} eventos exibidos, do mais recente ao mais antigo</span>
+          @if (proximo()) {
+            <button matButton="outlined" type="button" (click)="carregarMais()" [disabled]="carregandoMais()">
+              @if (carregandoMais()) { <mat-spinner diameter="16" /> } Carregar mais
+            </button>
+          } @else {
+            <aurora-selo>Fim da trilha</aurora-selo>
+          }
+        </div>
+      }
+    </section>
+  } @else if (dados.error()) {
+    <section class="cartao" role="alert">
+      <p>Não foi possível carregar a auditoria.</p>
+      <button matButton="outlined" type="button" (click)="dados.reload()">Tentar de novo</button>
+    </section>
+  } @else {
+    <div class="esqueleto" aria-busy="true" aria-label="Carregando os eventos"></div>
+  }
+}
