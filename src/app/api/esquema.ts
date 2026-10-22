@@ -100,6 +100,22 @@ export interface paths {
     patch?: never;
     trace?: never;
   };
+  '/api/v1/contratos/itens/{item}': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put: operations['editarItem'];
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
   '/api/v1/usuarios': {
     parameters: {
       query?: never;
@@ -212,6 +228,102 @@ export interface paths {
     patch?: never;
     trace?: never;
   };
+  '/api/v1/contratos': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get: operations['listar_4'];
+    put?: never;
+    post: operations['criar_3'];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/api/v1/contratos/{id}/itens': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get: operations['itens'];
+    put?: never;
+    post: operations['criarItem'];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/api/v1/contratos/{id}/documentos': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    post: operations['enviar'];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/api/v1/contratos/itens/{item}/rejeicao': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    post: operations['rejeitar'];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/api/v1/contratos/itens/{item}/aprovacao': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    post: operations['aprovar'];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/api/v1/contratos/documentos/{documento}/processamento': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    post: operations['reprocessar'];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
   '/api/v1/usuarios/{id}': {
     parameters: {
       query?: never;
@@ -299,7 +411,7 @@ export interface paths {
       path?: never;
       cookie?: never;
     };
-    get: operations['listar_4'];
+    get: operations['listar_5'];
     put?: never;
     post?: never;
     delete?: never;
@@ -332,6 +444,54 @@ export interface paths {
       cookie?: never;
     };
     get: operations['eu'];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/api/v1/contratos/{id}': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get: operations['detalhar_2'];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/api/v1/contratos/documentos/{documento}': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get: operations['documento'];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/api/v1/contratos/documentos/{documento}/arquivo': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get: operations['arquivo'];
     put?: never;
     post?: never;
     delete?: never;
@@ -457,6 +617,34 @@ export interface components {
       descricao: string | null;
       permissoes: string[];
     };
+    ItemRequest: {
+      /** @enum {string} */
+      tipo:
+        | 'META'
+        | 'INDICADOR'
+        | 'OBRIGACAO'
+        | 'PRAZO'
+        | 'PENALIDADE'
+        | 'REAJUSTE'
+        | 'RISCO'
+        | 'OUTRO';
+      titulo: string;
+      resumo: string;
+      clausula: string | null;
+      /** Format: int32 */
+      pagina: number;
+      trecho: string;
+      valorReferencia: number | null;
+      unidadeMedida: string | null;
+      /** Format: date */
+      dataLimite: string | null;
+      periodicidade: string | null;
+      /** Format: uuid */
+      unidadeId: string | null;
+      valorAlerta: number | null;
+      /** Format: date */
+      vigenciaInicio: string | null;
+    };
     ConviteRequest: {
       nome: string;
       /** Format: email */
@@ -499,6 +687,30 @@ export interface components {
     EncerramentoRequest: {
       /** Format: date */
       fim: string;
+    };
+    ContratoRequest: {
+      numero: string;
+      /** Format: uuid */
+      unidadeId: string;
+      objeto: string | null;
+      poderConcedente: string | null;
+      regulador: string | null;
+      /** Format: date */
+      dataAssinatura: string | null;
+      /** Format: date */
+      vigenciaFim: string | null;
+    };
+    Criado: {
+      /** Format: uuid */
+      id: string;
+    };
+    NovoItemRequest: {
+      /** Format: uuid */
+      documentoId: string;
+      item: components['schemas']['ItemRequest'];
+    };
+    RejeicaoRequest: {
+      motivo: string;
     };
     ConcessaoResponse: {
       /** Format: uuid */
@@ -739,6 +951,108 @@ export interface components {
       tenant: string;
       permissoes: string[];
     };
+    ContratoResponse: {
+      /** Format: uuid */
+      id: string;
+      numero: string;
+      /** Format: uuid */
+      unidadeId: string;
+      unidadeNome: string;
+      objeto: string | null;
+      poderConcedente: string | null;
+      regulador: string | null;
+      /** Format: date */
+      dataAssinatura: string | null;
+      /** Format: date */
+      vigenciaFim: string | null;
+      /** Format: int64 */
+      documentos: number;
+      /** Format: int64 */
+      itensPendentes: number;
+      /** Format: int64 */
+      itensAprovados: number;
+    };
+    DetalheContratoResponse: {
+      contrato: components['schemas']['ContratoResponse'];
+      documentos: components['schemas']['DocumentoResponse'][];
+    };
+    DocumentoResponse: {
+      /** Format: uuid */
+      id: string;
+      /** Format: uuid */
+      contratoId: string;
+      /** @enum {string} */
+      tipo: 'ORIGINAL' | 'ANEXO' | 'ADITIVO';
+      titulo: string;
+      nomeArquivo: string;
+      sha256: string;
+      /** Format: int64 */
+      tamanhoBytes: number;
+      /** Format: int32 */
+      paginas: number | null;
+      /** @enum {string} */
+      situacao:
+        'RECEBIDO' | 'RECONHECENDO_TEXTO' | 'PROCESSANDO' | 'PRONTO' | 'SEM_TEXTO' | 'FALHA';
+      mensagem: string | null;
+      modeloIa: string | null;
+      /** Format: int32 */
+      itensPropostos: number;
+      /** Format: int32 */
+      itensDescartados: number;
+      /** Format: date-time */
+      enviadoEm: string;
+    };
+    ItemResponse: {
+      /** Format: uuid */
+      id: string;
+      /** Format: uuid */
+      contratoId: string;
+      /** Format: uuid */
+      documentoId: string;
+      /** @enum {string} */
+      tipo:
+        | 'META'
+        | 'INDICADOR'
+        | 'OBRIGACAO'
+        | 'PRAZO'
+        | 'PENALIDADE'
+        | 'REAJUSTE'
+        | 'RISCO'
+        | 'OUTRO';
+      titulo: string;
+      resumo: string;
+      clausula: string | null;
+      /** Format: int32 */
+      pagina: number;
+      trecho: string;
+      valorReferencia: number | null;
+      unidadeMedida: string | null;
+      /** Format: date */
+      dataLimite: string | null;
+      periodicidade: string | null;
+      /** Format: uuid */
+      unidadeId: string | null;
+      unidadeNome: string | null;
+      valorAlerta: number | null;
+      /** Format: date */
+      vigenciaInicio: string | null;
+      /** @enum {string} */
+      status: 'PROPOSTO' | 'APROVADO' | 'REJEITADO' | 'SUBSTITUIDO';
+      origem: string;
+      modeloIa: string | null;
+      confianca: number | null;
+      /** @description Objeto JSON livre */
+      propostaIa: {
+        [key: string]: unknown;
+      } | null;
+      semReferencia: boolean;
+      /** Format: date-time */
+      propostoEm: string;
+      revisadoPor: string | null;
+      /** Format: date-time */
+      revisadoEm: string | null;
+      motivoRevisao: string | null;
+    };
     VerificacaoResponse: {
       /** Format: int64 */
       eventos: number;
@@ -766,48 +1080,14 @@ export interface components {
       /** Format: uuid */
       unidadeId: string | null;
       unidadeNome: string | null;
-      detalhes: components['schemas']['JsonNode'];
+      /** @description Objeto JSON livre */
+      detalhes: {
+        [key: string]: unknown;
+      };
     };
     EventosResponse: {
       eventos: components['schemas']['EventoDto'][];
       proximo: string | null;
-    };
-    JsonNode: {
-      container?: boolean;
-      /** @enum {string} */
-      nodeType?:
-        | 'ARRAY'
-        | 'BINARY'
-        | 'BOOLEAN'
-        | 'MISSING'
-        | 'NULL'
-        | 'NUMBER'
-        | 'OBJECT'
-        | 'POJO'
-        | 'STRING';
-      string?: boolean;
-      integralNumber?: boolean;
-      missingNode?: boolean;
-      valueNode?: boolean;
-      object?: boolean;
-      pojo?: boolean;
-      floatingPointNumber?: boolean;
-      short?: boolean;
-      int?: boolean;
-      long?: boolean;
-      double?: boolean;
-      bigDecimal?: boolean;
-      bigInteger?: boolean;
-      /** @deprecated */
-      textual?: boolean;
-      boolean?: boolean;
-      binary?: boolean;
-      array?: boolean;
-      empty?: boolean;
-      null?: boolean;
-      float?: boolean;
-      number?: boolean;
-      embeddedValue?: boolean;
     };
     AutorDto: {
       /** Format: uuid */
@@ -1000,6 +1280,30 @@ export interface operations {
       cookie?: never;
     };
     requestBody?: never;
+    responses: {
+      /** @description OK */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
+      };
+    };
+  };
+  editarItem: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        item: string;
+      };
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        'application/json': components['schemas']['ItemRequest'];
+      };
+    };
     responses: {
       /** @description OK */
       200: {
@@ -1250,6 +1554,196 @@ export interface operations {
       };
     };
   };
+  listar_4: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description OK */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          '*/*': components['schemas']['ContratoResponse'][];
+        };
+      };
+    };
+  };
+  criar_3: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        'application/json': components['schemas']['ContratoRequest'];
+      };
+    };
+    responses: {
+      /** @description OK */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          '*/*': components['schemas']['Criado'];
+        };
+      };
+    };
+  };
+  itens: {
+    parameters: {
+      query?: {
+        status?: 'PROPOSTO' | 'APROVADO' | 'REJEITADO' | 'SUBSTITUIDO';
+      };
+      header?: never;
+      path: {
+        id: string;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description OK */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          '*/*': components['schemas']['ItemResponse'][];
+        };
+      };
+    };
+  };
+  criarItem: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        id: string;
+      };
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        'application/json': components['schemas']['NovoItemRequest'];
+      };
+    };
+    responses: {
+      /** @description OK */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          '*/*': components['schemas']['Criado'];
+        };
+      };
+    };
+  };
+  enviar: {
+    parameters: {
+      query?: {
+        tipo?: 'ORIGINAL' | 'ANEXO' | 'ADITIVO';
+        titulo?: string;
+      };
+      header?: never;
+      path: {
+        id: string;
+      };
+      cookie?: never;
+    };
+    requestBody?: {
+      content: {
+        'multipart/form-data': {
+          /** Format: binary */
+          arquivo: string;
+        };
+      };
+    };
+    responses: {
+      /** @description OK */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          '*/*': components['schemas']['Criado'];
+        };
+      };
+    };
+  };
+  rejeitar: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        item: string;
+      };
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        'application/json': components['schemas']['RejeicaoRequest'];
+      };
+    };
+    responses: {
+      /** @description OK */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
+      };
+    };
+  };
+  aprovar: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        item: string;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description OK */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
+      };
+    };
+  };
+  reprocessar: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        documento: string;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description OK */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
+      };
+    };
+  };
   detalhar_1: {
     parameters: {
       query?: never;
@@ -1355,7 +1849,7 @@ export interface operations {
       };
     };
   };
-  listar_4: {
+  listar_5: {
     parameters: {
       query?: {
         unidade?: string;
@@ -1422,6 +1916,72 @@ export interface operations {
         };
         content: {
           '*/*': components['schemas']['EuResponse'];
+        };
+      };
+    };
+  };
+  detalhar_2: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        id: string;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description OK */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          '*/*': components['schemas']['DetalheContratoResponse'];
+        };
+      };
+    };
+  };
+  documento: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        documento: string;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description OK */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          '*/*': components['schemas']['DocumentoResponse'];
+        };
+      };
+    };
+  };
+  arquivo: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        documento: string;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description OK */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          '*/*': string;
         };
       };
     };

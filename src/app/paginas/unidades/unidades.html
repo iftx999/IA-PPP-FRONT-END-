@@ -148,6 +148,9 @@
       <mat-form-field>
         <mat-label>Tipo</mat-label>
         <mat-select formControlName="tipo">
+          <mat-select-trigger>
+            @if (formulario.controls.tipo.value; as tipo) { {{ descricaoTipo(tipo) }} }
+          </mat-select-trigger>
           @for (t of (modo() === 'nova' ? tiposDaNova() : tipos()); track t.codigo) {
             <mat-option [value]="t.codigo">
               <span class="opcao-icone"><span class="material-symbols-rounded" aria-hidden="true">{{ icone(t.codigo) }}</span>{{ t.descricao }}</span>

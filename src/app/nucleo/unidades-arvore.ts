@@ -46,3 +46,23 @@ export function filtrarUnidades(opcoes: OpcaoUnidade[], termo: string): OpcaoUni
 export function semAcento(texto: string): string {
   return texto.normalize('NFD').replace(/\p{Diacritic}/gu, '').toLocaleLowerCase('pt-BR');
 }
+
+/** A unidade raiz e todas as abaixo dela (para escolher só entre as unidades cobertas por um contrato). */
+export function subarvore<T extends NoUnidade>(unidades: T[], raizId: string): T[] {
+  const filhos = new Map<string, T[]>();
+  for (const u of unidades) {
+    if (u.unidadePaiId) {
+      filhos.set(u.unidadePaiId, [...(filhos.get(u.unidadePaiId) ?? []), u]);
+    }
+  }
+  const resultado: T[] = [];
+  const raiz = unidades.find((u) => u.id === raizId);
+  const visitar = (u: T) => {
+    resultado.push(u);
+    (filhos.get(u.id) ?? []).forEach(visitar);
+  };
+  if (raiz) {
+    visitar(raiz);
+  }
+  return resultado;
+}

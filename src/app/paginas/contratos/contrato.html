@@ -1,0 +1,377 @@
+@if (detalhe(); as d) {
+  <header class="cabecalho">
+    <div class="titulo">
+      <a class="voltar" routerLink="/contratos"><span class="material-symbols-rounded" aria-hidden="true">arrow_back</span> Contratos</a>
+      <h1>Contrato <span class="dado">{{ d.contrato.numero }}</span></h1>
+      <p class="sub">
+        {{ d.contrato.unidadeNome }}
+        @if (d.contrato.objeto) { · {{ d.contrato.objeto }} }
+      </p>
+      <dl class="ficha">
+        @if (d.contrato.poderConcedente) { <div><dt>Poder concedente</dt><dd>{{ d.contrato.poderConcedente }}</dd></div> }
+        @if (d.contrato.regulador) { <div><dt>Regulador</dt><dd>{{ d.contrato.regulador }}</dd></div> }
+        @if (d.contrato.dataAssinatura) { <div><dt>Assinatura</dt><dd class="dado">{{ fmt.data(d.contrato.dataAssinatura + 'T12:00:00') }}</dd></div> }
+        @if (d.contrato.vigenciaFim) { <div><dt>Vigente até</dt><dd class="dado">{{ fmt.data(d.contrato.vigenciaFim + 'T12:00:00') }}</dd></div> }
+      </dl>
+    </div>
+  </header>
+
+  <section class="cartao documentos" aria-label="Documentos do contrato">
+    <div class="secao-topo">
+      <h2>Documentos</h2>
+      @if (podeGerir()) {
+        <div class="envio">
+          <mat-form-field subscriptSizing="dynamic" class="tipo-documento">
+            <mat-label>Tipo</mat-label>
+            <mat-select [formControl]="tipoDocumento">
+              <mat-option value="ORIGINAL">Contrato original</mat-option>
+              <mat-option value="ADITIVO">Aditivo</mat-option>
+              <mat-option value="ANEXO">Anexo</mat-option>
+            </mat-select>
+          </mat-form-field>
+          <button matButton="filled" type="button" (click)="seletor.click()" [disabled]="enviando()">
+            @if (enviando()) { <mat-spinner diameter="16" /> } @else {
+              <span class="material-symbols-rounded" aria-hidden="true">upload_file</span>
+            }
+            Enviar PDF
+          </button>
+          <input #seletor type="file" accept="application/pdf,.pdf" hidden (change)="escolher($event)" aria-label="Arquivo PDF do contrato" />
+        </div>
+      }
+    </div>
+
+    @if (podeGerir()) {
+      <div class="soltar" [class.ativo]="arrastando()" (dragover)="$event.preventDefault(); arrastando.set(true)"
+           (dragleave)="arrastando.set(false)" (drop)="soltar($event)">
+        <span class="material-symbols-rounded" aria-hidden="true">picture_as_pdf</span>
+        Arraste o PDF aqui. A IA lê o texto e propõe os itens; nada vale antes da sua aprovação.
+      </div>
+    }
+
+    @if (d.documentos.length === 0) {
+      <p class="vazio">Nenhum documento enviado.</p>
+    } @else {
+      <ul class="lista-documentos">
+        @for (doc of d.documentos; track doc.id) {
+          <li class="documento">
+            <span class="material-symbols-rounded icone-doc" aria-hidden="true">picture_as_pdf</span>
+            <div class="doc-info">
+              <span class="doc-titulo">{{ doc.titulo }}</span>
+              <span class="nota">
+                {{ doc.tipo === 'ORIGINAL' ? 'Original' : doc.tipo === 'ADITIVO' ? 'Aditivo' : 'Anexo' }}
+                @if (doc.paginas) { · {{ doc.paginas }} páginas }
+                · enviado {{ fmt.haQuantoTempo(doc.enviadoEm) }}
+                @if (doc.modeloIa) { · {{ doc.modeloIa }} }
+              </span>
+              @if (doc.mensagem) {
+                <span class="mensagem" [class.falha]="doc.situacao === 'FALHA'">{{ doc.mensagem }}</span>
+              }
+            </div>
+            <div class="doc-situacao">
+              @if (situacaoDoc(doc).andamento) {
+                <span class="andamento" role="status"><mat-spinner diameter="14" /> {{ situacaoDoc(doc).rotulo }}</span>
+              } @else {
+                <aurora-selo [tom]="situacaoDoc(doc).tom">{{ situacaoDoc(doc).rotulo }}</aurora-selo>
+              }
+              @if (doc.situacao === 'PRONTO' && (doc.itensPropostos || doc.itensDescartados)) {
+                <span class="nota" [matTooltip]="doc.itensDescartados ? 'Descartados: o trecho citado pela IA não foi encontrado no PDF, ou faltou página/tipo válido.' : ''">
+                  {{ doc.itensPropostos }} propostos @if (doc.itensDescartados) { · {{ doc.itensDescartados }} descartados }
+                </span>
+              }
+            </div>
+            <button matIconButton type="button" [matMenuTriggerFor]="menuDoc" [attr.aria-label]="'Ações do documento ' + doc.titulo">
+              <span class="material-symbols-rounded">more_vert</span>
+            </button>
+            <mat-menu #menuDoc="matMenu" xPosition="before">
+              <button mat-menu-item type="button" (click)="mostrarPdfAvulso(doc)">
+                <span class="material-symbols-rounded" aria-hidden="true">visibility</span> Abrir PDF
+              </button>
+              @if (podeGerir()) {
+                <button mat-menu-item type="button" (click)="reprocessar(doc)" [disabled]="situacaoDoc(doc).andamento">
+                  <span class="material-symbols-rounded" aria-hidden="true">refresh</span> Reprocessar
+                </button>
+              }
+            </mat-menu>
+          </li>
+        }
+      </ul>
+    }
+  </section>
+
+  <section class="itens" aria-label="Itens do contrato">
+    <div class="secao-topo">
+      <h2>Itens</h2>
+      <div class="filtros-itens">
+        <mat-button-toggle-group [value]="filtroEfetivo()" (change)="filtro.set($event.value)" aria-label="Situação dos itens"
+                                 hideSingleSelectionIndicator>
+          <mat-button-toggle value="PROPOSTO">Para revisar <span class="contagem">{{ contagem().proposto }}</span></mat-button-toggle>
+          <mat-button-toggle value="APROVADO">Aprovados <span class="contagem">{{ contagem().aprovado }}</span></mat-button-toggle>
+          <mat-button-toggle value="REJEITADO">Rejeitados <span class="contagem">{{ contagem().rejeitado }}</span></mat-button-toggle>
+          <mat-button-toggle value="TODOS">Todos <span class="contagem">{{ contagem().todos }}</span></mat-button-toggle>
+        </mat-button-toggle-group>
+        @if (podeGerir() && documentosParaItem().length) {
+          <button matButton="outlined" type="button" (click)="abrirNovoItem()">
+            <span class="material-symbols-rounded" aria-hidden="true">add</span> Novo item
+          </button>
+        }
+      </div>
+    </div>
+
+    @if (itens()) {
+      @if (itensVisiveis().length === 0) {
+        <p class="cartao vazio">
+          @if (filtroEfetivo() === 'PROPOSTO') { Nada para revisar. } @else { Nenhum item nesta situação. }
+        </p>
+      } @else {
+        <ul class="lista-itens">
+          @for (i of itensVisiveis(); track i.id) {
+            <li>
+              <button type="button" class="cartao item" (click)="abrirRevisao(i)" [attr.aria-label]="'Abrir item ' + i.titulo">
+                <span class="tipo-item" [class.meta]="i.tipo === 'META'">
+                  <span class="material-symbols-rounded" aria-hidden="true">{{ tipoItem(i).icone }}</span>
+                  {{ tipoItem(i).rotulo }}
+                </span>
+                <span class="item-corpo">
+                  <span class="item-titulo">{{ i.titulo }}</span>
+                  <span class="item-resumo">{{ i.resumo }}</span>
+                  <span class="item-meta">
+                    <span class="referencia dado">{{ fmt.referencia(i.clausula, i.pagina) }}</span>
+                    @if (i.tipo === 'META' && i.valorReferencia != null) {
+                      <span class="dado">meta {{ fmt.percentual(i.valorReferencia) }}</span>
+                    }
+                    @if (i.unidadeNome) { <span>{{ i.unidadeNome }}</span> }
+                    @if (i.dataLimite) { <span>até <span class="dado">{{ fmt.data(i.dataLimite + 'T12:00:00') }}</span></span> }
+                    @if (i.origem === 'MANUAL') { <span class="manual">manual</span> }
+                  </span>
+                </span>
+                <span class="item-situacao">
+                  <aurora-selo [tom]="statusItem(i).tom">{{ statusItem(i).rotulo }}</aurora-selo>
+                  @if (i.status === 'PROPOSTO' && i.semReferencia) {
+                    <span class="alerta-item"><span class="material-symbols-rounded" aria-hidden="true">link_off</span>sem cláusula</span>
+                  } @else if (i.status === 'PROPOSTO' && i.confianca != null && i.confianca < 0.6) {
+                    <span class="alerta-item"><span class="material-symbols-rounded" aria-hidden="true">help</span>confiança baixa</span>
+                  }
+                </span>
+              </button>
+            </li>
+          }
+        </ul>
+      }
+    } @else {
+      <div class="esqueleto pequeno" aria-busy="true" aria-label="Carregando os itens"></div>
+    }
+  </section>
+} @else if (dados.error()) {
+  <section class="cartao" role="alert">
+    <p>{{ naoEncontrado() ? 'Contrato não encontrado.' : 'Não foi possível carregar o contrato.' }}</p>
+    <a matButton="outlined" routerLink="/contratos">Voltar para contratos</a>
+  </section>
+} @else {
+  <div class="esqueleto" aria-busy="true" aria-label="Carregando o contrato"></div>
+}
+
+<ng-template #modeloRevisao>
+  <div class="revisao">
+    <div class="revisao-form">
+      <h2 mat-dialog-title>
+        @if (emRevisao(); as i) {
+          {{ i.status === 'PROPOSTO' && podeGerir() ? 'Revisar item' : 'Item' }}
+          <aurora-selo [tom]="statusItem(i).tom">{{ statusItem(i).rotulo }}</aurora-selo>
+        } @else {
+          Novo item
+        }
+      </h2>
+      <mat-dialog-content>
+        <form id="form-item" class="formulario" [formGroup]="formulario" (ngSubmit)="salvar()">
+          @if (emRevisao(); as i) {
+            @if (i.origem === 'IA') {
+              <p class="ajuda">
+                <span class="material-symbols-rounded" aria-hidden="true">auto_awesome</span>
+                Proposto pela IA ({{ i.modeloIa }})
+                @if (i.confianca != null) { · confiança <span class="dado">{{ fmt.percentual(i.confianca * 100) }}</span> }
+                . Confira com o PDF ao lado.
+              </p>
+            }
+            @if (i.status !== 'PROPOSTO') {
+              <p class="ajuda">
+                <span class="material-symbols-rounded" aria-hidden="true">history</span>
+                {{ i.status === 'APROVADO' ? 'Aprovado' : 'Rejeitado' }} por {{ i.revisadoPor ?? '—' }}
+                {{ i.revisadoEm ? 'em ' + fmt.dataEHora(i.revisadoEm) : '' }}
+                @if (i.motivoRevisao) { · motivo: {{ i.motivoRevisao }} }
+              </p>
+            }
+            @if (diferencas(i).length) {
+              <details class="proposta-ia">
+                <summary>Editado em relação à IA ({{ diferencas(i).length }})</summary>
+                <dl>
+                  @for (dif of diferencas(i); track dif.campo) {
+                    <div><dt>{{ dif.campo }}</dt><dd>a IA propôs: <span class="dado">{{ dif.ia }}</span></dd></div>
+                  }
+                </dl>
+              </details>
+            }
+          } @else {
+            <mat-form-field>
+              <mat-label>Documento</mat-label>
+              <mat-select formControlName="documentoId" (selectionChange)="irParaPagina()">
+                @for (doc of documentosParaItem(); track doc.id) {
+                  <mat-option [value]="doc.id">{{ doc.titulo }}</mat-option>
+                }
+              </mat-select>
+            </mat-form-field>
+          }
+
+          <div class="dupla">
+            <mat-form-field>
+              <mat-label>Tipo</mat-label>
+              <mat-select formControlName="tipo">
+                <mat-select-trigger>{{ rotuloTipo(formulario.controls.tipo.value) }}</mat-select-trigger>
+                @for (t of tipos; track t.codigo) {
+                  <mat-option [value]="t.codigo">
+                    <span class="opcao-icone"><span class="material-symbols-rounded" aria-hidden="true">{{ t.icone }}</span>{{ t.rotulo }}</span>
+                  </mat-option>
+                }
+              </mat-select>
+            </mat-form-field>
+            <div class="dupla">
+              <mat-form-field>
+                <mat-label>Cláusula</mat-label>
+                <input matInput formControlName="clausula" maxlength="40" class="dado" />
+                @if (!formulario.controls.clausula.value) { <mat-hint class="hint-alerta">Obrigatória para aprovar</mat-hint> }
+              </mat-form-field>
+              <mat-form-field>
+                <mat-label>Página</mat-label>
+                <input matInput type="number" min="1" formControlName="pagina" class="dado" (change)="irParaPagina()" />
+                <button matIconSuffix matIconButton type="button" (click)="irParaPagina()" aria-label="Abrir o PDF nesta página">
+                  <span class="material-symbols-rounded">open_in_new</span>
+                </button>
+              </mat-form-field>
+            </div>
+          </div>
+          <mat-form-field>
+            <mat-label>Título</mat-label>
+            <input matInput formControlName="titulo" maxlength="200" />
+            <mat-error>Informe o título.</mat-error>
+          </mat-form-field>
+          <mat-form-field>
+            <mat-label>Resumo</mat-label>
+            <textarea matInput formControlName="resumo" rows="2" maxlength="2000"></textarea>
+            <mat-error>Informe o resumo.</mat-error>
+          </mat-form-field>
+          <mat-form-field>
+            <mat-label>Trecho do contrato</mat-label>
+            <textarea matInput formControlName="trecho" rows="3" maxlength="4000"></textarea>
+            <mat-hint>Cópia literal do texto que sustenta o item.</mat-hint>
+            <mat-error>Informe o trecho.</mat-error>
+          </mat-form-field>
+
+          @if (ehMeta()) {
+            <fieldset class="bloco-meta">
+              <legend class="rotulo">Meta de adesão (vira meta oficial ao aprovar)</legend>
+              <mat-form-field>
+                <mat-label>Unidade</mat-label>
+                <input matInput formControlName="unidade" [matAutocomplete]="listaUnidades" placeholder="Unidade coberta pelo contrato" />
+                <mat-autocomplete #listaUnidades="matAutocomplete" [displayWith]="exibirUnidade" autoActiveFirstOption>
+                  @for (o of opcoesUnidade(); track o.id) {
+                    <mat-option [value]="o" [style.padding-left.px]="16 + o.profundidade * 16">{{ o.nome }}</mat-option>
+                  }
+                </mat-autocomplete>
+              </mat-form-field>
+              <div class="dupla">
+                <mat-form-field>
+                  <mat-label>Meta</mat-label>
+                  <input matInput type="number" min="0" max="100" step="0.01" formControlName="valorReferencia" />
+                  <span matTextSuffix>%</span>
+                </mat-form-field>
+                <mat-form-field>
+                  <mat-label>Limite de alerta</mat-label>
+                  <input matInput type="number" min="0" max="100" step="0.01" formControlName="valorAlerta" />
+                  <span matTextSuffix>%</span>
+                  <mat-error>De 0 a 100.</mat-error>
+                </mat-form-field>
+              </div>
+              <div class="dupla">
+                <mat-form-field>
+                  <mat-label>Início da vigência</mat-label>
+                  <input matInput [matDatepicker]="calInicio" formControlName="vigenciaInicio" placeholder="dd/mm/aaaa" />
+                  <mat-datepicker-toggle matIconSuffix [for]="calInicio" />
+                  <mat-datepicker #calInicio />
+                </mat-form-field>
+                <mat-form-field>
+                  <mat-label>Fim da vigência</mat-label>
+                  <input matInput [matDatepicker]="calFimMeta" formControlName="dataLimite" placeholder="dd/mm/aaaa" />
+                  <mat-datepicker-toggle matIconSuffix [for]="calFimMeta" />
+                  <mat-datepicker #calFimMeta />
+                </mat-form-field>
+              </div>
+            </fieldset>
+          } @else {
+            <div class="dupla">
+              <mat-form-field>
+                <mat-label>Valor (opcional)</mat-label>
+                <input matInput type="number" step="any" formControlName="valorReferencia" />
+              </mat-form-field>
+              <mat-form-field>
+                <mat-label>Unidade do valor</mat-label>
+                <input matInput formControlName="unidadeMedida" maxlength="40" placeholder="%, meses, R$" />
+              </mat-form-field>
+            </div>
+            <div class="dupla">
+              <mat-form-field>
+                <mat-label>Data limite (opcional)</mat-label>
+                <input matInput [matDatepicker]="calLimite" formControlName="dataLimite" placeholder="dd/mm/aaaa" />
+                <mat-datepicker-toggle matIconSuffix [for]="calLimite" />
+                <mat-datepicker #calLimite />
+              </mat-form-field>
+              <mat-form-field>
+                <mat-label>Periodicidade (opcional)</mat-label>
+                <input matInput formControlName="periodicidade" maxlength="60" placeholder="mensal, anual…" />
+              </mat-form-field>
+            </div>
+          }
+
+          @if (rejeitando()) {
+            <mat-form-field>
+              <mat-label>Motivo da rejeição</mat-label>
+              <textarea matInput [formControl]="motivo" rows="2" maxlength="500" cdkFocusInitial></textarea>
+              <mat-error>Explique em poucas palavras.</mat-error>
+            </mat-form-field>
+          }
+          @if (erro()) {
+            <p class="erro" role="alert"><span class="material-symbols-rounded" aria-hidden="true">error</span>{{ erro() }}</p>
+          }
+        </form>
+      </mat-dialog-content>
+      <mat-dialog-actions align="end">
+        <button matButton type="button" (click)="fechar()">Fechar</button>
+        @if (podeGerir()) {
+          @if (emRevisao(); as i) {
+            @if (i.status === 'PROPOSTO') {
+              <button matButton type="button" class="perigo" (click)="rejeitar()" [disabled]="salvando()">
+                {{ rejeitando() ? 'Confirmar rejeição' : 'Rejeitar' }}
+              </button>
+              <button matButton="outlined" type="submit" form="form-item" [disabled]="salvando() || !formulario.dirty">Salvar</button>
+              <button matButton="filled" type="button" (click)="aprovar()" [disabled]="salvando()">
+                @if (salvando()) { <mat-spinner diameter="16" /> } Aprovar
+              </button>
+            }
+          } @else {
+            <button matButton="filled" type="submit" form="form-item" [disabled]="salvando()">Cadastrar item</button>
+          }
+        }
+      </mat-dialog-actions>
+    </div>
+    <div class="revisao-pdf" aria-label="PDF do contrato">
+      @if (pdfDados(); as dados) {
+        <aurora-visualizador-pdf [dados]="dados" [pagina]="pdfPagina()" [destaque]="trechoAtual()" />
+      } @else if (carregandoPdf()) {
+        <div class="pdf-vazio"><mat-spinner diameter="28" /></div>
+      } @else {
+        <div class="pdf-vazio">
+          <span class="material-symbols-rounded" aria-hidden="true">picture_as_pdf</span>
+          {{ erroPdf() ? 'Não foi possível abrir o PDF.' : 'Escolha o documento.' }}
+        </div>
+      }
+    </div>
+  </div>
+</ng-template>

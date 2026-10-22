@@ -1,0 +1,131 @@
+<header class="cabecalho">
+  <div class="titulo">
+    <span class="rotulo">Contrato</span>
+    <h1>Contratos</h1>
+    @if (contratos()) {
+      <div class="resumo">
+        <span class="indicador"><b class="dado">{{ fmt.numero(dados.value()?.length ?? 0) }}</b> contratos</span>
+        <span class="indicador" [class.destaque]="pendentes() > 0"><b class="dado">{{ fmt.numero(pendentes()) }}</b> itens para revisar</span>
+      </div>
+    }
+  </div>
+  @if (contratos() && podeGerir()) {
+    <button matButton="filled" type="button" (click)="abrirNovo()">
+      <span class="material-symbols-rounded" aria-hidden="true">add</span> Novo contrato
+    </button>
+  }
+</header>
+
+@if (!sessao.usuario()) {
+  <div class="esqueleto" aria-busy="true" aria-label="Carregando"></div>
+} @else if (!sessao.pode('contrato:ler')) {
+  <section class="cartao aviso" role="alert">
+    <p class="rotulo">Sem acesso</p>
+    <p>Seu perfil não permite consultar contratos.</p>
+  </section>
+} @else if (contratos(); as lista) {
+  <mat-form-field class="busca" subscriptSizing="dynamic">
+    <span matPrefix class="material-symbols-rounded prefixo" aria-hidden="true">search</span>
+    <input matInput [formControl]="busca" placeholder="Buscar por número, unidade ou objeto" aria-label="Buscar contrato" />
+  </mat-form-field>
+  @if (lista.length === 0) {
+    <section class="cartao vazio">
+      <span class="material-symbols-rounded" aria-hidden="true">description</span>
+      <p>{{ busca.value ? 'Nenhum contrato com essa busca.' : 'Nenhum contrato cadastrado ainda.' }}</p>
+    </section>
+  } @else {
+    <ul class="lista" aria-label="Contratos">
+      @for (c of lista; track c.id) {
+        <li>
+          <a class="cartao contrato" [routerLink]="['/contratos', c.id]">
+            <div class="contrato-topo">
+              <span class="material-symbols-rounded icone" aria-hidden="true">description</span>
+              <div class="identificacao">
+                <span class="numero dado">{{ c.numero }}</span>
+                <span class="unidade">{{ c.unidadeNome }}</span>
+              </div>
+              @if (c.itensPendentes) {
+                <span class="pendentes">{{ fmt.numero(c.itensPendentes) }} para revisar</span>
+              }
+            </div>
+            @if (c.objeto) { <p class="objeto">{{ c.objeto }}</p> }
+            <div class="metricas">
+              <span><b class="dado">{{ fmt.numero(c.documentos) }}</b> {{ c.documentos === 1 ? 'documento' : 'documentos' }}</span>
+              <span><b class="dado">{{ fmt.numero(c.itensAprovados) }}</b> itens aprovados</span>
+              @if (c.vigenciaFim) { <span>vigente até <b class="dado">{{ fmt.data(c.vigenciaFim + 'T12:00:00') }}</b></span> }
+            </div>
+          </a>
+        </li>
+      }
+    </ul>
+  }
+} @else if (dados.error()) {
+  <section class="cartao" role="alert">
+    <p>Não foi possível carregar os contratos.</p>
+    <button matButton="outlined" type="button" (click)="dados.reload()">Tentar de novo</button>
+  </section>
+} @else {
+  <div class="esqueleto" aria-busy="true" aria-label="Carregando os contratos"></div>
+}
+
+<ng-template #modeloNovo>
+  <h2 mat-dialog-title>Novo contrato</h2>
+  <mat-dialog-content>
+    <form id="form-contrato" class="formulario" [formGroup]="formulario" (ngSubmit)="criar()">
+      <div class="dupla">
+        <mat-form-field>
+          <mat-label>Número</mat-label>
+          <input matInput formControlName="numero" maxlength="60" placeholder="001/2025" autocomplete="off" />
+          <mat-error>Informe o número.</mat-error>
+        </mat-form-field>
+        <mat-form-field>
+          <mat-label>Unidade coberta</mat-label>
+          <input matInput formControlName="unidade" [matAutocomplete]="listaUnidades" placeholder="Concessão ou município" />
+          <mat-autocomplete #listaUnidades="matAutocomplete" [displayWith]="exibirUnidade" autoActiveFirstOption>
+            @for (o of opcoesUnidade(); track o.id) {
+              <mat-option [value]="o" [style.padding-left.px]="16 + o.profundidade * 16">{{ o.nome }}</mat-option>
+            }
+          </mat-autocomplete>
+          <mat-error>Escolha uma unidade da lista.</mat-error>
+        </mat-form-field>
+      </div>
+      <mat-form-field>
+        <mat-label>Objeto (opcional)</mat-label>
+        <textarea matInput formControlName="objeto" rows="2" maxlength="500"></textarea>
+      </mat-form-field>
+      <div class="dupla">
+        <mat-form-field>
+          <mat-label>Poder concedente (opcional)</mat-label>
+          <input matInput formControlName="poderConcedente" maxlength="200" />
+        </mat-form-field>
+        <mat-form-field>
+          <mat-label>Regulador (opcional)</mat-label>
+          <input matInput formControlName="regulador" maxlength="200" />
+        </mat-form-field>
+      </div>
+      <div class="dupla">
+        <mat-form-field>
+          <mat-label>Assinatura</mat-label>
+          <input matInput [matDatepicker]="calAssinatura" formControlName="dataAssinatura" placeholder="dd/mm/aaaa" />
+          <mat-datepicker-toggle matIconSuffix [for]="calAssinatura" />
+          <mat-datepicker #calAssinatura />
+        </mat-form-field>
+        <mat-form-field>
+          <mat-label>Fim da vigência</mat-label>
+          <input matInput [matDatepicker]="calFim" formControlName="vigenciaFim" placeholder="dd/mm/aaaa" />
+          <mat-datepicker-toggle matIconSuffix [for]="calFim" />
+          <mat-datepicker #calFim />
+        </mat-form-field>
+      </div>
+      @if (erro()) {
+        <p class="erro" role="alert"><span class="material-symbols-rounded" aria-hidden="true">error</span>{{ erro() }}</p>
+      }
+    </form>
+  </mat-dialog-content>
+  <mat-dialog-actions align="end">
+    <button matButton type="button" (click)="fechar()">Cancelar</button>
+    <button matButton="filled" type="submit" form="form-contrato" [disabled]="salvando()">
+      @if (salvando()) { <mat-spinner diameter="18" /> } Criar contrato
+    </button>
+  </mat-dialog-actions>
+</ng-template>

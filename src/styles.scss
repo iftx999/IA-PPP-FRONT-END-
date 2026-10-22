@@ -195,3 +195,7 @@ button.perigo { --mat-button-filled-container-color: var(--danger); --mat-button
 .mat-mdc-outlined-button .material-symbols-rounded { font-size: 18px; margin-right: 2px; }
 .mat-mdc-row:hover .mat-mdc-cell { background: color-mix(in srgb, var(--bg-3) 70%, transparent); }
 .mat-mdc-header-cell { background: var(--bg-2); }
+
+// Diálogo de revisão de itens contratuais: formulário + PDF ocupam a altura toda, sem padding no painel.
+.dialogo-revisao .mat-mdc-dialog-surface { padding: 0; overflow: hidden; }
+.dialogo-revisao .mat-mdc-dialog-container .mat-mdc-dialog-surface > * { height: 100%; }
