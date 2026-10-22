@@ -1,6 +1,6 @@
 import type { Unidade, Usuario } from '../../api/tipos';
 import { haQuantoTempo } from '../../nucleo/formato';
-import { arvoreDeUnidades, filtrarUnidades } from './unidades-arvore';
+import { arvoreDeUnidades, filtrarUnidades } from '../../nucleo/unidades-arvore';
 import { filtrarUsuarios, fimDoDia, iniciais } from './usuarios';
 
 const unidade = (id: string, nome: string, tipo: string, unidadePaiId: string | null): Unidade => ({

@@ -1,0 +1,256 @@
+<header class="cabecalho">
+  <div class="titulo">
+    <span class="rotulo">Administração</span>
+    <h1>Unidades</h1>
+    @if (nos()) {
+      <div class="resumo">
+        <span class="indicador"><b class="dado">{{ fmt.numero(resumo().concessoes) }}</b> concessões</span>
+        <span class="indicador"><b class="dado">{{ fmt.numero(resumo().municipios) }}</b> municípios</span>
+        <span class="indicador"><b class="dado">{{ fmt.numero(resumo().setores) }}</b> setores</span>
+        <span class="indicador"><b class="dado">{{ fmt.numero(resumo().estacoes) }}</b> estações</span>
+        @if (resumo().inativas) {
+          <span class="indicador"><b class="dado">{{ fmt.numero(resumo().inativas) }}</b> inativas</span>
+        }
+      </div>
+    }
+  </div>
+</header>
+
+@if (!sessao.usuario()) {
+  <div class="esqueleto" aria-busy="true" aria-label="Carregando"></div>
+} @else if (!sessao.pode('unidade:gerenciar')) {
+  <section class="cartao aviso" role="alert">
+    <p class="rotulo">Sem acesso</p>
+    <p>Seu perfil não permite gerenciar unidades.</p>
+  </section>
+} @else if (nos()) {
+  <div class="painel">
+    <section class="cartao arvore" aria-label="Árvore de unidades">
+      <div class="ferramentas">
+        <mat-form-field class="busca" subscriptSizing="dynamic">
+          <span matPrefix class="material-symbols-rounded prefixo" aria-hidden="true">search</span>
+          <input matInput [formControl]="busca" placeholder="Buscar por nome ou código" aria-label="Buscar unidade" />
+        </mat-form-field>
+        <mat-slide-toggle [checked]="mostrarInativas()" (change)="mostrarInativas.set($event.checked)">
+          Mostrar inativas
+        </mat-slide-toggle>
+      </div>
+
+      <ul class="nos" role="tree" aria-label="Unidades">
+        @for (l of linhas(); track l.no.id) {
+          <li role="treeitem" class="no" [id]="'no-' + l.no.id" [attr.aria-level]="l.profundidade + 1"
+              [attr.aria-expanded]="l.temFilhas ? l.aberta : null" [attr.aria-selected]="selecionada()?.id === l.no.id"
+              [class.selecionado]="selecionada()?.id === l.no.id" [class.inativo]="!l.no.ativo"
+              [style.--profundidade]="l.profundidade" [tabindex]="selecionada()?.id === l.no.id ? 0 : -1"
+              (click)="selecionar(l.no)" (keydown)="teclado($event, l.no, l.aberta, l.temFilhas)">
+            @if (l.temFilhas) {
+              <button type="button" class="seta" tabindex="-1" (click)="alternar(l.no.id, $event)"
+                      [attr.aria-label]="(l.aberta ? 'Recolher ' : 'Expandir ') + l.no.nome">
+                <span class="material-symbols-rounded">{{ l.aberta ? 'expand_more' : 'chevron_right' }}</span>
+              </button>
+            } @else {
+              <span class="seta" aria-hidden="true"></span>
+            }
+            <span class="material-symbols-rounded tipo" aria-hidden="true">{{ icone(l.no.tipo) }}</span>
+            <span class="nome">{{ l.no.nome }}</span>
+            <code class="codigo">{{ l.no.codigo }}</code>
+            @if (!l.no.ativo) { <aurora-selo>Inativa</aurora-selo> }
+          </li>
+        } @empty {
+          <li class="vazio">Nenhuma unidade encontrada.</li>
+        }
+      </ul>
+    </section>
+
+    @if (selecionada(); as s) {
+      <section class="cartao detalhe" aria-label="Detalhes da unidade">
+        <div class="detalhe-topo">
+          <span class="material-symbols-rounded icone-grande" aria-hidden="true">{{ icone(s.tipo) }}</span>
+          <div class="detalhe-titulo">
+            <span class="rotulo">{{ descricaoTipo(s.tipo) }}</span>
+            <h2>{{ s.nome }}</h2>
+            @if (s.unidadePaiId) { <span class="caminho">{{ caminhoSelecionada() }}</span> }
+          </div>
+          @if (s.ativo) {
+            <aurora-selo tom="ok">Ativa</aurora-selo>
+          } @else {
+            <aurora-selo>Inativa</aurora-selo>
+          }
+        </div>
+
+        <dl class="campos">
+          <div><dt>Código</dt><dd class="dado">{{ s.codigo }}</dd></div>
+          @if (s.codigoIbge) { <div><dt>Código IBGE</dt><dd class="dado">{{ s.codigoIbge }}</dd></div> }
+          <div>
+            <dt>Coordenadas</dt>
+            <dd class="dado">
+              @if (s.latitude != null) { {{ s.latitude }}, {{ s.longitude }} } @else { <span class="vazio">Não informadas</span> }
+            </dd>
+          </div>
+          <div><dt>Unidades ativas abaixo</dt><dd class="dado">{{ fmt.numero(s.filhasAtivas) }}</dd></div>
+          <div>
+            <dt>Concessões de acesso</dt>
+            <dd class="dado" matTooltip="Usuários com perfil concedido nesta unidade">{{ fmt.numero(s.acessos) }}</dd>
+          </div>
+        </dl>
+
+        <div class="acoes">
+          @if (podeCriarAbaixo()) {
+            <button matButton="filled" type="button" (click)="abrirNova(s)">
+              <span class="material-symbols-rounded" aria-hidden="true">add</span> Nova unidade abaixo
+            </button>
+          }
+          <button matButton="outlined" type="button" (click)="abrirEdicao(s)">
+            <span class="material-symbols-rounded" aria-hidden="true">edit</span> Editar
+          </button>
+          @if (s.unidadePaiId) {
+            @if (s.ativo) {
+              <button matButton="outlined" type="button" (click)="abrirMover()">
+                <span class="material-symbols-rounded" aria-hidden="true">drive_file_move</span> Mover
+              </button>
+              <button matButton type="button" class="perigo" (click)="abrirInativacao()">
+                <span class="material-symbols-rounded" aria-hidden="true">block</span> Inativar
+              </button>
+            } @else {
+              <button matButton="outlined" type="button" (click)="reativar(s)">
+                <span class="material-symbols-rounded" aria-hidden="true">settings_backup_restore</span> Reativar
+              </button>
+            }
+          } @else {
+            <p class="ajuda">
+              <span class="material-symbols-rounded" aria-hidden="true">info</span>
+              O grupo é a raiz do cliente: não é movido nem inativado.
+            </p>
+          }
+        </div>
+      </section>
+    }
+  </div>
+} @else if (dados.error()) {
+  <section class="cartao" role="alert">
+    <p>Não foi possível carregar as unidades.</p>
+    <button matButton="outlined" type="button" (click)="dados.reload()">Tentar de novo</button>
+  </section>
+} @else {
+  <div class="esqueleto" aria-busy="true" aria-label="Carregando as unidades"></div>
+}
+
+<ng-template #modeloEditor>
+  <h2 mat-dialog-title>{{ modo() === 'nova' ? 'Nova unidade' : 'Editar ' + selecionada()?.nome }}</h2>
+  <mat-dialog-content>
+    <form id="form-unidade" class="formulario" [formGroup]="formulario" (ngSubmit)="salvar()">
+      @if (modo() === 'nova') {
+        <p class="ajuda">
+          <span class="material-symbols-rounded" aria-hidden="true">subdirectory_arrow_right</span>
+          Abaixo de {{ paiDaNova()?.nome }}
+        </p>
+      }
+      <mat-form-field>
+        <mat-label>Tipo</mat-label>
+        <mat-select formControlName="tipo">
+          @for (t of (modo() === 'nova' ? tiposDaNova() : tipos()); track t.codigo) {
+            <mat-option [value]="t.codigo">
+              <span class="opcao-icone"><span class="material-symbols-rounded" aria-hidden="true">{{ icone(t.codigo) }}</span>{{ t.descricao }}</span>
+            </mat-option>
+          }
+        </mat-select>
+        @if (modo() === 'editar') { <mat-hint>O tipo não muda depois de criada.</mat-hint> }
+        <mat-error>Escolha o tipo.</mat-error>
+      </mat-form-field>
+      <div class="dupla">
+        <mat-form-field>
+          <mat-label>Nome</mat-label>
+          <input matInput formControlName="nome" maxlength="120" autocomplete="off" />
+          <mat-error>Informe o nome.</mat-error>
+        </mat-form-field>
+        <mat-form-field>
+          <mat-label>Código</mat-label>
+          <input matInput formControlName="codigo" maxlength="40" autocomplete="off" class="dado" />
+          <mat-hint>Único no cliente; fica em maiúsculas.</mat-hint>
+          <mat-error>Letras, números, ponto, hífen ou sublinhado, sem espaços.</mat-error>
+        </mat-form-field>
+      </div>
+      @if (exigeIbge()) {
+        <mat-form-field>
+          <mat-label>Código IBGE do município</mat-label>
+          <input matInput formControlName="codigoIbge" maxlength="7" inputmode="numeric" autocomplete="off" class="dado"
+                 [required]="exigeIbge()" />
+          <mat-error>Informe os 7 dígitos do código IBGE.</mat-error>
+        </mat-form-field>
+      }
+      <div class="dupla">
+        <mat-form-field>
+          <mat-label>Latitude</mat-label>
+          <input matInput type="number" formControlName="latitude" step="0.000001" min="-90" max="90" />
+          <mat-error>Entre −90 e 90.</mat-error>
+        </mat-form-field>
+        <mat-form-field>
+          <mat-label>Longitude</mat-label>
+          <input matInput type="number" formControlName="longitude" step="0.000001" min="-180" max="180" />
+          <mat-error>Entre −180 e 180.</mat-error>
+        </mat-form-field>
+      </div>
+      @if (erro()) {
+        <p class="erro" role="alert"><span class="material-symbols-rounded" aria-hidden="true">error</span>{{ erro() }}</p>
+      }
+    </form>
+  </mat-dialog-content>
+  <mat-dialog-actions align="end">
+    <button matButton type="button" (click)="fechar()">Cancelar</button>
+    <button matButton="filled" type="submit" form="form-unidade" [disabled]="salvando()">
+      @if (salvando()) { <mat-spinner diameter="18" /> } {{ modo() === 'nova' ? 'Criar unidade' : 'Salvar' }}
+    </button>
+  </mat-dialog-actions>
+</ng-template>
+
+<ng-template #modeloMover>
+  <h2 mat-dialog-title>Mover {{ selecionada()?.nome }}</h2>
+  <mat-dialog-content>
+    <form id="form-mover" class="formulario" [formGroup]="formMover" (ngSubmit)="mover()">
+      <p class="ajuda">
+        <span class="material-symbols-rounded" aria-hidden="true">account_tree</span>
+        As unidades abaixo vão junto. Metas herdadas e escopos de acesso passam a seguir o novo lugar.
+      </p>
+      <mat-form-field>
+        <mat-label>Novo lugar (abaixo de)</mat-label>
+        <span matPrefix class="material-symbols-rounded prefixo" aria-hidden="true">search</span>
+        <input matInput [formControl]="destino" [matAutocomplete]="listaDestinos" placeholder="Buscar unidade" />
+        <mat-autocomplete #listaDestinos="matAutocomplete" [displayWith]="exibirDestino" autoActiveFirstOption>
+          @for (o of opcoesDestino(); track o.no.id) {
+            <mat-option [value]="o.no">{{ o.caminho }}</mat-option>
+          } @empty {
+            <mat-option disabled>Nenhum destino possível</mat-option>
+          }
+        </mat-autocomplete>
+        <mat-error>Escolha um destino da lista.</mat-error>
+      </mat-form-field>
+      @if (erro()) {
+        <p class="erro" role="alert"><span class="material-symbols-rounded" aria-hidden="true">error</span>{{ erro() }}</p>
+      }
+    </form>
+  </mat-dialog-content>
+  <mat-dialog-actions align="end">
+    <button matButton type="button" (click)="fechar()">Cancelar</button>
+    <button matButton="filled" type="submit" form="form-mover" [disabled]="salvando()">Mover</button>
+  </mat-dialog-actions>
+</ng-template>
+
+<ng-template #modeloInativar>
+  <h2 mat-dialog-title>Inativar {{ selecionada()?.nome }}</h2>
+  <mat-dialog-content>
+    <div class="formulario">
+      <p class="ajuda">
+        A unidade some das telas e dos escopos. Medições, metas e imóveis ficam no histórico, e é possível reativar.
+      </p>
+      @if (erro()) {
+        <p class="erro" role="alert"><span class="material-symbols-rounded" aria-hidden="true">error</span>{{ erro() }}</p>
+      }
+    </div>
+  </mat-dialog-content>
+  <mat-dialog-actions align="end">
+    <button matButton type="button" (click)="fechar()">Cancelar</button>
+    <button matButton="filled" type="button" class="perigo" (click)="confirmarInativacao()" [disabled]="salvando()">
+      Inativar
+    </button>
+  </mat-dialog-actions>
+</ng-template>

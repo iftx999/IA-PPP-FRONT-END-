@@ -36,6 +36,54 @@ export interface paths {
     patch?: never;
     trace?: never;
   };
+  '/api/v1/unidades/{id}': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get: operations['detalhar'];
+    put: operations['alterar'];
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/api/v1/unidades/{id}/situacao': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put: operations['definirSituacao_1'];
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/api/v1/unidades/{id}/pai': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put: operations['mover'];
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
   '/api/v1/perfis/{id}': {
     parameters: {
       query?: never;
@@ -44,7 +92,7 @@ export interface paths {
       cookie?: never;
     };
     get?: never;
-    put: operations['alterar'];
+    put: operations['alterar_1'];
     post?: never;
     delete: operations['remover'];
     options?: never;
@@ -100,7 +148,7 @@ export interface paths {
     patch?: never;
     trace?: never;
   };
-  '/api/v1/perfis': {
+  '/api/v1/unidades': {
     parameters: {
       query?: never;
       header?: never;
@@ -116,7 +164,7 @@ export interface paths {
     patch?: never;
     trace?: never;
   };
-  '/api/v1/metas': {
+  '/api/v1/perfis': {
     parameters: {
       query?: never;
       header?: never;
@@ -126,6 +174,22 @@ export interface paths {
     get: operations['listar_2'];
     put?: never;
     post: operations['criar_1'];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/api/v1/metas': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get: operations['listar_3'];
+    put?: never;
+    post: operations['criar_2'];
     delete?: never;
     options?: never;
     head?: never;
@@ -155,39 +219,39 @@ export interface paths {
       path?: never;
       cookie?: never;
     };
-    get: operations['detalhar'];
-    put?: never;
-    post?: never;
-    delete?: never;
-    options?: never;
-    head?: never;
-    patch?: never;
-    trace?: never;
-  };
-  '/api/v1/unidades': {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    get: operations['listar_3'];
-    put?: never;
-    post?: never;
-    delete?: never;
-    options?: never;
-    head?: never;
-    patch?: never;
-    trace?: never;
-  };
-  '/api/v1/unidades/{id}': {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
     get: operations['detalhar_1'];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/api/v1/unidades/tipos': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get: operations['tipos'];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/api/v1/unidades/arvore': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get: operations['arvore'];
     put?: never;
     post?: never;
     delete?: never;
@@ -294,6 +358,20 @@ export interface components {
     ConcessoesRequest: {
       concessoes: components['schemas']['ConcessaoRequest'][];
     };
+    DadosUnidadeRequest: {
+      codigo: string;
+      nome: string;
+      codigoIbge: string | null;
+      latitude: number | null;
+      longitude: number | null;
+    };
+    SituacaoUnidadeRequest: {
+      ativo: boolean;
+    };
+    MoverUnidadeRequest: {
+      /** Format: uuid */
+      unidadePaiId: string;
+    };
     PerfilRequest: {
       nome: string;
       descricao: string | null;
@@ -306,6 +384,17 @@ export interface components {
       concessoes: components['schemas']['ConcessaoRequest'][];
     };
     UsuarioConvidado: {
+      /** Format: uuid */
+      id: string;
+    };
+    NovaUnidadeRequest: {
+      /** @enum {string} */
+      tipo: 'GRUPO' | 'CONCESSAO' | 'MUNICIPIO' | 'SETOR_COMERCIAL' | 'ETE' | 'EEE';
+      /** Format: uuid */
+      unidadePaiId: string;
+      dados: components['schemas']['DadosUnidadeRequest'];
+    };
+    UnidadeCriada: {
       /** Format: uuid */
       id: string;
     };
@@ -365,6 +454,33 @@ export interface components {
       codigo: string;
       nome: string;
       codigoIbge: string | null;
+    };
+    TipoUnidadeResponse: {
+      /** @enum {string} */
+      codigo: 'GRUPO' | 'CONCESSAO' | 'MUNICIPIO' | 'SETOR_COMERCIAL' | 'ETE' | 'EEE';
+      descricao: string;
+      tiposPai: ('GRUPO' | 'CONCESSAO' | 'MUNICIPIO' | 'SETOR_COMERCIAL' | 'ETE' | 'EEE')[];
+      exigeCodigoIbge: boolean;
+    };
+    NoArvoreResponse: {
+      /** Format: uuid */
+      id: string;
+      /** @enum {string} */
+      tipo: 'GRUPO' | 'CONCESSAO' | 'MUNICIPIO' | 'SETOR_COMERCIAL' | 'ETE' | 'EEE';
+      /** Format: uuid */
+      unidadePaiId: string | null;
+      codigo: string;
+      nome: string;
+      codigoIbge: string | null;
+      latitude: number | null;
+      longitude: number | null;
+      ativo: boolean;
+      /** Format: int32 */
+      nivel: number;
+      /** Format: int64 */
+      filhasAtivas: number;
+      /** Format: int64 */
+      acessos: number;
     };
     PermissaoResponse: {
       codigo: string;
@@ -600,7 +716,101 @@ export interface operations {
       };
     };
   };
+  detalhar: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        id: string;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description OK */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          '*/*': components['schemas']['UnidadeResponse'];
+        };
+      };
+    };
+  };
   alterar: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        id: string;
+      };
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        'application/json': components['schemas']['DadosUnidadeRequest'];
+      };
+    };
+    responses: {
+      /** @description OK */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
+      };
+    };
+  };
+  definirSituacao_1: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        id: string;
+      };
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        'application/json': components['schemas']['SituacaoUnidadeRequest'];
+      };
+    };
+    responses: {
+      /** @description OK */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
+      };
+    };
+  };
+  mover: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        id: string;
+      };
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        'application/json': components['schemas']['MoverUnidadeRequest'];
+      };
+    };
+    responses: {
+      /** @description OK */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
+      };
+    };
+  };
+  alterar_1: {
     parameters: {
       query?: never;
       header?: never;
@@ -743,12 +953,56 @@ export interface operations {
           [name: string]: unknown;
         };
         content: {
-          '*/*': components['schemas']['PerfilResponse'][];
+          '*/*': components['schemas']['UnidadeResponse'][];
         };
       };
     };
   };
   criar: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        'application/json': components['schemas']['NovaUnidadeRequest'];
+      };
+    };
+    responses: {
+      /** @description OK */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          '*/*': components['schemas']['UnidadeCriada'];
+        };
+      };
+    };
+  };
+  listar_2: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description OK */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          '*/*': components['schemas']['PerfilResponse'][];
+        };
+      };
+    };
+  };
+  criar_1: {
     parameters: {
       query?: never;
       header?: never;
@@ -772,7 +1026,7 @@ export interface operations {
       };
     };
   };
-  listar_2: {
+  listar_3: {
     parameters: {
       query?: never;
       header?: never;
@@ -792,7 +1046,7 @@ export interface operations {
       };
     };
   };
-  criar_1: {
+  criar_2: {
     parameters: {
       query?: never;
       header?: never;
@@ -840,7 +1094,7 @@ export interface operations {
       };
     };
   };
-  detalhar: {
+  detalhar_1: {
     parameters: {
       query?: never;
       header?: never;
@@ -862,7 +1116,7 @@ export interface operations {
       };
     };
   };
-  listar_3: {
+  tipos: {
     parameters: {
       query?: never;
       header?: never;
@@ -877,18 +1131,16 @@ export interface operations {
           [name: string]: unknown;
         };
         content: {
-          '*/*': components['schemas']['UnidadeResponse'][];
+          '*/*': components['schemas']['TipoUnidadeResponse'][];
         };
       };
     };
   };
-  detalhar_1: {
+  arvore: {
     parameters: {
       query?: never;
       header?: never;
-      path: {
-        id: string;
-      };
+      path?: never;
       cookie?: never;
     };
     requestBody?: never;
@@ -899,7 +1151,7 @@ export interface operations {
           [name: string]: unknown;
         };
         content: {
-          '*/*': components['schemas']['UnidadeResponse'];
+          '*/*': components['schemas']['NoArvoreResponse'][];
         };
       };
     };

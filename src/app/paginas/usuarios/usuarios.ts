@@ -24,7 +24,7 @@ import { data, dataEHora, haQuantoTempo, numero } from '../../nucleo/formato';
 import { SessaoService } from '../../nucleo/sessao';
 import { Selo, type Tom } from '../../ui/selo';
 import { GERIR_USUARIOS } from '../perfis/perfis';
-import { arvoreDeUnidades, filtrarUnidades, semAcento, type OpcaoUnidade } from './unidades-arvore';
+import { arvoreDeUnidades, filtrarUnidades, semAcento, type OpcaoUnidade } from '../../nucleo/unidades-arvore';
 
 type Filtro = 'TODOS' | SituacaoUsuario;
 

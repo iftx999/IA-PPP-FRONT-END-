@@ -1,4 +1,10 @@
-import type { Unidade } from '../../api/tipos';
+/** O mínimo de uma unidade para montar a árvore (serve para a lista simples e para a de administração). */
+export interface NoUnidade {
+  id: string;
+  nome: string;
+  tipo: string;
+  unidadePaiId: string | null;
+}
 
 /** Unidade como opção de escolha: ordem da árvore, profundidade e caminho para busca e exibição. */
 export interface OpcaoUnidade {
@@ -11,9 +17,9 @@ export interface OpcaoUnidade {
 }
 
 /** Ordena as unidades em pré-ordem (pai antes dos filhos, irmãos por nome). Órfãs viram raízes. */
-export function arvoreDeUnidades(unidades: Unidade[]): OpcaoUnidade[] {
+export function arvoreDeUnidades(unidades: NoUnidade[]): OpcaoUnidade[] {
   const ids = new Set(unidades.map((u) => u.id));
-  const filhos = new Map<string | null, Unidade[]>();
+  const filhos = new Map<string | null, NoUnidade[]>();
   for (const u of unidades) {
     const pai = u.unidadePaiId && ids.has(u.unidadePaiId) ? u.unidadePaiId : null;
     filhos.set(pai, [...(filhos.get(pai) ?? []), u]);
