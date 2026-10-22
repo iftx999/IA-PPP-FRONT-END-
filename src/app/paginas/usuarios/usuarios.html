@@ -1,0 +1,278 @@
+<header class="cabecalho">
+  <div class="titulo">
+    <span class="rotulo">Administração</span>
+    <h1>Usuários</h1>
+    @if (usuarios()) {
+      <div class="resumo">
+        <span class="indicador"><b class="dado">{{ fmt.numero(resumo().total) }}</b> usuários</span>
+        <span class="indicador"><b class="dado">{{ fmt.numero(resumo().ativos) }}</b> ativos</span>
+        <span class="indicador"><b class="dado">{{ fmt.numero(resumo().pendentes) }}</b> convites pendentes</span>
+        <span class="indicador"><b class="dado">{{ fmt.numero(resumo().inativos) }}</b> inativos</span>
+      </div>
+    }
+  </div>
+  @if (usuarios()) {
+    <button matButton="filled" type="button" (click)="abrirConvite()">
+      <span class="material-symbols-rounded" aria-hidden="true">person_add</span> Convidar usuário
+    </button>
+  }
+</header>
+
+@if (!sessao.usuario()) {
+  <div class="esqueleto" aria-busy="true" aria-label="Carregando"></div>
+} @else if (!sessao.pode('usuario:gerenciar')) {
+  <section class="cartao aviso" role="alert">
+    <p class="rotulo">Sem acesso</p>
+    <p>Seu perfil não permite gerenciar usuários.</p>
+  </section>
+} @else if (usuarios()) {
+  <div class="filtros">
+    <mat-form-field class="busca" subscriptSizing="dynamic">
+      <span matPrefix class="material-symbols-rounded prefixo" aria-hidden="true">search</span>
+      <input matInput [formControl]="busca" placeholder="Buscar por nome ou e-mail" aria-label="Buscar por nome ou e-mail" />
+    </mat-form-field>
+    <mat-button-toggle-group [value]="filtroSituacao()" (change)="filtroSituacao.set($event.value)"
+                             aria-label="Situação" hideSingleSelectionIndicator>
+      <mat-button-toggle value="TODOS">Todos</mat-button-toggle>
+      <mat-button-toggle value="ATIVO">Ativos</mat-button-toggle>
+      <mat-button-toggle value="CONVITE_PENDENTE">Convite pendente</mat-button-toggle>
+      <mat-button-toggle value="INATIVO">Inativos</mat-button-toggle>
+    </mat-button-toggle-group>
+  </div>
+
+  <section class="cartao tabela" aria-label="Lista de usuários">
+    <table mat-table [dataSource]="visiveis()" [trackBy]="rastrear">
+      <ng-container matColumnDef="usuario">
+        <th mat-header-cell *matHeaderCellDef>Usuário</th>
+        <td mat-cell *matCellDef="let u">
+          <div class="pessoa" [class.inativa]="u.situacao === 'INATIVO'">
+            <span class="avatar" aria-hidden="true">{{ fmt.iniciais(u.nome) }}</span>
+            <span class="identificacao">
+              <span class="nome">{{ u.nome }} @if (souEu(u)) { <span class="voce">você</span> }</span>
+              <span class="email">{{ u.email }}</span>
+            </span>
+          </div>
+        </td>
+      </ng-container>
+
+      <ng-container matColumnDef="acesso">
+        <th mat-header-cell *matHeaderCellDef>Perfil e unidade</th>
+        <td mat-cell *matCellDef="let u">
+          @if (u.concessoes.length) {
+            <ul class="concessoes">
+              @for (c of u.concessoes; track c.id) {
+                <li class="concessao">
+                  <b>{{ c.perfil }}</b>
+                  <span class="em">em</span>
+                  <span>{{ c.unidade }}</span>
+                  @if (c.validoAte) {
+                    <span class="validade" [matTooltip]="'Válido até ' + fmt.dataEHora(c.validoAte)">
+                      <span class="material-symbols-rounded" aria-hidden="true">schedule</span>até {{ fmt.data(c.validoAte) }}
+                    </span>
+                  }
+                </li>
+              }
+            </ul>
+          } @else {
+            <span class="vazio">Sem acesso concedido</span>
+          }
+        </td>
+      </ng-container>
+
+      <ng-container matColumnDef="situacao">
+        <th mat-header-cell *matHeaderCellDef>Situação</th>
+        <td mat-cell *matCellDef="let u">
+          <aurora-selo [tom]="situacao(u).tom">{{ situacao(u).rotulo }}</aurora-selo>
+          @if (u.situacao === 'CONVITE_PENDENTE' && u.convidadoEm) {
+            <span class="nota" [matTooltip]="fmt.dataEHora(u.convidadoEm)">enviado {{ fmt.haQuantoTempo(u.convidadoEm) }}</span>
+          }
+        </td>
+      </ng-container>
+
+      <ng-container matColumnDef="ultimoAcesso">
+        <th mat-header-cell *matHeaderCellDef>Último acesso</th>
+        <td mat-cell *matCellDef="let u">
+          @if (u.ultimoAcesso) {
+            <span [matTooltip]="fmt.dataEHora(u.ultimoAcesso)">{{ fmt.haQuantoTempo(u.ultimoAcesso) }}</span>
+          } @else {
+            <span class="vazio">Nunca acessou</span>
+          }
+        </td>
+      </ng-container>
+
+      <ng-container matColumnDef="acoes">
+        <th mat-header-cell *matHeaderCellDef><span class="cdk-visually-hidden">Ações</span></th>
+        <td mat-cell *matCellDef="let u" class="acoes">
+          <button matIconButton type="button" [matMenuTriggerFor]="menu" [attr.aria-label]="'Ações de ' + u.nome">
+            <span class="material-symbols-rounded">more_vert</span>
+          </button>
+          <mat-menu #menu="matMenu" xPosition="before">
+            <button mat-menu-item type="button" (click)="abrirAcesso(u)">
+              <span class="material-symbols-rounded" aria-hidden="true">badge</span> Editar acesso
+            </button>
+            @switch (u.situacao) {
+              @case ('CONVITE_PENDENTE') {
+                <button mat-menu-item type="button" (click)="reenviarConvite(u)">
+                  <span class="material-symbols-rounded" aria-hidden="true">forward_to_inbox</span> Reenviar convite
+                </button>
+              }
+              @case ('ATIVO') {
+                <button mat-menu-item type="button" (click)="redefinirSenha(u)">
+                  <span class="material-symbols-rounded" aria-hidden="true">lock_reset</span> Enviar link de nova senha
+                </button>
+              }
+            }
+            @if (u.situacao === 'INATIVO') {
+              <button mat-menu-item type="button" (click)="reativar(u)">
+                <span class="material-symbols-rounded" aria-hidden="true">person_check</span> Reativar
+              </button>
+            } @else if (!souEu(u)) {
+              <button mat-menu-item type="button" class="perigo" (click)="abrirDesativacao(u)">
+                <span class="material-symbols-rounded" aria-hidden="true">person_off</span> Desativar
+              </button>
+            }
+          </mat-menu>
+        </td>
+      </ng-container>
+
+      <tr mat-header-row *matHeaderRowDef="colunas; sticky: true"></tr>
+      <tr mat-row *matRowDef="let u; columns: colunas"></tr>
+      <tr class="mat-mdc-row" *matNoDataRow>
+        <td class="mat-mdc-cell sem-resultado" [attr.colspan]="colunas.length">Nenhum usuário encontrado com esses filtros.</td>
+      </tr>
+    </table>
+    <mat-paginator [length]="filtrados().length" [pageSize]="pagina().tamanho" [pageSizeOptions]="[25, 50, 100]"
+                   (page)="mudarPagina($event)" aria-label="Paginação dos usuários" />
+  </section>
+} @else if (dados.error()) {
+  <section class="cartao" role="alert">
+    <p>Não foi possível carregar os usuários.</p>
+    <button matButton="outlined" type="button" (click)="dados.reload()">Tentar de novo</button>
+  </section>
+} @else {
+  <div class="esqueleto" aria-busy="true" aria-label="Carregando os usuários"></div>
+}
+
+<ng-template #editorConcessoes>
+  <fieldset class="lista-concessoes">
+    <legend class="rotulo">Perfis e unidades</legend>
+    <p class="ajuda">
+      <span class="material-symbols-rounded" aria-hidden="true">account_tree</span>
+      O perfil vale na unidade escolhida e em todas as unidades abaixo dela.
+    </p>
+    @for (linha of concessoes.controls; track linha; let i = $index) {
+      <div class="linha-concessao" [formGroup]="linha" role="group" [attr.aria-label]="'Concessão ' + (i + 1)">
+        <mat-form-field>
+          <mat-label>Perfil</mat-label>
+          <mat-select formControlName="perfilId">
+            @for (p of perfis(); track p.id) {
+              <mat-option [value]="p.id">{{ p.nome }}</mat-option>
+            }
+          </mat-select>
+          <mat-error>Escolha um perfil.</mat-error>
+        </mat-form-field>
+        <mat-form-field>
+          <mat-label>Unidade</mat-label>
+          <input matInput formControlName="unidade" [matAutocomplete]="listaUnidades" placeholder="Buscar unidade" />
+          <mat-autocomplete #listaUnidades="matAutocomplete" [displayWith]="exibirUnidade" autoActiveFirstOption
+                            class="opcoes-unidade">
+            @for (o of opcoesPara(linha); track o.id) {
+              <mat-option [value]="o" [style.padding-left.px]="16 + o.profundidade * 16">{{ o.nome }}</mat-option>
+            }
+          </mat-autocomplete>
+          <mat-error>Escolha uma unidade da lista.</mat-error>
+        </mat-form-field>
+        <mat-form-field class="validade-campo">
+          <mat-label>Válido até</mat-label>
+          <input matInput formControlName="validoAte" [matDatepicker]="calendario" [min]="amanha" />
+          <mat-datepicker-toggle matIconSuffix [for]="calendario" />
+          <mat-datepicker #calendario />
+        </mat-form-field>
+        <button matIconButton type="button" class="remover" [disabled]="concessoes.length === 1"
+                (click)="removerConcessao(i)" [attr.aria-label]="'Remover concessão ' + (i + 1)">
+          <span class="material-symbols-rounded">delete</span>
+        </button>
+      </div>
+    }
+    <button matButton type="button" class="adicionar" (click)="adicionarConcessao()" [disabled]="concessoes.length >= 50">
+      <span class="material-symbols-rounded" aria-hidden="true">add</span> Adicionar perfil em outra unidade
+    </button>
+  </fieldset>
+</ng-template>
+
+<ng-template #modeloConvite>
+  <h2 mat-dialog-title>Convidar usuário</h2>
+  <mat-dialog-content>
+    <form id="form-convite" class="formulario" [formGroup]="convite" (ngSubmit)="enviarConvite()">
+      <div class="dupla">
+        <mat-form-field>
+          <mat-label>Nome completo</mat-label>
+          <input matInput formControlName="nome" maxlength="120" autocomplete="off" />
+          <mat-error>Informe o nome.</mat-error>
+        </mat-form-field>
+        <mat-form-field>
+          <mat-label>E-mail</mat-label>
+          <input matInput type="email" formControlName="email" maxlength="254" autocomplete="off" />
+          <mat-error>Informe um e-mail válido.</mat-error>
+        </mat-form-field>
+      </div>
+      <ng-container [ngTemplateOutlet]="editorConcessoes" />
+      @if (erro()) {
+        <p class="erro" role="alert"><span class="material-symbols-rounded" aria-hidden="true">error</span>{{ erro() }}</p>
+      }
+      <p class="ajuda">
+        <span class="material-symbols-rounded" aria-hidden="true">mail</span>
+        A pessoa recebe um link de uso único, válido por 72 horas, para confirmar o e-mail e criar a senha.
+      </p>
+    </form>
+  </mat-dialog-content>
+  <mat-dialog-actions align="end">
+    <button matButton type="button" (click)="fechar()">Cancelar</button>
+    <button matButton="filled" type="submit" form="form-convite" [disabled]="salvando()">
+      @if (salvando()) { <mat-spinner diameter="18" /> } Enviar convite
+    </button>
+  </mat-dialog-actions>
+</ng-template>
+
+<ng-template #modeloAcesso>
+  <h2 mat-dialog-title>Acesso de {{ emEdicao()?.nome }}</h2>
+  <mat-dialog-content>
+    <form id="form-acesso" class="formulario" [formGroup]="acesso" (ngSubmit)="salvarAcesso()">
+      <ng-container [ngTemplateOutlet]="editorConcessoes" />
+      @if (erro()) {
+        <p class="erro" role="alert"><span class="material-symbols-rounded" aria-hidden="true">error</span>{{ erro() }}</p>
+      }
+      <p class="ajuda">
+        <span class="material-symbols-rounded" aria-hidden="true">shield</span>
+        Vale a partir da próxima ação da pessoa e fica registrado na auditoria.
+      </p>
+    </form>
+  </mat-dialog-content>
+  <mat-dialog-actions align="end">
+    <button matButton type="button" (click)="fechar()">Cancelar</button>
+    <button matButton="filled" type="submit" form="form-acesso" [disabled]="salvando()">
+      @if (salvando()) { <mat-spinner diameter="18" /> } Salvar acesso
+    </button>
+  </mat-dialog-actions>
+</ng-template>
+
+<ng-template #modeloDesativar>
+  <h2 mat-dialog-title>Desativar {{ emEdicao()?.nome }}</h2>
+  <mat-dialog-content>
+    <div class="formulario">
+      <p class="ajuda">
+        A pessoa perde o acesso imediatamente e as sessões abertas são encerradas. O histórico e a auditoria
+        são preservados, e é possível reativar depois.
+      </p>
+      @if (erro()) {
+        <p class="erro" role="alert"><span class="material-symbols-rounded" aria-hidden="true">error</span>{{ erro() }}</p>
+      }
+    </div>
+  </mat-dialog-content>
+  <mat-dialog-actions align="end">
+    <button matButton type="button" (click)="fechar()">Cancelar</button>
+    <button matButton="filled" type="button" class="perigo" (click)="confirmarDesativacao()" [disabled]="salvando()">
+      Desativar
+    </button>
+  </mat-dialog-actions>
+</ng-template>

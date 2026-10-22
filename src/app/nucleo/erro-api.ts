@@ -10,7 +10,7 @@ export function mensagemDeErro(erro: unknown, padrao = 'Não foi possível concl
     if (erro.status === 400) {
       return 'Confira os campos: algum valor está fora do formato aceito.';
     }
-    if (detalhe && (erro.status === 409 || erro.status === 422 || erro.status === 404)) {
+    if (detalhe && [404, 409, 422, 503].includes(erro.status)) {
       return detalhe;
     }
   }

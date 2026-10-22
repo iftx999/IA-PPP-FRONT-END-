@@ -43,3 +43,34 @@ export function competenciaLonga(competencia: string): string {
   const mes = mesLongo.format(data);
   return `${mes.charAt(0).toUpperCase()}${mes.slice(1)} de ${data.getUTCFullYear()}`;
 }
+
+const dataCurta = new Intl.DateTimeFormat('pt-BR', { day: '2-digit', month: '2-digit', year: 'numeric' });
+const dataHora = new Intl.DateTimeFormat('pt-BR', { dateStyle: 'short', timeStyle: 'short' });
+const relativo = new Intl.RelativeTimeFormat('pt-BR', { numeric: 'auto' });
+
+/** Instante ISO → "22/10/2026". */
+export function data(iso: string | null | undefined): string {
+  return iso ? dataCurta.format(new Date(iso)) : '—';
+}
+
+/** Instante ISO → "22/10/2026, 11:30" (para dicas com o valor exato). */
+export function dataEHora(iso: string | null | undefined): string {
+  return iso ? dataHora.format(new Date(iso)) : '—';
+}
+
+/** Instante ISO → "agora há pouco", "há 3 horas", "ontem", "há 2 meses". */
+export function haQuantoTempo(iso: string | null | undefined, agora = new Date()): string {
+  if (!iso) {
+    return '—';
+  }
+  const segundos = (new Date(iso).getTime() - agora.getTime()) / 1000;
+  const passos: [Intl.RelativeTimeFormatUnit, number][] = [
+    ['year', 31_536_000], ['month', 2_592_000], ['day', 86_400], ['hour', 3_600], ['minute', 60],
+  ];
+  for (const [unidade, tamanho] of passos) {
+    if (Math.abs(segundos) >= tamanho) {
+      return relativo.format(Math.round(segundos / tamanho), unidade);
+    }
+  }
+  return 'agora há pouco';
+}
