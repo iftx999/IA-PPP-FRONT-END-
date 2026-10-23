@@ -244,6 +244,38 @@ export interface paths {
     patch?: never;
     trace?: never;
   };
+  '/api/v1/mapa/marcacoes': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get: operations['listar_4'];
+    put?: never;
+    post: operations['criar_3'];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/api/v1/mapa/exportacao': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    post: operations['exportar'];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
   '/api/v1/integracoes/fontes': {
     parameters: {
       query?: never;
@@ -253,7 +285,7 @@ export interface paths {
     };
     get: operations['fontes'];
     put?: never;
-    post: operations['criar_3'];
+    post: operations['criar_4'];
     delete?: never;
     options?: never;
     head?: never;
@@ -315,9 +347,9 @@ export interface paths {
       path?: never;
       cookie?: never;
     };
-    get: operations['listar_4'];
+    get: operations['listar_5'];
     put?: never;
-    post: operations['criar_4'];
+    post: operations['criar_5'];
     delete?: never;
     options?: never;
     head?: never;
@@ -436,6 +468,22 @@ export interface paths {
     patch?: never;
     trace?: never;
   };
+  '/api/agente/v1/localizacoes': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    post: operations['localizar'];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
   '/api/agente/v1/cargas': {
     parameters: {
       query?: never;
@@ -532,6 +580,54 @@ export interface paths {
     patch?: never;
     trace?: never;
   };
+  '/api/v1/mapa/tiles/{z}/{x}/{y}.mvt': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get: operations['tile'];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/api/v1/mapa/imoveis': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get: operations['imoveis'];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/api/v1/mapa/camadas': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get: operations['camadas'];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
   '/api/v1/integracoes/fontes/{id}/execucoes': {
     parameters: {
       query?: never;
@@ -555,7 +651,7 @@ export interface paths {
       path?: never;
       cookie?: never;
     };
-    get: operations['listar_5'];
+    get: operations['listar_6'];
     put?: never;
     post?: never;
     delete?: never;
@@ -571,7 +667,7 @@ export interface paths {
       path?: never;
       cookie?: never;
     };
-    get: operations['exportar'];
+    get: operations['exportar_1'];
     put?: never;
     post?: never;
     delete?: never;
@@ -699,7 +795,7 @@ export interface paths {
       path?: never;
       cookie?: never;
     };
-    get: operations['exportar_1'];
+    get: operations['exportar_2'];
     put?: never;
     post?: never;
     delete?: never;
@@ -731,7 +827,7 @@ export interface paths {
       path?: never;
       cookie?: never;
     };
-    get: operations['listar_6'];
+    get: operations['listar_7'];
     put?: never;
     post?: never;
     delete?: never;
@@ -767,6 +863,22 @@ export interface paths {
     put?: never;
     post?: never;
     delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/api/v1/mapa/marcacoes/{id}': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    post?: never;
+    delete: operations['remover_1'];
     options?: never;
     head?: never;
     patch?: never;
@@ -890,6 +1002,54 @@ export interface components {
       /** Format: date */
       fim: string;
     };
+    NovaMarcacaoRequest: {
+      /** Format: double */
+      longitude: number;
+      /** Format: double */
+      latitude: number;
+      titulo: string;
+      observacao: string | null;
+    };
+    MarcacaoDto: {
+      /** Format: uuid */
+      id: string;
+      /** Format: uuid */
+      unidadeId: string;
+      unidadeNome: string;
+      /** Format: double */
+      longitude: number;
+      /** Format: double */
+      latitude: number;
+      titulo: string;
+      observacao: string | null;
+      autorNome: string;
+      /** Format: date-time */
+      criadaEm: string;
+      podeRemover: boolean;
+    };
+    AreaParametro: {
+      /** Format: double */
+      oeste: number;
+      /** Format: double */
+      sul: number;
+      /** Format: double */
+      leste: number;
+      /** Format: double */
+      norte: number;
+    };
+    CamadaImoveis: {
+      competencia: string | null;
+      situacoes: ('LIGADO' | 'FACTIVEL' | 'CORTADO' | 'SEM_REDE')[] | null;
+      aproximadas: boolean;
+    };
+    ExportacaoRequest: {
+      /** @enum {string} */
+      formato: 'CSV' | 'PDF';
+      area: components['schemas']['AreaParametro'];
+      imoveis: components['schemas']['CamadaImoveis'] | null;
+      marcacoes: boolean;
+      imagemPng: string | null;
+    };
     FonteCriada: {
       /** Format: uuid */
       id: string;
@@ -953,6 +1113,33 @@ export interface components {
       atualizados: number;
       /** Format: int32 */
       resolvidos: number;
+    };
+    LocalizacaoAgente: {
+      matricula: string | null;
+      unidade: string | null;
+      /** Format: double */
+      longitude: number | null;
+      /** Format: double */
+      latitude: number | null;
+      precisao: string | null;
+    };
+    LocalizacoesAgenteRequest: {
+      registros: components['schemas']['LocalizacaoAgente'][];
+    };
+    ResultadoLocalizacao: {
+      /** Format: int64 */
+      lidos?: number;
+      /** Format: int64 */
+      novos?: number;
+      /** Format: int64 */
+      atualizados?: number;
+      /** Format: int64 */
+      inalterados?: number;
+      /** Format: int64 */
+      preservados?: number;
+      /** Format: int64 */
+      rejeitados?: number;
+      rejeicoes?: components['schemas']['Rejeicao'][];
     };
     CargaAgenteRequest: {
       competencia: string;
@@ -1179,6 +1366,78 @@ export interface components {
       doContrato: number;
       /** Format: int64 */
       seguemAcima: number;
+    };
+    ImovelNoPonto: {
+      matricula: string;
+      /** Format: uuid */
+      unidadeId: string;
+      unidadeNome: string;
+      /** @enum {string} */
+      situacao: 'LIGADO' | 'FACTIVEL' | 'CORTADO' | 'SEM_REDE';
+      /** @enum {string} */
+      precisao: 'ENDERECO' | 'LOGRADOURO' | 'BAIRRO' | 'MANUAL';
+      aproximada: boolean;
+      /** Format: double */
+      longitude: number;
+      /** Format: double */
+      latitude: number;
+      /** Format: date-time */
+      localizadoEm: string;
+    };
+    AreaDto: {
+      /** Format: double */
+      oeste: number;
+      /** Format: double */
+      sul: number;
+      /** Format: double */
+      leste: number;
+      /** Format: double */
+      norte: number;
+    };
+    CamadasMapa: {
+      competencia: string | null;
+      competencias: string[];
+      municipios: components['schemas']['MunicipioDto'][];
+      setores: components['schemas']['SetorDto'][];
+      operacionais: components['schemas']['OperacionalDto'][];
+      enquadramento: components['schemas']['AreaDto'] | null;
+      /** Format: int32 */
+      zoomImoveis: number;
+      /** Format: int32 */
+      zoomRede: number;
+    };
+    MunicipioDto: {
+      /** Format: uuid */
+      unidadeId: string;
+      nome: string;
+      codigoIbge: string;
+      adesao: number | null;
+      /** @enum {string} */
+      situacao: 'META_ATINGIDA' | 'ATENCAO' | 'ABAIXO_DO_ALERTA' | 'SEM_META';
+      /** @description Objeto JSON livre */
+      geometria: {
+        [key: string]: unknown;
+      };
+    };
+    OperacionalDto: {
+      /** Format: uuid */
+      unidadeId: string;
+      tipo: string;
+      nome: string;
+      /** Format: double */
+      longitude: number;
+      /** Format: double */
+      latitude: number;
+    };
+    SetorDto: {
+      /** Format: uuid */
+      unidadeId: string;
+      nome: string;
+      origem: string;
+      /** @description Objeto JSON livre */
+      geometria: {
+        [key: string]: unknown;
+      };
     };
     FonteResponse: {
       /** Format: uuid */
@@ -1955,6 +2214,79 @@ export interface operations {
       };
     };
   };
+  listar_4: {
+    parameters: {
+      query?: {
+        oeste?: number;
+        sul?: number;
+        leste?: number;
+        norte?: number;
+      };
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description OK */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          '*/*': components['schemas']['MarcacaoDto'][];
+        };
+      };
+    };
+  };
+  criar_3: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        'application/json': components['schemas']['NovaMarcacaoRequest'];
+      };
+    };
+    responses: {
+      /** @description OK */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          '*/*': components['schemas']['MarcacaoDto'];
+        };
+      };
+    };
+  };
+  exportar: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        'application/json': components['schemas']['ExportacaoRequest'];
+      };
+    };
+    responses: {
+      /** @description OK */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          '*/*': string;
+        };
+      };
+    };
+  };
   fontes: {
     parameters: {
       query?: never;
@@ -1975,7 +2307,7 @@ export interface operations {
       };
     };
   };
-  criar_3: {
+  criar_4: {
     parameters: {
       query?: never;
       header?: never;
@@ -2094,7 +2426,7 @@ export interface operations {
       };
     };
   };
-  listar_4: {
+  listar_5: {
     parameters: {
       query?: never;
       header?: never;
@@ -2114,7 +2446,7 @@ export interface operations {
       };
     };
   };
-  criar_4: {
+  criar_5: {
     parameters: {
       query?: never;
       header?: never;
@@ -2324,6 +2656,30 @@ export interface operations {
       };
     };
   };
+  localizar: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        'application/json': components['schemas']['LocalizacoesAgenteRequest'];
+      };
+    };
+    responses: {
+      /** @description OK */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          '*/*': components['schemas']['ResultadoLocalizacao'];
+        };
+      };
+    };
+  };
   carregar_1: {
     parameters: {
       query?: never;
@@ -2453,6 +2809,84 @@ export interface operations {
       };
     };
   };
+  tile: {
+    parameters: {
+      query?: {
+        competencia?: string;
+        situacoes?: ('LIGADO' | 'FACTIVEL' | 'CORTADO' | 'SEM_REDE')[];
+        aproximadas?: boolean;
+        rede?: boolean;
+      };
+      header?: never;
+      path: {
+        z: number;
+        x: number;
+        y: number;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description OK */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/vnd.mapbox-vector-tile': string;
+        };
+      };
+    };
+  };
+  imoveis: {
+    parameters: {
+      query: {
+        longitude: number;
+        latitude: number;
+        raio?: number;
+        competencia?: string;
+        situacoes?: ('LIGADO' | 'FACTIVEL' | 'CORTADO' | 'SEM_REDE')[];
+        aproximadas?: boolean;
+      };
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description OK */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          '*/*': components['schemas']['ImovelNoPonto'][];
+        };
+      };
+    };
+  };
+  camadas: {
+    parameters: {
+      query?: {
+        competencia?: string;
+      };
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description OK */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          '*/*': components['schemas']['CamadasMapa'];
+        };
+      };
+    };
+  };
   execucoes: {
     parameters: {
       query?: {
@@ -2477,7 +2911,7 @@ export interface operations {
       };
     };
   };
-  listar_5: {
+  listar_6: {
     parameters: {
       query?: {
         unidade?: string;
@@ -2504,7 +2938,7 @@ export interface operations {
       };
     };
   };
-  exportar: {
+  exportar_1: {
     parameters: {
       query: {
         unidade: string;
@@ -2682,7 +3116,7 @@ export interface operations {
       };
     };
   };
-  exportar_1: {
+  exportar_2: {
     parameters: {
       query?: {
         usuario?: string;
@@ -2728,7 +3162,7 @@ export interface operations {
       };
     };
   };
-  listar_6: {
+  listar_7: {
     parameters: {
       query?: {
         estado?: 'ABERTOS' | 'RECONHECIDOS' | 'RESOLVIDOS';
@@ -2788,6 +3222,26 @@ export interface operations {
         content: {
           '*/*': components['schemas']['SituacaoAgenteResponse'];
         };
+      };
+    };
+  };
+  remover_1: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        id: string;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description OK */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
       };
     };
   };

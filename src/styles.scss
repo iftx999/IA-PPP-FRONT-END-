@@ -199,3 +199,14 @@ button.perigo { --mat-button-filled-container-color: var(--danger); --mat-button
 // Diálogo de revisão de itens contratuais: formulário + PDF ocupam a altura toda, sem padding no painel.
 .dialogo-revisao .mat-mdc-dialog-surface { padding: 0; overflow: hidden; }
 .dialogo-revisao .mat-mdc-dialog-container .mat-mdc-dialog-surface > * { height: 100%; }
+
+/* Menu "Exportar área" do mapa (abre no overlay, fora do componente). */
+.menu-exportar .mat-mdc-menu-item { min-height: 56px; }
+.menu-exportar .opcao { display: grid; line-height: 1.3; small { color: var(--text-3); font-size: var(--fs-label); } }
+.menu-exportar .aviso-auditoria { margin: 4px 16px 8px; max-width: 260px; color: var(--text-3); font-size: var(--fs-label); }
+/* Controles do MapLibre no tema da Aurora. */
+.maplibregl-ctrl-group { background: var(--bg-2); border: var(--border); box-shadow: none; }
+.maplibregl-ctrl-group button + button { border-top-color: var(--line); }
+:root:not([data-theme='light']) .maplibregl-ctrl-group .maplibregl-ctrl-icon { filter: invert(1) hue-rotate(180deg); }
+.maplibregl-ctrl-attrib, .maplibregl-ctrl-scale { background: color-mix(in srgb, var(--bg-2) 85%, transparent); color: var(--text-2); }
+.maplibregl-ctrl-attrib a { color: var(--text-2); }

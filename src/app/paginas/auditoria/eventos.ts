@@ -34,6 +34,8 @@ export const EVENTOS: Record<string, InfoEvento> = {
   FONTE_CRIADA: { rotulo: 'Fonte de dados criada', icone: 'database', grupo: 'Integrações' },
   CARGA_CONCLUIDA: { rotulo: 'Carga concluída', icone: 'cloud_done', grupo: 'Integrações' },
   MARCACAO_CRIADA: { rotulo: 'Marcação no mapa', icone: 'location_on', grupo: 'Mapa' },
+  MARCACAO_REMOVIDA: { rotulo: 'Marcação removida', icone: 'location_off', grupo: 'Mapa' },
+  IMOVEIS_GEOCODIFICADOS: { rotulo: 'Localização de imóveis recebida', icone: 'pin_drop', grupo: 'Integrações' },
 };
 
 export function infoEvento(tipo: string): InfoEvento {

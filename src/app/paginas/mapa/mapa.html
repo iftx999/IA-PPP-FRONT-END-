@@ -1,0 +1,237 @@
+<header class="cabecalho">
+  <div class="titulo">
+    <span class="rotulo">Adesão</span>
+    <h1>Mapa</h1>
+    <p class="legenda">Do município a cada imóvel. A Aurora mostra só matrícula e ponto; o endereço fica no sistema comercial.</p>
+  </div>
+  @if (camadasMapa(); as dados) {
+    <div class="filtros">
+      @if (dados.competencias.length) {
+        <mat-form-field appearance="outline" subscriptSizing="dynamic" class="competencia">
+          <mat-label>Competência</mat-label>
+          <mat-select [value]="dados.competencia" (selectionChange)="escolherCompetencia($event.value)">
+            @for (c of dados.competencias; track c) {
+              <mat-option [value]="c">{{ fmt.competenciaLonga(c) }}</mat-option>
+            }
+          </mat-select>
+        </mat-form-field>
+      }
+      <a matButton="outlined" routerLink="/sem-ligacao" [queryParams]="{ competencia: dados.competencia }">
+        <span class="material-symbols-rounded" aria-hidden="true">list</span>Ver como lista
+      </a>
+    </div>
+  }
+</header>
+
+@if (!sessao.usuario()) {
+  <div class="esqueleto" aria-busy="true" aria-label="Carregando"></div>
+} @else if (!sessao.pode('indicador:ler')) {
+  <section class="cartao aviso" role="alert">
+    <p class="rotulo">Sem acesso</p>
+    <p>Seu perfil não permite ver o mapa.</p>
+  </section>
+} @else {
+  <section class="area-mapa" [class.marcando]="marcando()">
+    <div #recipiente class="mapa" role="application" aria-label="Mapa da adesão: municípios, setores, rede e imóveis"></div>
+
+    @if (erroDoMapa()) {
+      <div class="cartao falha" role="alert">
+        <span class="material-symbols-rounded" aria-hidden="true">map</span>
+        <p>Não foi possível desenhar o mapa neste navegador. Use a lista de <a routerLink="/sem-ligacao">imóveis sem ligação</a>.</p>
+      </div>
+    }
+
+    <div class="barra" role="toolbar" aria-label="Controles do mapa">
+      <button matButton type="button" class="controle" [class.ativo]="vista3d()" (click)="alternarVista()"
+              [attr.aria-pressed]="vista3d()">
+        <span class="material-symbols-rounded" aria-hidden="true">{{ vista3d() ? 'map' : 'view_in_ar' }}</span>
+        {{ vista3d() ? 'Vista de cima' : 'Vista 3D' }}
+      </button>
+      @if (podeMarcar()) {
+        <button matButton type="button" class="controle" [class.ativo]="marcando()" (click)="alternarMarcacao()"
+                [attr.aria-pressed]="marcando()">
+          <span class="material-symbols-rounded" aria-hidden="true">add_location_alt</span>Marcar local
+        </button>
+      }
+      <button matButton type="button" class="controle" [matMenuTriggerFor]="menuExportar"
+              [disabled]="!podeExportar() || !!exportando()"
+              [matTooltip]="podeExportar() ? '' : 'Seu perfil não permite exportar.'">
+        @if (exportando()) { <mat-spinner diameter="16" /> } @else {
+          <span class="material-symbols-rounded" aria-hidden="true">download</span>
+        }
+        Exportar área
+      </button>
+      <button matButton type="button" class="controle" (click)="enquadrar()" matTooltip="Enquadrar o escopo"
+              aria-label="Enquadrar o escopo">
+        <span class="material-symbols-rounded" aria-hidden="true">fit_screen</span>
+      </button>
+    </div>
+
+    @if (marcando()) {
+      <p class="dica" role="status">Clique no mapa onde quer marcar. Esc cancela.</p>
+    } @else if (aproximeParaVer()) {
+      <p class="dica discreta" role="status">Aproxime para ver cada imóvel.</p>
+    }
+
+    @if (erroExportacao()) {
+      <p class="cartao erro-flutuante" role="alert">
+        <span class="material-symbols-rounded" aria-hidden="true">error</span>{{ erroExportacao() }}
+        <button matIconButton type="button" (click)="erroExportacao.set(null)" aria-label="Fechar">
+          <span class="material-symbols-rounded" aria-hidden="true">close</span>
+        </button>
+      </p>
+    }
+
+    <aside class="cartao painel" [class.recolhido]="!painelAberto()" aria-label="Camadas do mapa">
+      <button type="button" class="cabeca-painel" (click)="painelAberto.set(!painelAberto())"
+              [attr.aria-expanded]="painelAberto()">
+        <span class="rotulo">Camadas</span>
+        <span class="material-symbols-rounded" aria-hidden="true">{{ painelAberto() ? 'expand_less' : 'expand_more' }}</span>
+      </button>
+      @if (painelAberto()) {
+        <div class="grupo">
+          <mat-checkbox [checked]="camadas().municipios" (change)="ligar('municipios', $event.checked)">Municípios</mat-checkbox>
+          <ul class="legenda-lista">
+            @for (s of situacoesMunicipio; track s.codigo) {
+              <li><span class="amostra area" [style.--cor]="'var(' + s.token + ')'"></span>{{ s.rotulo }}</li>
+            }
+          </ul>
+        </div>
+        <div class="grupo">
+          <mat-checkbox [checked]="camadas().setores" (change)="ligar('setores', $event.checked)">Setores comerciais</mat-checkbox>
+        </div>
+        <div class="grupo">
+          <mat-checkbox [checked]="camadas().rede" (change)="ligar('rede', $event.checked)">Rede de esgoto</mat-checkbox>
+          <ul class="legenda-lista">
+            <li><span class="amostra linha confirmada"></span>Confirmada</li>
+            <li><span class="amostra linha presumida"></span>Presumida (a conferir)</li>
+          </ul>
+        </div>
+        <div class="grupo">
+          <mat-checkbox [checked]="camadas().imoveis" (change)="ligar('imoveis', $event.checked)">Imóveis</mat-checkbox>
+          <div class="subgrupo" [class.inativo]="!camadas().imoveis">
+            @for (s of situacoes; track s.codigo) {
+              <mat-checkbox [checked]="camadas().situacoes.includes(s.codigo)" [disabled]="!camadas().imoveis"
+                            (change)="ligarSituacao(s.codigo, $event.checked)">
+                <span class="casa" [style.--cor]="'var(' + s.token + ')'" aria-hidden="true"></span>{{ s.rotulo }}
+              </mat-checkbox>
+            }
+            <mat-checkbox [checked]="camadas().aproximadas" [disabled]="!camadas().imoveis"
+                          (change)="ligarAproximadas($event.checked)">
+              <span class="casa aproximada" aria-hidden="true"></span>Localização aproximada
+            </mat-checkbox>
+          </div>
+        </div>
+        <div class="grupo">
+          <mat-checkbox [checked]="camadas().marcacoes" (change)="ligar('marcacoes', $event.checked)">
+            <span class="material-symbols-rounded icone-legenda pino" aria-hidden="true">location_on</span>Marcações de visita
+          </mat-checkbox>
+          <mat-checkbox [checked]="camadas().operacionais" (change)="ligar('operacionais', $event.checked)">
+            <span class="material-symbols-rounded icone-legenda estacao" aria-hidden="true">water_drop</span>ETE e EEE
+          </mat-checkbox>
+        </div>
+      }
+    </aside>
+
+    @if (selecao(); as s) {
+      <section class="cartao detalhe" aria-live="polite">
+        <button matIconButton type="button" class="fechar" (click)="fecharSelecao()" aria-label="Fechar detalhe">
+          <span class="material-symbols-rounded" aria-hidden="true">close</span>
+        </button>
+        @switch (s.tipo) {
+          @case ('municipio') {
+            <p class="rotulo">Município</p>
+            <h2>{{ s.municipio.nome }}</h2>
+            <p class="kpi"><span class="dado">{{ fmt.percentual(s.municipio.adesao) }}</span> de adesão</p>
+            <aurora-selo-situacao [situacao]="s.municipio.situacao" />
+            <a matButton routerLink="/painel" [queryParams]="{ unidade: s.municipio.unidadeId, competencia: competenciaAtual() }">
+              Abrir no painel<span class="material-symbols-rounded" aria-hidden="true">arrow_forward</span>
+            </a>
+          }
+          @case ('imoveis') {
+            <p class="rotulo">Imóveis neste ponto</p>
+            @if (s.carregando) {
+              <mat-spinner diameter="22" />
+            } @else if (s.erro) {
+              <p class="erro" role="alert">{{ s.erro }}</p>
+            } @else if (!s.imoveis.length) {
+              <p class="vazio">Nenhum imóvel visível neste ponto.</p>
+            } @else {
+              <ul class="imoveis">
+                @for (i of s.imoveis; track i.matricula) {
+                  <li>
+                    <span class="casa" [class.aproximada]="i.aproximada"
+                          [style.--cor]="corDaSituacao(i.situacao)"
+                          aria-hidden="true"></span>
+                    <span class="dado matricula">{{ i.matricula }}</span>
+                    <span class="situacao">{{ rotuloSituacao(i.situacao) }}</span>
+                    <span class="detalhes">{{ i.unidadeNome }} · {{ rotuloPrecisao(i) }}</span>
+                  </li>
+                }
+              </ul>
+              <p class="nota">Localize no sistema comercial pela matrícula.</p>
+            }
+          }
+          @case ('marcacao') {
+            <p class="rotulo">Marcação de visita</p>
+            <h2>{{ s.marcacao.titulo }}</h2>
+            @if (s.marcacao.observacao) { <p class="observacao">{{ s.marcacao.observacao }}</p> }
+            <p class="detalhes">{{ s.marcacao.autorNome }} · {{ fmt.data(s.marcacao.criadaEm) }} · {{ s.marcacao.unidadeNome }}</p>
+            @if (s.marcacao.podeRemover) {
+              <button matButton type="button" class="perigo" (click)="removerMarcacao(s.marcacao)">
+                <span class="material-symbols-rounded" aria-hidden="true">delete</span>Remover
+              </button>
+            }
+          }
+          @case ('operacional') {
+            <p class="rotulo">Unidade operacional</p>
+            <h2>{{ s.nome }}</h2>
+            <p class="detalhes">{{ s.descricao }}</p>
+          }
+        }
+      </section>
+    }
+  </section>
+}
+
+<mat-menu #menuExportar="matMenu" class="menu-exportar" xPosition="after">
+  <button mat-menu-item type="button" (click)="exportar('CSV')">
+    <span class="material-symbols-rounded" aria-hidden="true">table_view</span>
+    <span class="opcao"><strong>Planilha CSV</strong><small>Para abrir no Excel ou levar a outro sistema.</small></span>
+  </button>
+  <button mat-menu-item type="button" (click)="exportar('PDF')">
+    <span class="material-symbols-rounded" aria-hidden="true">picture_as_pdf</span>
+    <span class="opcao"><strong>PDF</strong><small>Para imprimir ou anexar a uma ordem de serviço.</small></span>
+  </button>
+  <p class="aviso-auditoria">Só o que está visível. A emissão fica registrada na auditoria.</p>
+</mat-menu>
+
+<ng-template #modeloMarcacao>
+  <h2 mat-dialog-title>Marcar local</h2>
+  <mat-dialog-content>
+    <form id="form-marcacao" class="formulario" [formGroup]="formMarcacao" (ngSubmit)="salvarMarcacao()">
+      <p class="ajuda">
+        Ponto <span class="dado">{{ pontoDaMarcacao()?.latitude }}, {{ pontoDaMarcacao()?.longitude }}</span>.
+        Ficam registrados você e a data. Evite nomes e endereços de clientes.
+      </p>
+      <mat-form-field>
+        <mat-label>Título</mat-label>
+        <input matInput formControlName="titulo" maxlength="80" cdkFocusInitial placeholder="Ex.: Visita técnica, rua sem rede" />
+        <mat-hint align="end">{{ formMarcacao.controls.titulo.value.length }}/80</mat-hint>
+        <mat-error>Informe um título de até 80 caracteres.</mat-error>
+      </mat-form-field>
+      <mat-form-field>
+        <mat-label>Observação (opcional)</mat-label>
+        <textarea matInput formControlName="observacao" maxlength="500" rows="3"></textarea>
+        <mat-hint align="end">{{ formMarcacao.controls.observacao.value.length }}/500</mat-hint>
+      </mat-form-field>
+      @if (erroMarcacao()) {
+        <p class="erro" role="alert"><span class="material-symbols-rounded" aria-hidden="true">error</span>{{ erroMarcacao() }}</p>
+      }
+    </form>
+  </mat-dialog-content>
+  <mat-dialog-actions align="end">
+    <button matButton type="button" (click)="fecharDialogo()">Cancelar</button>
+    <button matButton="filled" type="submit" form="form-marcacao" [disabled]="salvando()">Marcar</button>
+  </mat-dialog-actions>
+</ng-template>
