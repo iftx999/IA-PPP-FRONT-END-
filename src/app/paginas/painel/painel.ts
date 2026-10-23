@@ -1,9 +1,10 @@
-import { SessaoService } from '../../nucleo/sessao';
 import { httpResource } from '@angular/common/http';
 import { Component, computed, inject, input, signal } from '@angular/core';
 import { MatButtonModule } from '@angular/material/button';
 import { MatButtonToggleModule } from '@angular/material/button-toggle';
 import { MatFormFieldModule } from '@angular/material/form-field';
+import { MatMenuModule } from '@angular/material/menu';
+import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatSelectModule } from '@angular/material/select';
 import { MatSortModule, type Sort } from '@angular/material/sort';
 import { MatTableModule } from '@angular/material/table';
@@ -16,6 +17,9 @@ import {
   percentual,
   pontosPercentuais,
 } from '../../nucleo/formato';
+import { DownloadService } from '../../nucleo/download';
+import { mensagemDeErro } from '../../nucleo/erro-api';
+import { SessaoService } from '../../nucleo/sessao';
 import { BarraAdesao } from '../../ui/barra-adesao';
 import { SeloSituacao } from '../../ui/selo-situacao';
 import { GraficoAdesao } from './grafico-adesao';
@@ -28,7 +32,7 @@ import { GraficoAdesao } from './grafico-adesao';
   selector: 'aurora-painel',
   imports: [
     RouterLink, MatButtonModule, MatButtonToggleModule, MatFormFieldModule, MatSelectModule, MatSortModule,
-    MatTableModule, SeloSituacao, BarraAdesao, GraficoAdesao,
+    MatTableModule, MatMenuModule, MatProgressSpinnerModule, SeloSituacao, BarraAdesao, GraficoAdesao,
   ],
   templateUrl: './painel.html',
   styleUrl: './painel.scss',
@@ -79,6 +83,24 @@ export class Painel {
   });
 
   protected readonly fmt = { numero, percentual, pontosPercentuais, competenciaCurta, competenciaLonga };
+
+  private readonly downloads = inject(DownloadService);
+  protected readonly exportando = signal<'csv' | 'pdf' | null>(null);
+  protected readonly erroExportacao = signal<string | null>(null);
+
+  /** B6: CSV ou PDF do painel da unidade e competência na tela (a emissão fica na auditoria). */
+  protected async exportar(p: DadosPainel, formato: 'csv' | 'pdf'): Promise<void> {
+    this.exportando.set(formato);
+    this.erroExportacao.set(null);
+    try {
+      await this.downloads.baixar(`/api/v1/painel/exportacao.${formato}`,
+        { unidade: p.unidade.id, competencia: p.competencia }, `painel-${p.competencia}.${formato}`);
+    } catch (falha) {
+      this.erroExportacao.set(mensagemDeErro(falha, 'Não foi possível exportar o painel. Tente novamente.'));
+    } finally {
+      this.exportando.set(null);
+    }
+  }
 
   protected navegar(params: { unidade?: string; competencia?: string }): void {
     void this.router.navigate([], { queryParams: params, queryParamsHandling: 'merge' });

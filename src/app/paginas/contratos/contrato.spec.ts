@@ -8,7 +8,7 @@ const item = (mudancas: Partial<ItemContratual>): ItemContratual => ({
   pagina: 2, trecho: 't', valorReferencia: 80, unidadeMedida: '%', dataLimite: '2026-12-31', periodicidade: null,
   unidadeId: 'u', unidadeNome: 'Concessão A', valorAlerta: 75, vigenciaInicio: null, status: 'PROPOSTO', origem: 'IA',
   modeloIa: 'claude-opus-5-5', confianca: 0.9, semReferencia: false, propostoEm: '2026-10-22T12:00:00Z',
-  revisadoPor: null, revisadoEm: null, motivoRevisao: null,
+  revisadoPor: null, revisadoEm: null, motivoRevisao: null, substituidoPor: null,
   propostaIa: {
     titulo: 'Adesão mínima', clausula: '7.2', pagina: 2, valorReferencia: 80, valorAlerta: null,
     dataLimite: '2026-12-31', vigenciaInicio: null, unidadeAlvo: 'Concessão A',

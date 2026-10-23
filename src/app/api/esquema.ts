@@ -612,6 +612,38 @@ export interface paths {
     patch?: never;
     trace?: never;
   };
+  '/api/v1/painel/exportacao.{formato}': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get: operations['exportar_1'];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/api/v1/metas/unidades/{unidade}/historico': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get: operations['historico'];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
   '/api/v1/mapa/tiles/{z}/{x}/{y}.mvt': {
     parameters: {
       query?: never;
@@ -699,7 +731,7 @@ export interface paths {
       path?: never;
       cookie?: never;
     };
-    get: operations['exportar_1'];
+    get: operations['exportar_2'];
     put?: never;
     post?: never;
     delete?: never;
@@ -827,7 +859,7 @@ export interface paths {
       path?: never;
       cookie?: never;
     };
-    get: operations['exportar_2'];
+    get: operations['exportar_3'];
     put?: never;
     post?: never;
     delete?: never;
@@ -1500,6 +1532,22 @@ export interface components {
       /** Format: int64 */
       seguemAcima: number;
     };
+    VersaoAnteriorDaMeta: {
+      /** Format: uuid */
+      metaId: string;
+      /** Format: date */
+      vigenciaInicio: string;
+      /** Format: date */
+      vigenciaFim: string | null;
+      valorMeta: number;
+      valorAlerta: number | null;
+      origem: string | null;
+      motivo: string;
+      /** Format: uuid */
+      substituidaPorMeta: string | null;
+      /** Format: date-time */
+      registradoEm: string;
+    };
     ImovelNoPonto: {
       matricula: string;
       /** Format: uuid */
@@ -1715,6 +1763,7 @@ export interface components {
       itensDescartados: number;
       /** Format: date-time */
       enviadoEm: string;
+      textoPorOcr: boolean;
     };
     ItemResponse: {
       /** Format: uuid */
@@ -1766,6 +1815,8 @@ export interface components {
       /** Format: date-time */
       revisadoEm: string | null;
       motivoRevisao: string | null;
+      /** Format: uuid */
+      substituidoPor: string | null;
     };
     VerificacaoResponse: {
       /** Format: int64 */
@@ -2997,6 +3048,53 @@ export interface operations {
       };
     };
   };
+  exportar_1: {
+    parameters: {
+      query?: {
+        unidade?: string;
+        competencia?: string;
+      };
+      header?: never;
+      path: {
+        formato: string;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description OK */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          '*/*': string;
+        };
+      };
+    };
+  };
+  historico: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        unidade: string;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description OK */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          '*/*': components['schemas']['VersaoAnteriorDaMeta'][];
+        };
+      };
+    };
+  };
   tile: {
     parameters: {
       query?: {
@@ -3126,7 +3224,7 @@ export interface operations {
       };
     };
   };
-  exportar_1: {
+  exportar_2: {
     parameters: {
       query: {
         unidade: string;
@@ -3304,7 +3402,7 @@ export interface operations {
       };
     };
   };
-  exportar_2: {
+  exportar_3: {
     parameters: {
       query?: {
         usuario?: string;

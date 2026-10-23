@@ -69,3 +69,6 @@ h1 { font: 700 var(--fs-h1) var(--font-display); }
   animation: brilho 1.2s ease-in-out infinite;
 }
 @keyframes brilho { from { background-position: 100% 0; } to { background-position: -100% 0; } }
+.historico { margin: 0; padding: 0; list-style: none; display: grid; gap: var(--space-2);
+  li { display: flex; flex-wrap: wrap; gap: 4px var(--space-3); align-items: baseline; padding: var(--space-2) 0; border-bottom: var(--border); }
+  .nota { color: var(--text-3); font-size: var(--fs-small); } .origem { flex-basis: 100%; } }

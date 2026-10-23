@@ -59,9 +59,12 @@
               <span class="doc-titulo">{{ doc.titulo }}</span>
               <span class="nota">
                 {{ doc.tipo === 'ORIGINAL' ? 'Original' : doc.tipo === 'ADITIVO' ? 'Aditivo' : 'Anexo' }}
-                @if (doc.paginas) { · {{ doc.paginas }} páginas }
+                @if (doc.paginas) { · {{ doc.paginas }} {{ doc.paginas === 1 ? 'página' : 'páginas' }} }
                 · enviado {{ fmt.haQuantoTempo(doc.enviadoEm) }}
                 @if (doc.modeloIa) { · {{ doc.modeloIa }} }
+                @if (doc.textoPorOcr) {
+                  · <span class="ocr" matTooltip="Página digitalizada: o texto foi reconhecido da imagem (OCR). Confira os trechos com atenção.">texto por OCR</span>
+                }
               </span>
               @if (doc.mensagem) {
                 <span class="mensagem" [class.falha]="doc.situacao === 'FALHA'">{{ doc.mensagem }}</span>
@@ -142,6 +145,7 @@
                     @if (i.unidadeNome) { <span>{{ i.unidadeNome }}</span> }
                     @if (i.dataLimite) { <span>até <span class="dado">{{ fmt.data(i.dataLimite + 'T12:00:00') }}</span></span> }
                     @if (i.origem === 'MANUAL') { <span class="manual">manual</span> }
+                    @if (i.status === 'SUBSTITUIDO') { <span class="manual">trocado por aditivo</span> }
                   </span>
                 </span>
                 <span class="item-situacao">
@@ -195,9 +199,15 @@
             @if (i.status !== 'PROPOSTO') {
               <p class="ajuda">
                 <span class="material-symbols-rounded" aria-hidden="true">history</span>
-                {{ i.status === 'APROVADO' ? 'Aprovado' : 'Rejeitado' }} por {{ i.revisadoPor ?? '—' }}
+                {{ i.status === 'REJEITADO' ? 'Rejeitado' : 'Aprovado' }} por {{ i.revisadoPor ?? '—' }}
                 {{ i.revisadoEm ? 'em ' + fmt.dataEHora(i.revisadoEm) : '' }}
                 @if (i.motivoRevisao) { · motivo: {{ i.motivoRevisao }} }
+              </p>
+            }
+            @if (i.status === 'SUBSTITUIDO' && i.substituidoPor) {
+              <p class="ajuda substituido">
+                <span class="material-symbols-rounded" aria-hidden="true">swap_horiz</span>
+                Substituído pelo aditivo: «{{ tituloDoItem(i.substituidoPor) }}». A meta deste item ficou no histórico da unidade.
               </p>
             }
             @if (diferencas(i).length) {

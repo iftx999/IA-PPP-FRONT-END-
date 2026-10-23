@@ -13,10 +13,10 @@ import { MatTableModule } from '@angular/material/table';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { firstValueFrom, startWith } from 'rxjs';
-import type { LinhaMeta, Metas as DadosMetas, Situacao } from '../../api/tipos';
+import type { LinhaMeta, Metas as DadosMetas, Situacao, VersaoAnteriorDaMeta } from '../../api/tipos';
 import { deIso, paraIso } from '../../nucleo/datas';
 import { mensagemDeErro } from '../../nucleo/erro-api';
-import { competenciaCurta, numero, percentual } from '../../nucleo/formato';
+import { competenciaCurta, data, dataEHora, numero, percentual } from '../../nucleo/formato';
 import { SessaoService } from '../../nucleo/sessao';
 import { BarraAdesao } from '../../ui/barra-adesao';
 import { SeloSituacao } from '../../ui/selo-situacao';
@@ -82,8 +82,8 @@ export class Metas {
   protected readonly recolhidas = signal(new Set<string>());
 
   protected readonly colunas = computed(() => {
-    const base = ['unidade', 'meta', 'vigencia', 'origem', 'adesao', 'situacao'];
-    return this.sessao.pode('indicador:gerenciar') ? [...base, 'acoes'] : base;
+    // Ações sempre visíveis: o histórico vale para quem só lê; criar e encerrar exigem gestão.
+    return ['unidade', 'meta', 'vigencia', 'origem', 'adesao', 'situacao', 'acoes'];
   });
 
   /** Árvore achatada para a tabela; com filtro ativo, lista plana só com as unidades que casam. */
@@ -123,6 +123,23 @@ export class Metas {
   // ----- Diálogos -----
   private readonly modeloNova = viewChild.required<TemplateRef<unknown>>('modeloNova');
   private readonly modeloEncerrar = viewChild.required<TemplateRef<unknown>>('modeloEncerrar');
+  private readonly modeloHistorico = viewChild.required<TemplateRef<unknown>>('modeloHistorico');
+
+  /** A5: versões anteriores das metas da unidade (alteradas ou substituídas por aditivo). */
+  protected readonly historicoDe = signal<LinhaMeta | null>(null);
+  protected readonly historico = httpResource<VersaoAnteriorDaMeta[]>(() => {
+    const linha = this.historicoDe();
+    return linha ? `/api/v1/metas/unidades/${linha.unidadeId}/historico` : undefined;
+  });
+
+  protected abrirHistorico(linha: LinhaMeta): void {
+    this.historicoDe.set(linha);
+    this.dialogoAberto = this.dialogos.open(this.modeloHistorico(), { width: '640px' });
+  }
+
+  protected motivo(motivo: string): string {
+    return motivo === 'SUBSTITUIDA_POR_ADITIVO' ? 'Substituída por aditivo' : 'Encerrada por aditivo';
+  }
   private dialogoAberto?: MatDialogRef<unknown>;
 
   protected readonly unidadeEscolhida = new FormControl<OpcaoUnidade | string | null>(null, [
@@ -154,7 +171,7 @@ export class Metas {
   protected readonly salvando = signal(false);
   protected readonly erro = signal<string | null>(null);
 
-  protected readonly fmt = { numero, percentual, competenciaCurta };
+  protected readonly fmt = { numero, percentual, competenciaCurta, data, dataEHora };
 
   protected readonly rastrear = (_: number, r: LinhaArvore) => r.linha.unidadeId;
 

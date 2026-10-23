@@ -83,3 +83,4 @@ p.cartao.vazio { padding: var(--space-5); text-align: center; }
 }
 .esqueleto.pequeno { min-height: 160px; }
 @keyframes brilho { from { background-position: 100% 0; } to { background-position: -100% 0; } }
+.ocr { color: var(--warn); }

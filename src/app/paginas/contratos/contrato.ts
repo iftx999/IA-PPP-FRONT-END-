@@ -280,6 +280,11 @@ export class ContratoPagina {
     (this.detalhe()?.documentos ?? []).filter((d) => !SITUACOES_DOCUMENTO[d.situacao].andamento && d.situacao !== 'FALHA'),
   );
 
+  /** A5: título do item do aditivo que substituiu outro. */
+  protected tituloDoItem(id: string): string {
+    return this.itens()?.find((i) => i.id === id)?.titulo ?? 'item do aditivo';
+  }
+
   protected abrirRevisao(item: ItemContratual): void {
     this.prepararDialogo(item);
     this.formulario.reset({

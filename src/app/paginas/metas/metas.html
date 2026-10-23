@@ -139,12 +139,16 @@
       <ng-container matColumnDef="acoes">
         <th mat-header-cell *matHeaderCellDef><span class="oculto">Ações</span></th>
         <td mat-cell *matCellDef="let r" class="acoes">
-          @if (r.linha.propria && !r.linha.propria.doContrato && !r.linha.propria.origem) {
+          <button matIconButton type="button" matTooltip="Histórico de metas"
+                  [attr.aria-label]="'Histórico de metas de ' + r.linha.unidadeNome" (click)="abrirHistorico(r.linha)">
+            <span class="material-symbols-rounded">history</span>
+          </button>
+          @if (sessao.pode('indicador:gerenciar') && r.linha.propria && !r.linha.propria.doContrato && !r.linha.propria.origem) {
             <button matIconButton type="button" matTooltip="Encerrar meta" [attr.aria-label]="'Encerrar meta de ' + r.linha.unidadeNome"
                     (click)="abrirEncerrar(r.linha)">
               <span class="material-symbols-rounded">event_busy</span>
             </button>
-          } @else if (!r.linha.propria) {
+          } @else if (sessao.pode('indicador:gerenciar') && !r.linha.propria) {
             <button matIconButton type="button" matTooltip="Definir meta própria"
                     [attr.aria-label]="'Definir meta própria para ' + r.linha.unidadeNome" (click)="abrirNova(r.linha)">
               <span class="material-symbols-rounded">add_circle</span>
@@ -225,6 +229,33 @@
     <button matButton="filled" type="submit" form="form-meta" [disabled]="salvando()">
       @if (salvando()) { <mat-spinner diameter="18" /> } Salvar meta
     </button>
+  </mat-dialog-actions>
+</ng-template>
+
+<ng-template #modeloHistorico>
+  <h2 mat-dialog-title>Histórico de metas · {{ historicoDe()?.unidadeNome }}</h2>
+  <mat-dialog-content>
+    @if (historico.isLoading()) {
+      <mat-spinner diameter="22" />
+    } @else if (historico.hasValue() && historico.value().length) {
+      <p class="ajuda">Versões anteriores, alteradas ou substituídas por aditivo do contrato. A meta vigente está na tabela.</p>
+      <ul class="historico">
+        @for (h of historico.value(); track h.metaId + h.registradoEm) {
+          <li>
+            <span class="dado">{{ fmt.percentual(h.valorMeta) }}</span>
+            @if (h.valorAlerta != null) { <span class="nota">alerta {{ fmt.percentual(h.valorAlerta) }}</span> }
+            <span>{{ fmt.data(h.vigenciaInicio + 'T12:00:00') }} a {{ h.vigenciaFim ? fmt.data(h.vigenciaFim + 'T12:00:00') : 'sem fim' }}</span>
+            <span class="nota">{{ motivo(h.motivo) }} em {{ fmt.dataEHora(h.registradoEm) }}</span>
+            @if (h.origem) { <span class="nota origem">{{ h.origem }}</span> }
+          </li>
+        }
+      </ul>
+    } @else {
+      <p class="ajuda">Nenhuma meta desta unidade foi alterada por aditivo.</p>
+    }
+  </mat-dialog-content>
+  <mat-dialog-actions align="end">
+    <button matButton type="button" (click)="fechar()">Fechar</button>
   </mat-dialog-actions>
 </ng-template>
 

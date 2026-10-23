@@ -66,3 +66,4 @@ export type ConversaComMensagens = Esquemas['ConversaAssistenteComMensagens'];
 export type MensagemAssistente = Esquemas['MensagemAssistenteResponse'];
 export type FonteCitada = Esquemas['FonteCitadaDto'];
 export type LinhaDeDados = Esquemas['LinhaDeDadosDto'];
+export type VersaoAnteriorDaMeta = Esquemas['VersaoAnteriorDaMeta'];

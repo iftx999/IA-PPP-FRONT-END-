@@ -16,6 +16,26 @@
         </a>
       }
     </div>
+    <div class="acoes-cabecalho">
+    @if (sessao.pode('relatorio:exportar')) {
+      <button matButton="outlined" type="button" [matMenuTriggerFor]="menuExportar" [disabled]="!!exportando()">
+        @if (exportando()) { <mat-spinner diameter="16" /> } @else {
+          <span class="material-symbols-rounded" aria-hidden="true">download</span>
+        }
+        Exportar
+      </button>
+      <mat-menu #menuExportar="matMenu" class="menu-exportar">
+        <button mat-menu-item type="button" (click)="exportar(p, 'csv')">
+          <span class="material-symbols-rounded" aria-hidden="true">table_view</span>
+          <span class="opcao"><strong>Planilha CSV</strong><small>Esta unidade e as de baixo, para o Excel.</small></span>
+        </button>
+        <button mat-menu-item type="button" (click)="exportar(p, 'pdf')">
+          <span class="material-symbols-rounded" aria-hidden="true">picture_as_pdf</span>
+          <span class="opcao"><strong>PDF</strong><small>Resumo com meta, projeção e série, para anexar.</small></span>
+        </button>
+        <p class="aviso-auditoria">A emissão fica registrada na auditoria.</p>
+      </mat-menu>
+    }
     <mat-form-field class="competencia">
       <mat-label>Competência</mat-label>
       <span matPrefix class="material-symbols-rounded prefixo" aria-hidden="true">calendar_month</span>
@@ -25,7 +45,11 @@
         }
       </mat-select>
     </mat-form-field>
+    </div>
   </header>
+  @if (erroExportacao()) {
+    <p class="erro-exportacao" role="alert"><span class="material-symbols-rounded" aria-hidden="true">error</span>{{ erroExportacao() }}</p>
+  }
 
   <div class="grade">
     <section class="cartao kpi" aria-labelledby="kpi-titulo">

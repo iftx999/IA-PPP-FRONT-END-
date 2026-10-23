@@ -35,6 +35,9 @@ test('convite completo: e-mail, criação de senha, primeiro acesso e desativaç
   await page.getByRole('option', { name: 'Cidade B', exact: true }).click();
   await convite.getByRole('button', { name: 'Enviar convite' }).click();
   await expect(convite).toBeHidden();
+  // Filtra pela busca: execuções anteriores deixam convites desativados e a lista é paginada.
+  const filtrar = () => page.getByRole('textbox', { name: 'Buscar por nome ou e-mail' }).fill(email);
+  await filtrar();
   const linha = page.getByRole('row', { name: new RegExp(email.replaceAll('.', '\\.')) });
   await expect(linha).toContainText('Convite pendente');
 
@@ -67,6 +70,7 @@ test('convite completo: e-mail, criação de senha, primeiro acesso e desativaç
 
   // Primeiro acesso feito: deixa de ser convite pendente. Depois, desativar encerra o acesso.
   await page.reload();
+  await filtrar();
   await expect(linha).toContainText('Ativo');
   await linha.getByRole('button', { name: /^Ações de / }).click();
   await page.getByRole('menuitem', { name: 'Desativar' }).click();
