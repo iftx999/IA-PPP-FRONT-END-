@@ -19,7 +19,9 @@ COPY --chmod=755 infra/40-configuracao-aurora.sh /docker-entrypoint.d/40-configu
 # /configuracao.json é gerado no início (em /tmp) a partir das variáveis do ambiente; o do build é só para o ng serve.
 # conf.d aponta para /tmp: o container roda com o sistema de arquivos somente leitura.
 USER root
-RUN rm -f /usr/share/nginx/html/configuracao.json && rm -rf /etc/nginx/conf.d && ln -s /tmp/conf.d /etc/nginx/conf.d
+# Correções de segurança dos pacotes do Alpine publicadas depois da imagem base (Trivy no CI bloqueia críticas).
+RUN apk upgrade --no-cache \
+ && rm -f /usr/share/nginx/html/configuracao.json && rm -rf /etc/nginx/conf.d && ln -s /tmp/conf.d /etc/nginx/conf.d
 USER 101
 # Endereço interno da API e origens externas permitidas pela CSP (emissor OIDC e tiles do mapa).
 ENV AURORA_API_ENDERECO=api:8080 \

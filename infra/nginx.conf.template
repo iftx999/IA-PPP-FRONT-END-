@@ -31,6 +31,11 @@ server {
         return 200 "ok";
     }
 
+    # Endpoints de gerenciamento da API nunca passam pela borda (ficam na porta interna).
+    location ^~ /actuator {
+        return 404;
+    }
+
     location = /configuracao.json {
         alias /tmp/aurora/configuracao.json;
         default_type application/json;
