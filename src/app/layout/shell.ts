@@ -1,7 +1,7 @@
 import { Component, inject } from '@angular/core';
 import { MatButtonModule } from '@angular/material/button';
 import { MatTooltipModule } from '@angular/material/tooltip';
-import { RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
+import { Router, RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
 import { AlertasService } from '../nucleo/alertas';
 import { SessaoService } from '../nucleo/sessao';
 import { TemaService } from '../nucleo/tema';
@@ -17,11 +17,19 @@ interface ItemMenu {
   imports: [RouterOutlet, RouterLink, RouterLinkActive, MatButtonModule, MatTooltipModule],
   templateUrl: './shell.html',
   styleUrl: './shell.scss',
+  host: { '(document:keydown.control.j)': 'abrirAssistente($event)' },
 })
 export class Shell {
   protected readonly tema = inject(TemaService);
   protected readonly sessao = inject(SessaoService);
   protected readonly alertas = inject(AlertasService);
+  private readonly roteador = inject(Router);
+
+  /** Ctrl+J abre o assistente (doc 05, 5.9). */
+  protected abrirAssistente(evento?: Event): void {
+    evento?.preventDefault();
+    void this.roteador.navigate(['/assistente']);
+  }
 
   protected readonly secoes: { titulo: string; itens: ItemMenu[] }[] = [
     {

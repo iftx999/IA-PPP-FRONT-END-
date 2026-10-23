@@ -58,7 +58,7 @@
     <kbd>Ctrl K</kbd>
   </button>
   <div class="acoes">
-    <button matButton="outlined" type="button" aria-keyshortcuts="Control+J">
+    <button matButton="outlined" type="button" aria-keyshortcuts="Control+J" (click)="abrirAssistente()">
       <span class="material-symbols-rounded" aria-hidden="true">auto_awesome</span> Assistente <kbd>Ctrl J</kbd>
     </button>
     @if (sessao.pode('indicador:ler')) {

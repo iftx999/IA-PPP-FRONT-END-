@@ -2,6 +2,7 @@ import { provideHttpClient } from '@angular/common/http';
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
 import { TestBed } from '@angular/core/testing';
 import { provideRouter } from '@angular/router';
+import { SessaoService } from '../../nucleo/sessao';
 import type { Painel as DadosPainel } from '../../api/tipos';
 import { Painel } from './painel';
 
@@ -54,7 +55,12 @@ describe('Painel', () => {
   beforeEach(() => {
     TestBed.configureTestingModule({
       imports: [Painel],
-      providers: [provideRouter([]), provideHttpClient(), provideHttpClientTesting()],
+      providers: [
+        provideRouter([]),
+        provideHttpClient(),
+        provideHttpClientTesting(),
+        { provide: SessaoService, useValue: { pode: (permissao: string) => permissao === 'assistente:usar' } },
+      ],
     });
   });
 
@@ -86,6 +92,8 @@ describe('Painel', () => {
     expect(texto).toContain('≈ 90/mês');
     expect(texto).toContain('Ver os 2.639 imóveis sem ligação');
     expect(texto).toContain('Voltar para Grupo Saneamento Exemplo');
+    // G5: pergunta ao assistente a partir do painel
+    expect(texto).toContain('Perguntar ao assistente sobre Concessão A');
   });
 
   it('lista as unidades filhas com a situação', async () => {

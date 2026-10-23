@@ -132,6 +132,22 @@ export interface paths {
     patch?: never;
     trace?: never;
   };
+  '/api/v1/assistente/mensagens/{id}/avaliacao': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put: operations['avaliar'];
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
   '/api/v1/usuarios': {
     parameters: {
       query?: never;
@@ -436,6 +452,22 @@ export interface paths {
     patch?: never;
     trace?: never;
   };
+  '/api/v1/assistente/perguntas': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    post: operations['perguntar'];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
   '/api/v1/alertas/{id}/reconhecimento': {
     parameters: {
       query?: never;
@@ -461,7 +493,7 @@ export interface paths {
     };
     get?: never;
     put?: never;
-    post: operations['avaliar'];
+    post: operations['avaliar_1'];
     delete?: never;
     options?: never;
     head?: never;
@@ -820,6 +852,54 @@ export interface paths {
     patch?: never;
     trace?: never;
   };
+  '/api/v1/assistente/situacao': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get: operations['situacao'];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/api/v1/assistente/conversas': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get: operations['conversas'];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/api/v1/assistente/conversas/{id}': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get: operations['conversa'];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
   '/api/v1/alertas': {
     parameters: {
       query?: never;
@@ -859,7 +939,7 @@ export interface paths {
       path?: never;
       cookie?: never;
     };
-    get: operations['situacao'];
+    get: operations['situacao_1'];
     put?: never;
     post?: never;
     delete?: never;
@@ -958,6 +1038,11 @@ export interface components {
       valorAlerta: number | null;
       /** Format: date */
       vigenciaInicio: string | null;
+    };
+    AvaliacaoRequest: {
+      /** Format: int32 */
+      avaliacao: number;
+      comentario: string | null;
     };
     ConviteRequest: {
       nome: string;
@@ -1105,6 +1190,54 @@ export interface components {
     };
     RejeicaoRequest: {
       motivo: string;
+    };
+    PerguntaRequest: {
+      /** Format: uuid */
+      conversaId: string | null;
+      pergunta: string;
+      /** Format: uuid */
+      unidadeId: string | null;
+    };
+    ConversaAssistenteComMensagens: {
+      conversa: components['schemas']['ConversaAssistenteResponse'];
+      mensagens: components['schemas']['MensagemAssistenteResponse'][];
+    };
+    ConversaAssistenteResponse: {
+      /** Format: uuid */
+      id: string;
+      titulo: string;
+      /** Format: date-time */
+      criadaEm: string;
+      /** Format: date-time */
+      atualizadaEm: string;
+    };
+    FonteCitadaDto: {
+      /** Format: int32 */
+      numero: number;
+      titulo: string;
+      detalhe: string;
+    };
+    LinhaDeDadosDto: {
+      /** Format: int32 */
+      fonte: number;
+      titulo: string;
+      campos: {
+        [key: string]: string;
+      };
+    };
+    MensagemAssistenteResponse: {
+      /** Format: uuid */
+      id: string;
+      /** @enum {string} */
+      papel: 'USUARIO' | 'ASSISTENTE';
+      texto: string;
+      fontes: components['schemas']['FonteCitadaDto'][];
+      dados: components['schemas']['LinhaDeDadosDto'][];
+      numerosSemFonte: string[];
+      /** Format: int32 */
+      avaliacao: number | null;
+      /** Format: date-time */
+      criadaEm: string;
     };
     AvaliacaoResponse: {
       /** Format: int32 */
@@ -1676,6 +1809,13 @@ export interface components {
       nome: string;
       email: string;
     };
+    SituacaoAssistenteResponse: {
+      disponivel: boolean;
+      /** Format: int64 */
+      perguntasNoMes: number;
+      custoNoMesUsd: number | null;
+      limiteMensalUsd: number | null;
+    };
     AlertaResponse: {
       /** Format: uuid */
       id: string;
@@ -1962,6 +2102,30 @@ export interface operations {
     requestBody: {
       content: {
         'application/json': components['schemas']['ItemRequest'];
+      };
+    };
+    responses: {
+      /** @description OK */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
+      };
+    };
+  };
+  avaliar: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        id: string;
+      };
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        'application/json': components['schemas']['AvaliacaoRequest'];
       };
     };
     responses: {
@@ -2616,6 +2780,30 @@ export interface operations {
       };
     };
   };
+  perguntar: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        'application/json': components['schemas']['PerguntaRequest'];
+      };
+    };
+    responses: {
+      /** @description OK */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          '*/*': components['schemas']['ConversaAssistenteComMensagens'];
+        };
+      };
+    };
+  };
   reconhecer: {
     parameters: {
       query?: never;
@@ -2636,7 +2824,7 @@ export interface operations {
       };
     };
   };
-  avaliar: {
+  avaliar_1: {
     parameters: {
       query?: never;
       header?: never;
@@ -3162,6 +3350,70 @@ export interface operations {
       };
     };
   };
+  situacao: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description OK */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          '*/*': components['schemas']['SituacaoAssistenteResponse'];
+        };
+      };
+    };
+  };
+  conversas: {
+    parameters: {
+      query?: {
+        busca?: string;
+      };
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description OK */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          '*/*': components['schemas']['ConversaAssistenteResponse'][];
+        };
+      };
+    };
+  };
+  conversa: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        id: string;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description OK */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          '*/*': components['schemas']['ConversaAssistenteComMensagens'];
+        };
+      };
+    };
+  };
   listar_7: {
     parameters: {
       query?: {
@@ -3205,7 +3457,7 @@ export interface operations {
       };
     };
   };
-  situacao: {
+  situacao_1: {
     parameters: {
       query?: never;
       header?: never;

@@ -2,8 +2,6 @@ import { Routes } from '@angular/router';
 import { Shell } from './layout/shell';
 import { ROTA_RETORNO, RetornoDoLogin, exigirLogin } from './nucleo/autenticacao';
 
-const emConstrucao = () => import('./paginas/em-construcao').then((m) => m.EmConstrucao);
-
 /** Telas na ordem da barra lateral (docs/01, seção 1.4). */
 const telas: Routes = [
   { path: '', pathMatch: 'full', redirectTo: 'painel' },
@@ -14,8 +12,7 @@ const telas: Routes = [
   { path: 'alertas', title: 'Alertas · Aurora', loadComponent: () => import('./paginas/alertas/alertas').then((m) => m.Alertas) },
   { path: 'contratos', title: 'Contratos · Aurora', loadComponent: () => import('./paginas/contratos/contratos').then((m) => m.Contratos) },
   { path: 'contratos/:id', title: 'Contrato · Aurora', loadComponent: () => import('./paginas/contratos/contrato').then((m) => m.ContratoPagina) },
-  { path: 'assistente', title: 'Assistente · Aurora', loadComponent: emConstrucao,
-    data: { secao: 'Contrato', titulo: 'Assistente', marco: 'Marco 4 — Assistente' } },
+  { path: 'assistente', title: 'Assistente · Aurora', loadComponent: () => import('./paginas/assistente/assistente').then((m) => m.Assistente) },
   { path: 'admin/unidades', title: 'Unidades · Aurora', loadComponent: () => import('./paginas/unidades/unidades').then((m) => m.Unidades) },
   { path: 'admin/usuarios', title: 'Usuários · Aurora', loadComponent: () => import('./paginas/usuarios/usuarios').then((m) => m.Usuarios) },
   { path: 'admin/perfis', title: 'Perfis · Aurora', loadComponent: () => import('./paginas/perfis/perfis').then((m) => m.Perfis) },

@@ -1,3 +1,4 @@
+import { SessaoService } from '../../nucleo/sessao';
 import { httpResource } from '@angular/common/http';
 import { Component, computed, inject, input, signal } from '@angular/core';
 import { MatButtonModule } from '@angular/material/button';
@@ -37,6 +38,7 @@ export class Painel {
   readonly unidade = input<string>();
   readonly competencia = input<string>();
 
+  protected readonly sessao = inject(SessaoService);
   private readonly router = inject(Router);
 
   protected readonly dados = httpResource<DadosPainel>(() => ({

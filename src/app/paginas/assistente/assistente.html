@@ -1,0 +1,191 @@
+<header class="cabecalho">
+  <div class="titulo">
+    <span class="rotulo">Contrato</span>
+    <h1>Assistente</h1>
+    <p class="legenda">Pergunte em português. Cada número vem das bases da Aurora, com a fonte ao lado.</p>
+  </div>
+  @if (situacao.hasValue() && situacao.value().custoNoMesUsd != null) {
+    <p class="uso dado" matTooltip="Uso do assistente pelo cliente neste mês">
+      {{ situacao.value().perguntasNoMes }} perguntas · US$ {{ situacao.value().custoNoMesUsd }}
+      @if (situacao.value().limiteMensalUsd != null) { de {{ situacao.value().limiteMensalUsd }} }
+    </p>
+  }
+</header>
+
+@if (!sessao.usuario()) {
+  <div class="esqueleto" aria-busy="true" aria-label="Carregando"></div>
+} @else if (!podeUsar()) {
+  <section class="cartao aviso" role="alert">
+    <p class="rotulo">Sem acesso</p>
+    <p>Seu perfil não permite usar o assistente.</p>
+  </section>
+} @else {
+  <div class="area">
+    <aside class="cartao historico" aria-label="Conversas anteriores">
+      <button matButton="filled" type="button" (click)="nova()">
+        <span class="material-symbols-rounded" aria-hidden="true">add</span>Nova conversa
+      </button>
+      <mat-form-field appearance="outline" subscriptSizing="dynamic">
+        <mat-label>Buscar nas conversas</mat-label>
+        <span matPrefix class="material-symbols-rounded prefixo" aria-hidden="true">search</span>
+        <input matInput [formControl]="busca" />
+      </mat-form-field>
+      <nav class="lista">
+        @for (c of conversas.hasValue() ? conversas.value() : []; track c.id) {
+          <button type="button" class="item" [class.ativa]="c.id === conversa()" (click)="abrir(c)"
+                  [attr.aria-current]="c.id === conversa() ? 'page' : null">
+            <span class="nome">{{ c.titulo }}</span>
+            <span class="quando">{{ fmt.haQuantoTempo(c.atualizadaEm) }}</span>
+          </button>
+        } @empty {
+          <p class="vazio">{{ busca.value ? 'Nada encontrado.' : 'Suas conversas aparecem aqui.' }}</p>
+        }
+      </nav>
+    </aside>
+
+    <section class="cartao conversa" aria-live="polite">
+      <h2 class="titulo-conversa">{{ titulo() }}</h2>
+
+      @if (situacao.hasValue() && !disponivel()) {
+        <p class="desligado" role="status">
+          <span class="material-symbols-rounded" aria-hidden="true">power_off</span>
+          O assistente está desligado neste ambiente: falta configurar o provedor de IA. O histórico continua disponível.
+        </p>
+      }
+
+      <div class="mensagens">
+        @if (!mensagens().length && !perguntaPendente()) {
+          <div class="inicio">
+            <span class="material-symbols-rounded brilho" aria-hidden="true">auto_awesome</span>
+            <p>Comece com uma destas perguntas ou escreva a sua.</p>
+            <div class="sugestoes">
+              @for (s of sugestoes; track s) {
+                <button matButton="outlined" type="button" [disabled]="!disponivel() || enviando()" (click)="usarSugestao(s)">{{ s }}</button>
+              }
+            </div>
+          </div>
+        }
+
+        @for (m of mensagens(); track m.id) {
+          @if (m.papel === 'USUARIO') {
+            <div class="pergunta"><p>{{ m.texto }}</p></div>
+          } @else {
+            <article class="resposta">
+              <div class="texto">
+                @for (b of blocos(m); track $index) {
+                  @if (b.tipo === 'paragrafo') {
+                    <p><ng-container *ngTemplateOutlet="inline; context: { $implicit: b.trechos, m: m }" /></p>
+                  } @else {
+                    <ul>
+                      @for (item of b.itens; track $index) {
+                        <li><ng-container *ngTemplateOutlet="inline; context: { $implicit: item, m: m }" /></li>
+                      }
+                    </ul>
+                  }
+                }
+              </div>
+
+              @if (m.numerosSemFonte.length) {
+                <p class="alerta-numeros" role="note">
+                  <span class="material-symbols-rounded" aria-hidden="true">warning</span>
+                  Confira: {{ m.numerosSemFonte.join(', ') }} não {{ m.numerosSemFonte.length === 1 ? 'aparece' : 'aparecem' }}
+                  nas fontes consultadas.
+                </p>
+              }
+
+              @if (m.fontes.length) {
+                <div class="fontes" aria-label="Fontes">
+                  @for (f of m.fontes; track f.numero) {
+                    <button type="button" class="chip" [class.ativa]="fonteAberta()[m.id] === f.numero"
+                            (click)="alternarFonte(m, f.numero)" [attr.aria-expanded]="fonteAberta()[m.id] === f.numero">
+                      <span class="numero">{{ f.numero }}</span>
+                      <span class="rotulo-chip">{{ f.titulo }} · {{ f.detalhe }}</span>
+                    </button>
+                  }
+                </div>
+                @if (fonteAberta()[m.id]; as numero) {
+                  @if (linhaDaFonte(m, numero); as linha) {
+                    <div class="linha-dados" role="region" [attr.aria-label]="'Dados da fonte ' + numero">
+                      <p class="rotulo">Fonte {{ numero }} · {{ linha.titulo }}</p>
+                      <dl>
+                        @for (c of campos(linha.campos); track c[0]) {
+                          <div><dt>{{ c[0] }}</dt><dd class="dado">{{ c[1] }}</dd></div>
+                        }
+                      </dl>
+                    </div>
+                  }
+                }
+              }
+
+              <div class="acoes">
+                <button matButton type="button" (click)="copiar(m)">
+                  <span class="material-symbols-rounded" aria-hidden="true">{{ copiada() === m.id ? 'check' : 'content_copy' }}</span>
+                  {{ copiada() === m.id ? 'Copiado' : 'Copiar' }}
+                </button>
+                <span class="pergunta-ajuda">Ajudou?</span>
+                <button matButton type="button" [class.escolhida]="m.avaliacao === 1" (click)="ajudou(m)"
+                        [attr.aria-pressed]="m.avaliacao === 1">
+                  <span class="material-symbols-rounded" aria-hidden="true">thumb_up</span>Sim
+                </button>
+                <button matButton type="button" [class.escolhida]="m.avaliacao === -1" (click)="temErro(m)"
+                        [attr.aria-pressed]="m.avaliacao === -1">
+                  <span class="material-symbols-rounded" aria-hidden="true">flag</span>Tem erro
+                </button>
+                <span class="quando">{{ fmt.dataEHora(m.criadaEm) }}</span>
+              </div>
+            </article>
+          }
+        }
+
+        @if (perguntaPendente(); as p) {
+          <div class="pergunta"><p>{{ p }}</p></div>
+          <div class="consultando" role="status">
+            <mat-spinner diameter="18" /> Consultando as bases da Aurora…
+          </div>
+        }
+        <div #fim></div>
+      </div>
+
+      @if (erro()) {
+        <p class="erro" role="alert"><span class="material-symbols-rounded" aria-hidden="true">error</span>{{ erro() }}</p>
+      }
+
+      <form class="composer" (ngSubmit)="enviar()" [formGroup]="formComposer">
+        @if (unidade()) {
+          <span class="contexto"><span class="material-symbols-rounded" aria-hidden="true">location_on</span>Perguntando a partir do painel</span>
+        }
+        <mat-form-field appearance="outline" subscriptSizing="dynamic">
+          <mat-label>Sua pergunta</mat-label>
+          <textarea #campo matInput formControlName="pergunta" rows="2" maxlength="2000" (keydown)="tecla($event)"
+                    [attr.aria-disabled]="!disponivel()"
+                    placeholder="Ex.: Quais setores estão abaixo do limite de alerta?"></textarea>
+          <mat-hint>Enter envia · Shift+Enter quebra a linha</mat-hint>
+        </mat-form-field>
+        <button matButton="filled" type="submit" [disabled]="!disponivel() || enviando() || !composer.value.trim()">
+          <span class="material-symbols-rounded" aria-hidden="true">send</span>Perguntar
+        </button>
+      </form>
+    </section>
+  </div>
+}
+
+<!-- Trechos inline sem espaço entre os nós (o espaço do template viraria espaço antes da pontuação). -->
+<ng-template #inline let-trechos let-m="m">@for (t of trechos; track $index) {@if (t.tipo === 'fonte') {<button type="button" class="marca" [class.ativa]="fonteAberta()[m.id] === t.numero" (click)="alternarFonte(m, t.numero)" [attr.aria-label]="rotuloFonte(m, t.numero)" [matTooltip]="rotuloFonte(m, t.numero)">{{ t.numero }}</button>} @else if (t.forte) {<strong>{{ t.texto }}</strong>} @else {<ng-container>{{ t.texto }}</ng-container>}}</ng-template>
+
+<ng-template #modeloAvaliacao>
+  <h2 mat-dialog-title>O que está errado?</h2>
+  <mat-dialog-content>
+    <form id="form-avaliacao" class="formulario" [formGroup]="formAvaliacao" (ngSubmit)="enviarAvaliacao()">
+      <p class="ajuda">Seu comentário ajuda a melhorar o assistente. Não inclua dados pessoais de clientes.</p>
+      <mat-form-field>
+        <mat-label>Comentário (opcional)</mat-label>
+        <textarea matInput formControlName="comentario" rows="3" maxlength="500"></textarea>
+        <mat-hint align="end">{{ formAvaliacao.controls.comentario.value.length }}/500</mat-hint>
+      </mat-form-field>
+    </form>
+  </mat-dialog-content>
+  <mat-dialog-actions align="end">
+    <button matButton type="button" (click)="fecharDialogo()">Cancelar</button>
+    <button matButton="filled" type="submit" form="form-avaliacao">Enviar</button>
+  </mat-dialog-actions>
+</ng-template>

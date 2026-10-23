@@ -8,6 +8,13 @@
           ← Voltar para {{ acima.nome }}
         </a>
       }
+      @if (sessao.pode('assistente:usar')) {
+        <a class="perguntar" routerLink="/assistente"
+           [queryParams]="{ unidade: p.unidade.id, pergunta: 'Como está a adesão de ' + p.unidade.nome + ' em ' + fmt.competenciaLonga(p.competencia) + '?' }">
+          <span class="material-symbols-rounded" aria-hidden="true">auto_awesome</span>
+          Perguntar ao assistente sobre {{ p.unidade.nome }}
+        </a>
+      }
     </div>
     <mat-form-field class="competencia">
       <mat-label>Competência</mat-label>
