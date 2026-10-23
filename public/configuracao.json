@@ -1,0 +1,4 @@
+{
+  "emissor": "http://localhost:8180/realms/aurora",
+  "clienteId": "aurora-web"
+}

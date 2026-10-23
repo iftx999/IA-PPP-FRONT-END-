@@ -1,0 +1,60 @@
+# nginx do front (os ${...} são preenchidos no início do container pelo envsubst da imagem oficial).
+server_tokens off;
+
+# Arquivos com hash no nome ficam em cache por um ano; index.html e configuracao.json são sempre revalidados.
+# (Cache por "expires", não por add_header: add_header dentro de location anularia os cabeçalhos de segurança.)
+map $uri $expiracao {
+    default                                 -1;
+    ~*\.(js|css|woff2?|png|svg|ico|mjs)$     1y;
+}
+
+server {
+    listen 8080;
+    root /usr/share/nginx/html;
+    client_max_body_size 51m;   # PDF de contrato até 50 MB (mesmo limite da API)
+
+    gzip on;
+    gzip_types text/css application/javascript application/json image/svg+xml;
+
+    # Cabeçalhos de segurança (doc 09, 9.7). style-src precisa de 'unsafe-inline' (estilos de componentes do
+    # Angular/Material); scripts só da própria origem. blob: para o worker do mapa e downloads.
+    add_header Content-Security-Policy "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: ${AURORA_CSP_IMAGENS}; font-src 'self'; connect-src 'self' ${AURORA_CSP_CONEXOES}; worker-src 'self' blob:; frame-ancestors 'none'; base-uri 'self'; form-action 'self' ${AURORA_CSP_CONEXOES}; object-src 'none'" always;
+    add_header Strict-Transport-Security "max-age=31536000; includeSubDomains" always;
+    add_header X-Content-Type-Options "nosniff" always;
+    add_header Referrer-Policy "strict-origin-when-cross-origin" always;
+    add_header Permissions-Policy "camera=(), microphone=(), geolocation=(), payment=()" always;
+    add_header Cross-Origin-Opener-Policy "same-origin" always;
+
+    location = /saude {
+        access_log off;
+        default_type text/plain;
+        return 200 "ok";
+    }
+
+    location = /configuracao.json {
+        expires -1;
+    }
+
+    location /api/ {
+        proxy_pass http://${AURORA_API_ENDERECO};
+        proxy_http_version 1.1;
+        proxy_set_header Host $host;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+        proxy_set_header X-Forwarded-Host $host;
+        proxy_read_timeout 180s;   # perguntas ao assistente e exportações grandes
+        proxy_buffering off;
+    }
+
+    # Workers do mapa (MapLibre) e do PDF (pdf.js) são módulos: o navegador exige tipo JavaScript.
+    location ~* \.mjs$ {
+        types { }
+        default_type text/javascript;
+        expires 1y;
+    }
+
+    location / {
+        expires $expiracao;
+        try_files $uri $uri/ /index.html;
+    }
+}

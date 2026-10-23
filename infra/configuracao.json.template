@@ -1,0 +1,4 @@
+{
+  "emissor": "${AURORA_EMISSOR}",
+  "clienteId": "${AURORA_CLIENTE_ID}"
+}

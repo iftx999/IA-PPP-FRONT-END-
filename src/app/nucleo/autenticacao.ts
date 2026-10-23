@@ -3,6 +3,8 @@ import { CanActivateFn, Router } from '@angular/router';
 import { LogLevel, OidcSecurityService, provideAuth, withAppInitializerAuthCheck } from 'angular-auth-oidc-client';
 import { firstValueFrom } from 'rxjs';
 
+import type { ConfiguracaoAurora } from './configuracao';
+
 /** Rota de retorno do Keycloak (cadastrada no realm em http://localhost:4200/*). */
 export const ROTA_RETORNO = 'entrar';
 
@@ -19,15 +21,15 @@ let enderecoInicial: string | null = null;
  * Login OIDC (código + PKCE) no Keycloak. O token só é anexado às chamadas para /api.
  * O tenant é identificado pela API a partir do emissor do token, nunca pelo front.
  */
-export function provideAutenticacao(): EnvironmentProviders {
+export function provideAutenticacao(configuracao: ConfiguracaoAurora): EnvironmentProviders {
   const origem = window.location.origin;
   const pedido = window.location.pathname + window.location.search + window.location.hash;
   enderecoInicial = pedido.startsWith(`/${ROTA_RETORNO}`) || pedido === '/' ? null : pedido;
   return provideAuth(
     {
       config: {
-        authority: 'http://localhost:8180/realms/aurora',
-        clientId: 'aurora-web',
+        authority: configuracao.emissor,
+        clientId: configuracao.clienteId,
         // Retorno numa rota própria, sem redirecionamentos: evita a corrida entre o redirecionamento de "/" e a
         // navegação para a rota pedida (a pessoa caía no Painel).
         redirectUrl: `${origem}/${ROTA_RETORNO}`,

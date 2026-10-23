@@ -11,14 +11,17 @@ import { authInterceptor } from 'angular-auth-oidc-client';
 import { ptBR } from 'date-fns/locale';
 import { routes } from './app.routes';
 import { provideAutenticacao } from './nucleo/autenticacao';
+import { CONFIGURACAO, type ConfiguracaoAurora } from './nucleo/configuracao';
 
 registerLocaleData(localePt);
 
-export const appConfig: ApplicationConfig = {
+export function configuracaoDoApp(configuracao: ConfiguracaoAurora): ApplicationConfig {
+  return {
   providers: [
+    { provide: CONFIGURACAO, useValue: configuracao },
     provideBrowserGlobalErrorListeners(),
     provideHttpClient(withInterceptors([authInterceptor()])),
-    provideAutenticacao(),
+    provideAutenticacao(configuracao),
     provideRouter(routes, withComponentInputBinding()),
     { provide: LOCALE_ID, useValue: 'pt-BR' },
     // Campos do Material: contorno e sem espaço reservado para mensagens quando não há mensagem.
@@ -38,3 +41,4 @@ export const appConfig: ApplicationConfig = {
     }),
   ],
 };
+}
