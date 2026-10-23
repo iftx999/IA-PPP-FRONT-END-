@@ -14,13 +14,16 @@ FROM nginxinc/nginx-unprivileged:1.29-alpine
 COPY --from=build /src/dist/aurora-frontend/browser /usr/share/nginx/html
 COPY infra/nginx.conf.template /etc/nginx/templates/default.conf.template
 COPY infra/configuracao.json.template /etc/aurora/configuracao.json.template
+COPY --chmod=755 infra/05-diretorios-temporarios.sh /docker-entrypoint.d/05-diretorios-temporarios.sh
 COPY --chmod=755 infra/40-configuracao-aurora.sh /docker-entrypoint.d/40-configuracao-aurora.sh
+# /configuracao.json é gerado no início (em /tmp) a partir das variáveis do ambiente; o do build é só para o ng serve.
+# conf.d aponta para /tmp: o container roda com o sistema de arquivos somente leitura.
 USER root
-# O script de início grava /configuracao.json a partir das variáveis do ambiente.
-RUN rm -f /usr/share/nginx/html/configuracao.json && chown 101:101 /usr/share/nginx/html
+RUN rm -f /usr/share/nginx/html/configuracao.json && rm -rf /etc/nginx/conf.d && ln -s /tmp/conf.d /etc/nginx/conf.d
 USER 101
 # Endereço interno da API e origens externas permitidas pela CSP (emissor OIDC e tiles do mapa).
 ENV AURORA_API_ENDERECO=api:8080 \
+    AURORA_DNS=127.0.0.11 \
     AURORA_EMISSOR=http://localhost:8180/realms/aurora \
     AURORA_CLIENTE_ID=aurora-web \
     AURORA_CSP_CONEXOES="http://localhost:8180 https://tile.openstreetmap.org" \
