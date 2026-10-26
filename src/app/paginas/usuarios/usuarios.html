@@ -26,6 +26,25 @@
     <p>Seu perfil não permite gerenciar usuários.</p>
   </section>
 } @else if (usuarios()) {
+  @if (politica.hasValue()) {
+    <section class="cartao politica" aria-labelledby="titulo-politica">
+      <span class="material-symbols-rounded icone" aria-hidden="true">phonelink_lock</span>
+      <div class="politica-texto">
+        <h2 id="titulo-politica">Verificação em duas etapas</h2>
+        <p>
+          Além da senha, um código do aplicativo autenticador no login.
+          @if (politica.value().administradores) {
+            Sempre exigida de quem gerencia usuários.
+          }
+        </p>
+      </div>
+      <mat-slide-toggle [checked]="politica.value().todos" [disabled]="alterandoPolitica()"
+                        (change)="alterarPolitica($event.checked)">
+        Exigir de todos os usuários
+      </mat-slide-toggle>
+    </section>
+  }
+
   <div class="filtros">
     <mat-form-field class="busca" subscriptSizing="dynamic">
       <span matPrefix class="material-symbols-rounded prefixo" aria-hidden="true">search</span>
@@ -119,6 +138,9 @@
               @case ('ATIVO') {
                 <button mat-menu-item type="button" (click)="redefinirSenha(u)">
                   <span class="material-symbols-rounded" aria-hidden="true">lock_reset</span> Enviar link de nova senha
+                </button>
+                <button mat-menu-item type="button" (click)="abrirSegundoFator(u)">
+                  <span class="material-symbols-rounded" aria-hidden="true">phonelink_lock</span> Verificação em duas etapas
                 </button>
               }
             }
@@ -274,5 +296,58 @@
     <button matButton="filled" type="button" class="perigo" (click)="confirmarDesativacao()" [disabled]="salvando()">
       Desativar
     </button>
+  </mat-dialog-actions>
+</ng-template>
+
+<ng-template #modeloSegundoFator>
+  <h2 mat-dialog-title>Verificação em duas etapas de {{ emEdicao()?.nome }}</h2>
+  <mat-dialog-content>
+    <div class="formulario">
+      @if (segundoFator.hasValue()) {
+        @let s = segundoFator.value();
+        <dl class="situacao-fator">
+          <dt>Aplicativo autenticador</dt>
+          <dd>
+            @if (s.cadastrado) {
+              <aurora-selo tom="ok">Cadastrado</aurora-selo>
+              @if (s.cadastradoEm) { <span class="nota">em {{ fmt.dataEHora(s.cadastradoEm) }}</span> }
+            } @else {
+              <aurora-selo tom="neutro">Não cadastrado</aurora-selo>
+            }
+          </dd>
+          <dt>Política</dt>
+          <dd>{{ s.exigido ? 'Obrigatória para esta pessoa' : 'Opcional para esta pessoa' }}</dd>
+        </dl>
+        @if (s.cadastrado) {
+          <p class="ajuda">
+            <span class="material-symbols-rounded" aria-hidden="true">info</span>
+            Remova se a pessoa perdeu ou trocou o celular.
+            {{ s.exigido ? 'No próximo login ela cadastra um novo aplicativo.' : 'Ela volta a entrar só com a senha.' }}
+          </p>
+        } @else if (s.exigido) {
+          <p class="ajuda">
+            <span class="material-symbols-rounded" aria-hidden="true">info</span>
+            O cadastro é pedido no próximo login, lendo um QR code.
+          </p>
+        }
+      } @else if (segundoFator.error()) {
+        <p class="erro" role="alert">
+          <span class="material-symbols-rounded" aria-hidden="true">error</span>{{ mensagemDeErro(segundoFator.error()) }}
+        </p>
+      } @else {
+        <mat-spinner diameter="28" aria-label="Consultando" />
+      }
+      @if (erro()) {
+        <p class="erro" role="alert"><span class="material-symbols-rounded" aria-hidden="true">error</span>{{ erro() }}</p>
+      }
+    </div>
+  </mat-dialog-content>
+  <mat-dialog-actions align="end">
+    <button matButton type="button" (click)="fechar()">Fechar</button>
+    @if (segundoFator.hasValue() && segundoFator.value().cadastrado && emEdicao() && !souEu(emEdicao()!)) {
+      <button matButton="filled" type="button" class="perigo" (click)="removerSegundoFator()" [disabled]="salvando()">
+        Remover aplicativo
+      </button>
+    }
   </mat-dialog-actions>
 </ng-template>

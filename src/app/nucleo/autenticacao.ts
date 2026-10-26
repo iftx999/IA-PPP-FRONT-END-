@@ -64,6 +64,15 @@ export const exigirLogin: CanActivateFn = async (_rota, estado) => {
   return false;
 };
 
+/**
+ * Novo login pedindo senha e código (prompt=login), voltando para a mesma tela. Quem ainda não cadastrou o código
+ * faz o cadastro nesse login (H9).
+ */
+export function entrarDeNovo(oidc: OidcSecurityService, destino: string): void {
+  sessionStorage.setItem(CHAVE_RETORNO, destino);
+  oidc.authorize(undefined, { customParams: { prompt: 'login' } });
+}
+
 /** Volta do Keycloak: segue para a rota pedida antes do login (ou o Painel). */
 @Component({ selector: 'aurora-retorno-login', template: '' })
 export class RetornoDoLogin implements OnInit {

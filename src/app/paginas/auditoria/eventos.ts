@@ -15,6 +15,12 @@ export const EVENTOS: Record<string, InfoEvento> = {
   USUARIO_DESATIVADO: { rotulo: 'Usuário desativado', icone: 'person_off', grupo: 'Acesso e usuários' },
   USUARIO_REATIVADO: { rotulo: 'Usuário reativado', icone: 'person_check', grupo: 'Acesso e usuários' },
   REDEFINICAO_SENHA_ENVIADA: { rotulo: 'Link de nova senha enviado', icone: 'lock_reset', grupo: 'Acesso e usuários' },
+  POLITICA_SEGUNDO_FATOR_ALTERADA: {
+    rotulo: 'Política de verificação em duas etapas alterada',
+    icone: 'phonelink_lock',
+    grupo: 'Acesso e usuários',
+  },
+  SEGUNDO_FATOR_REMOVIDO: { rotulo: 'Verificação em duas etapas removida', icone: 'phonelink_erase', grupo: 'Acesso e usuários' },
   PERFIL_CRIADO: { rotulo: 'Perfil criado', icone: 'shield', grupo: 'Perfis' },
   PERFIL_ALTERADO: { rotulo: 'Perfil alterado', icone: 'shield', grupo: 'Perfis' },
   PERFIL_REMOVIDO: { rotulo: 'Perfil removido', icone: 'shield', grupo: 'Perfis' },

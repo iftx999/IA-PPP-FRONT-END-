@@ -6,7 +6,7 @@
 
   <div class="escopo">
     <span class="rotulo">Seu escopo</span>
-    <span class="escopo-nome">{{ sessao.usuario()?.tenant ?? (sessao.semAcesso() ? '—' : 'Carregando…') }}</span>
+    <span class="escopo-nome">{{ sessao.usuario()?.tenant ?? (sessao.semAcesso() || sessao.segundoFatorNecessario() ? '—' : 'Carregando…') }}</span>
   </div>
 
   <nav aria-label="Menu principal">
@@ -92,7 +92,22 @@
 </header>
 
 <main class="conteudo">
-  @if (sessao.semAcesso()) {
+  @if (sessao.segundoFatorNecessario()) {
+    <section class="cartao aviso segundo-fator" role="alert" aria-labelledby="titulo-segundo-fator">
+      <span class="material-symbols-rounded icone" aria-hidden="true">phonelink_lock</span>
+      <div>
+        <p class="rotulo" id="titulo-segundo-fator">Verificação em duas etapas</p>
+        <p>
+          Seu acesso exige um código do aplicativo autenticador (Google Authenticator, Microsoft Authenticator, FreeOTP
+          ou similar), além da senha. Entre de novo: se ainda não cadastrou o aplicativo, o cadastro é feito agora,
+          lendo um QR code.
+        </p>
+        <button matButton="filled" type="button" (click)="sessao.entrarComSegundoFator()">
+          <span class="material-symbols-rounded" aria-hidden="true">login</span> Entrar com o código
+        </button>
+      </div>
+    </section>
+  } @else if (sessao.semAcesso()) {
     <section class="cartao aviso" role="alert">
       <p class="rotulo">Sem acesso</p>
       <p>Seu login funcionou, mas você ainda não é usuário ativo deste cliente. Peça acesso ao administrador.</p>

@@ -84,6 +84,22 @@ export interface paths {
     patch?: never;
     trace?: never;
   };
+  '/api/v1/seguranca/segundo-fator': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get: operations['obter'];
+    put: operations['definir'];
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
   '/api/v1/perfis/{id}': {
     parameters: {
       query?: never;
@@ -543,6 +559,22 @@ export interface paths {
     put?: never;
     post?: never;
     delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/api/v1/usuarios/{id}/segundo-fator': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get: operations['segundoFator'];
+    put?: never;
+    post?: never;
+    delete: operations['removerSegundoFator'];
     options?: never;
     head?: never;
     patch?: never;
@@ -1028,6 +1060,13 @@ export interface components {
       /** Format: uuid */
       unidadePaiId: string;
     };
+    PoliticaSegundoFatorRequest: {
+      todos: boolean;
+    };
+    PoliticaSegundoFatorResponse: {
+      todos: boolean;
+      administradores: boolean;
+    };
     PerfilRequest: {
       nome: string;
       descricao: string | null;
@@ -1357,6 +1396,12 @@ export interface components {
       /** Format: date-time */
       convidadoEm: string | null;
       concessoes: components['schemas']['ConcessaoResponse'][];
+    };
+    SegundoFatorResponse: {
+      exigido: boolean;
+      cadastrado: boolean;
+      /** Format: date-time */
+      cadastradoEm: string | null;
     };
     UnidadeResponse: {
       /** Format: uuid */
@@ -2070,6 +2115,50 @@ export interface operations {
           [name: string]: unknown;
         };
         content?: never;
+      };
+    };
+  };
+  obter: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description OK */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          '*/*': components['schemas']['PoliticaSegundoFatorResponse'];
+        };
+      };
+    };
+  };
+  definir: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        'application/json': components['schemas']['PoliticaSegundoFatorRequest'];
+      };
+    };
+    responses: {
+      /** @description OK */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          '*/*': components['schemas']['PoliticaSegundoFatorResponse'];
+        };
       };
     };
   };
@@ -2962,6 +3051,48 @@ export interface operations {
         content: {
           '*/*': components['schemas']['UsuarioResponse'];
         };
+      };
+    };
+  };
+  segundoFator: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        id: string;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description OK */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          '*/*': components['schemas']['SegundoFatorResponse'];
+        };
+      };
+    };
+  };
+  removerSegundoFator: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        id: string;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description OK */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
       };
     };
   };

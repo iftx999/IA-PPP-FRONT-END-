@@ -12,6 +12,23 @@ h1 { font: 700 var(--fs-h1) var(--font-display); }
 }
 .aviso { display: grid; gap: var(--space-2); max-width: 520px; p { margin: 0; } }
 
+.politica {
+  display: grid; grid-template-columns: auto 1fr auto; align-items: center; gap: var(--space-3);
+  margin-bottom: var(--space-4);
+  .icone { font-size: 24px; color: var(--accent); }
+  h2 { margin: 0; font: 600 var(--fs-body) var(--font-ui); }
+  p { margin: 2px 0 0; color: var(--text-2); font-size: var(--fs-small); }
+}
+@media (max-width: 720px) {
+  .politica { grid-template-columns: auto 1fr; mat-slide-toggle { grid-column: 1 / -1; } }
+}
+.situacao-fator {
+  display: grid; grid-template-columns: max-content 1fr; gap: var(--space-2) var(--space-4); margin: 0;
+  dt { color: var(--text-3); font-size: var(--fs-small); }
+  dd { margin: 0; display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-2); }
+  .nota { margin: 0; }
+}
+
 .filtros { display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-3); margin-bottom: var(--space-3); }
 .busca { flex: 1 1 320px; max-width: 420px; }
 .prefixo { margin: 0 4px 0 10px; color: var(--text-3); }

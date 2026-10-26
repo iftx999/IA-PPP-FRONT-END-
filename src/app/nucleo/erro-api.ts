@@ -4,6 +4,9 @@ import { HttpErrorResponse } from '@angular/common/http';
 export function mensagemDeErro(erro: unknown, padrao = 'Não foi possível concluir. Tente novamente.'): string {
   if (erro instanceof HttpErrorResponse) {
     const detalhe = (erro.error as { detail?: string } | null)?.detail;
+    if (erro.status === 403 && detalhe && (erro.error as { codigo?: string }).codigo) {
+      return detalhe;
+    }
     if (erro.status === 403) {
       return 'Seu perfil não permite esta ação.';
     }

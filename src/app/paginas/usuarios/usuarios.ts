@@ -14,11 +14,14 @@ import { MatMenuModule } from '@angular/material/menu';
 import { MatPaginator, MatPaginatorIntl, MatPaginatorModule, type PageEvent } from '@angular/material/paginator';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatSelectModule } from '@angular/material/select';
+import { MatSlideToggleModule } from '@angular/material/slide-toggle';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { MatTableModule } from '@angular/material/table';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { debounceTime, firstValueFrom, map, type Observable } from 'rxjs';
-import type { PedidoConcessoes, PedidoConvite, Perfil, SituacaoUsuario, Unidade, Usuario } from '../../api/tipos';
+import type {
+  PedidoConcessoes, PedidoConvite, Perfil, PoliticaSegundoFator, SegundoFatorUsuario, SituacaoUsuario, Unidade, Usuario,
+} from '../../api/tipos';
 import { mensagemDeErro } from '../../nucleo/erro-api';
 import { data, dataEHora, haQuantoTempo, numero } from '../../nucleo/formato';
 import { SessaoService } from '../../nucleo/sessao';
@@ -77,13 +80,13 @@ class PaginadorPtBr extends MatPaginatorIntl {
     total === 0 ? '0 de 0' : `${pagina * tamanho + 1}–${Math.min((pagina + 1) * tamanho, total)} de ${numero(total)}`;
 }
 
-/** Usuários do tenant (H2, H7, H8): convite, perfis por unidade, ativação e redefinição de senha. */
+/** Usuários do tenant (H2, H7, H8, H9): convite, perfis por unidade, ativação, senha e verificação em duas etapas. */
 @Component({
   selector: 'aurora-usuarios',
   imports: [
     NgTemplateOutlet, ReactiveFormsModule, MatTableModule, MatPaginatorModule, MatButtonModule, MatButtonToggleModule,
     MatFormFieldModule, MatInputModule, MatSelectModule, MatAutocompleteModule, MatDatepickerModule, MatDialogModule,
-    MatMenuModule, MatTooltipModule, MatProgressSpinnerModule, MatSnackBarModule, Selo,
+    MatMenuModule, MatTooltipModule, MatProgressSpinnerModule, MatSnackBarModule, MatSlideToggleModule, Selo,
   ],
   providers: [{ provide: MatPaginatorIntl, useClass: PaginadorPtBr }],
   templateUrl: './usuarios.html',
@@ -99,6 +102,11 @@ export class Usuarios {
   protected readonly dados = httpResource<Usuario[]>(() => (this.podeGerir() ? '/api/v1/usuarios' : undefined));
   private readonly dadosPerfis = httpResource<Perfil[]>(() => (this.podeGerir() ? '/api/v1/perfis' : undefined));
   private readonly dadosUnidades = httpResource<Unidade[]>(() => (this.podeGerir() ? '/api/v1/unidades' : undefined));
+
+  protected readonly politica = httpResource<PoliticaSegundoFator>(() =>
+    this.podeGerir() ? '/api/v1/seguranca/segundo-fator' : undefined,
+  );
+  protected readonly alterandoPolitica = signal(false);
 
   protected readonly usuarios = computed(() => (this.dados.hasValue() ? this.dados.value() : undefined));
   protected readonly perfis = computed(() =>
@@ -133,6 +141,7 @@ export class Usuarios {
 
   protected readonly colunas = ['usuario', 'acesso', 'situacao', 'ultimoAcesso', 'acoes'];
   protected readonly fmt = { numero, data, dataEHora, haQuantoTempo, iniciais };
+  protected readonly mensagemDeErro = mensagemDeErro;
   protected readonly rastrear = (_: number, u: Usuario) => u.id;
 
   constructor() {
@@ -161,9 +170,16 @@ export class Usuarios {
   private readonly modeloConvite = viewChild.required<TemplateRef<unknown>>('modeloConvite');
   private readonly modeloAcesso = viewChild.required<TemplateRef<unknown>>('modeloAcesso');
   private readonly modeloDesativar = viewChild.required<TemplateRef<unknown>>('modeloDesativar');
+  private readonly modeloSegundoFator = viewChild.required<TemplateRef<unknown>>('modeloSegundoFator');
   private dialogoAberto?: MatDialogRef<unknown>;
 
   protected readonly emEdicao = signal<Usuario | null>(null);
+  /** Situação no provedor de identidade, consultada só ao abrir o diálogo. */
+  protected readonly segundoFator = httpResource<SegundoFatorUsuario>(() => {
+    const u = this.emEdicao();
+    return u && this.consultarSegundoFator() ? `/api/v1/usuarios/${u.id}/segundo-fator` : undefined;
+  });
+  private readonly consultarSegundoFator = signal(false);
   protected readonly salvando = signal(false);
   protected readonly erro = signal<string | null>(null);
   protected readonly amanha = new Date(Date.now() + 86_400_000);
@@ -229,6 +245,46 @@ export class Usuarios {
     this.erro.set(null);
     this.emEdicao.set(u);
     this.dialogoAberto = this.dialogos.open(this.modeloDesativar(), { width: '480px' });
+  }
+
+  protected abrirSegundoFator(u: Usuario): void {
+    this.erro.set(null);
+    this.emEdicao.set(u);
+    this.consultarSegundoFator.set(true);
+    this.dialogoAberto = this.dialogos.open(this.modeloSegundoFator(), { width: '520px' });
+    this.dialogoAberto.afterClosed().subscribe(() => this.consultarSegundoFator.set(false));
+  }
+
+  protected async removerSegundoFator(): Promise<void> {
+    const u = this.emEdicao();
+    if (u) {
+      await this.enviar(
+        () => this.http.delete(`/api/v1/usuarios/${u.id}/segundo-fator`),
+        `Verificação em duas etapas de ${u.nome} removida.`,
+      );
+    }
+  }
+
+  /** Vale na próxima requisição de cada pessoa: quem estiver só com senha entra de novo. */
+  protected async alterarPolitica(todos: boolean): Promise<void> {
+    this.alterandoPolitica.set(true);
+    try {
+      await firstValueFrom(this.http.put('/api/v1/seguranca/segundo-fator', { todos }));
+      this.avisos.open(
+        todos
+          ? 'Verificação em duas etapas exigida de todos. Quem entrou só com senha vai precisar entrar de novo.'
+          : 'Verificação em duas etapas deixou de ser exigida de todos.',
+        undefined,
+        { duration: 6000 },
+      );
+    } catch (falha) {
+      this.avisos.open(mensagemDeErro(falha), 'Fechar', { duration: 8000 });
+    } finally {
+      this.alterandoPolitica.set(false);
+      // Quem ligou também passa a precisar do código: /eu mostra o aviso se for o caso.
+      this.politica.reload();
+      this.sessao.eu.reload();
+    }
   }
 
   protected async enviarConvite(): Promise<void> {
