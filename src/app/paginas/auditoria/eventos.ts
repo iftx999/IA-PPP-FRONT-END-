@@ -21,6 +21,8 @@ export const EVENTOS: Record<string, InfoEvento> = {
     grupo: 'Acesso e usuários',
   },
   SEGUNDO_FATOR_REMOVIDO: { rotulo: 'Verificação em duas etapas removida', icone: 'phonelink_erase', grupo: 'Acesso e usuários' },
+  SSO_CONFIGURADO: { rotulo: 'SSO corporativo configurado', icone: 'corporate_fare', grupo: 'Acesso e usuários' },
+  SSO_REMOVIDO: { rotulo: 'SSO corporativo removido', icone: 'link_off', grupo: 'Acesso e usuários' },
   PERFIL_CRIADO: { rotulo: 'Perfil criado', icone: 'shield', grupo: 'Perfis' },
   PERFIL_ALTERADO: { rotulo: 'Perfil alterado', icone: 'shield', grupo: 'Perfis' },
   PERFIL_REMOVIDO: { rotulo: 'Perfil removido', icone: 'shield', grupo: 'Perfis' },

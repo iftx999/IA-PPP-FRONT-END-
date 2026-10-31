@@ -27,6 +27,7 @@ import { data, dataEHora, haQuantoTempo, numero } from '../../nucleo/formato';
 import { SessaoService } from '../../nucleo/sessao';
 import { Selo, type Tom } from '../../ui/selo';
 import { GERIR_USUARIOS } from '../perfis/perfis';
+import { SsoCorporativo } from './sso-corporativo';
 import { arvoreDeUnidades, filtrarUnidades, semAcento, type OpcaoUnidade } from '../../nucleo/unidades-arvore';
 
 type Filtro = 'TODOS' | SituacaoUsuario;
@@ -80,13 +81,16 @@ class PaginadorPtBr extends MatPaginatorIntl {
     total === 0 ? '0 de 0' : `${pagina * tamanho + 1}–${Math.min((pagina + 1) * tamanho, total)} de ${numero(total)}`;
 }
 
-/** Usuários do tenant (H2, H7, H8, H9): convite, perfis por unidade, ativação, senha e verificação em duas etapas. */
+/**
+ * Usuários do tenant (H2, H7, H8, H9, S10): convite, perfis por unidade, ativação, senha, verificação em duas etapas e
+ * SSO corporativo.
+ */
 @Component({
   selector: 'aurora-usuarios',
   imports: [
     NgTemplateOutlet, ReactiveFormsModule, MatTableModule, MatPaginatorModule, MatButtonModule, MatButtonToggleModule,
     MatFormFieldModule, MatInputModule, MatSelectModule, MatAutocompleteModule, MatDatepickerModule, MatDialogModule,
-    MatMenuModule, MatTooltipModule, MatProgressSpinnerModule, MatSnackBarModule, MatSlideToggleModule, Selo,
+    MatMenuModule, MatTooltipModule, MatProgressSpinnerModule, MatSnackBarModule, MatSlideToggleModule, Selo, SsoCorporativo,
   ],
   providers: [{ provide: MatPaginatorIntl, useClass: PaginadorPtBr }],
   templateUrl: './usuarios.html',

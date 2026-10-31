@@ -1,0 +1,35 @@
+.sso {
+  display: grid; grid-template-columns: auto 1fr auto; align-items: center; gap: var(--space-3);
+  margin-bottom: var(--space-4);
+  .icone { font-size: 24px; color: var(--accent); }
+  h2 { margin: 0; display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-2); font: 600 var(--fs-body) var(--font-ui); }
+  p { margin: 2px 0 0; color: var(--text-2); font-size: var(--fs-small); }
+}
+@media (max-width: 720px) {
+  .sso { grid-template-columns: auto 1fr; button { grid-column: 1 / -1; justify-self: start; } }
+}
+
+.protocolo { justify-self: start; }
+.passo {
+  display: grid; gap: var(--space-3); padding: var(--space-3); border: var(--border); border-radius: var(--radius-m);
+  h3 { margin: 0; display: flex; align-items: center; gap: var(--space-2); font: 600 var(--fs-body) var(--font-ui); }
+  .ajuda { margin: 0; }
+}
+.numero {
+  display: inline-grid; place-items: center; width: 22px; height: 22px; border-radius: 50%;
+  background: color-mix(in srgb, var(--accent) 16%, var(--bg-2)); font: 600 var(--fs-label) var(--font-ui);
+}
+.enderecos {
+  display: grid; gap: var(--space-1); margin: 0;
+  dt { color: var(--text-3); font-size: var(--fs-label); }
+  dd {
+    margin: 0 0 var(--space-1); display: flex; align-items: center; gap: var(--space-1);
+    padding: 2px 2px 2px var(--space-2); border-radius: var(--radius-s); background: var(--bg-2);
+  }
+  code { flex: 1; min-width: 0; overflow-wrap: anywhere; font: 400 var(--fs-small) var(--font-data); color: var(--text-1); }
+}
+.opcoes { display: grid; gap: var(--space-2); .ajuda { margin: 0; } }
+mat-dialog-actions { display: flex; gap: var(--space-2); }
+.espaco { flex: 1; }
+.perigo { color: var(--danger); }
+mat-spinner { display: inline-block; margin-right: 6px; vertical-align: middle; }

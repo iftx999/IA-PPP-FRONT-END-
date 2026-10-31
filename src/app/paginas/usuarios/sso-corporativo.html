@@ -1,0 +1,153 @@
+@if (sso.hasValue()) {
+  @let p = provedor();
+  <section class="cartao sso" aria-labelledby="titulo-sso">
+    <span class="material-symbols-rounded icone" aria-hidden="true">corporate_fare</span>
+    <div class="texto">
+      <h2 id="titulo-sso">
+        Login corporativo (SSO)
+        @if (p) {
+          <aurora-selo [tom]="p.habilitado ? 'ok' : 'neutro'">{{ p.habilitado ? 'Ativo' : 'Desabilitado' }}</aurora-selo>
+        }
+      </h2>
+      @if (p) {
+        <p>
+          Botão “{{ p.nome }}” na tela de login, por {{ p.protocolo === 'OIDC' ? 'OpenID Connect' : 'SAML 2.0' }}.
+          @if (sso.value().confiaSegundoFator) { A verificação em duas etapas do IdP é aceita. }
+        </p>
+      } @else {
+        <p>As pessoas convidadas entram com a conta da empresa (Entra ID, Google Workspace, Okta, ADFS…).</p>
+      }
+    </div>
+    <button matButton="outlined" type="button" (click)="abrir()">
+      <span class="material-symbols-rounded" aria-hidden="true">{{ p ? 'edit' : 'add_link' }}</span>
+      {{ p ? 'Editar' : 'Configurar' }}
+    </button>
+  </section>
+}
+
+<ng-template #modeloSso>
+  <h2 mat-dialog-title>Login corporativo (SSO)</h2>
+  <form [formGroup]="formulario" (ngSubmit)="salvar()">
+    <mat-dialog-content>
+      <div class="formulario">
+        <mat-button-toggle-group formControlName="protocolo" aria-label="Protocolo" hideSingleSelectionIndicator
+                                 class="protocolo">
+          <mat-button-toggle value="OIDC">OpenID Connect</mat-button-toggle>
+          <mat-button-toggle value="SAML">SAML 2.0</mat-button-toggle>
+        </mat-button-toggle-group>
+
+        <section class="passo" aria-labelledby="passo-registro">
+          <h3 id="passo-registro"><span class="numero">1</span> Registre a Aurora no IdP da empresa</h3>
+          <dl class="enderecos">
+            @for (e of enderecos(); track e.rotulo) {
+              <dt>{{ e.rotulo }}</dt>
+              <dd>
+                <code>{{ e.valor }}</code>
+                <button matIconButton type="button" (click)="copiar(e.valor)" [matTooltip]="'Copiar ' + e.rotulo"
+                        [attr.aria-label]="'Copiar ' + e.rotulo">
+                  <span class="material-symbols-rounded" aria-hidden="true">content_copy</span>
+                </button>
+              </dd>
+            }
+          </dl>
+          @if (protocolo() === 'OIDC') {
+            <p class="ajuda">
+              <span class="material-symbols-rounded" aria-hidden="true">info</span>
+              <span>O aplicativo precisa liberar os escopos <b>openid</b>, <b>email</b> e <b>profile</b>.</span>
+            </p>
+          } @else {
+            <p class="ajuda">
+              <span class="material-symbols-rounded" aria-hidden="true">info</span>
+              O IdP deve enviar o e-mail da pessoa como NameID (formato e-mail) ou no atributo de e-mail.
+            </p>
+          }
+        </section>
+
+        <section class="passo" aria-labelledby="passo-dados">
+          <h3 id="passo-dados"><span class="numero">2</span> Informe os dados do IdP</h3>
+          <mat-form-field appearance="outline">
+            <mat-label>Nome no botão de login</mat-label>
+            <input matInput formControlName="nome" maxlength="60" placeholder="Ex.: Conta da empresa" />
+            <mat-hint>Aparece como “{{ formulario.controls.nome.value || 'Conta da empresa' }}” na tela de login.</mat-hint>
+            @if (formulario.controls.nome.hasError('required')) { <mat-error>Informe o nome.</mat-error> }
+          </mat-form-field>
+          <mat-form-field appearance="outline">
+            <mat-label>{{ protocolo() === 'OIDC' ? 'Endereço de descoberta (OpenID)' : 'Endereço dos metadados SAML' }}</mat-label>
+            <input matInput formControlName="endereco" type="url" autocomplete="off"
+                   [placeholder]="protocolo() === 'OIDC'
+                     ? 'https://login.microsoftonline.com/<tenant>/v2.0/.well-known/openid-configuration'
+                     : 'https://login.microsoftonline.com/<tenant>/federationmetadata/2007-06/federationmetadata.xml'" />
+            <mat-hint>Só HTTPS. A configuração e as chaves de assinatura são lidas deste endereço.</mat-hint>
+            @if (formulario.controls.endereco.hasError('required')) {
+              <mat-error>Informe o endereço.</mat-error>
+            } @else if (formulario.controls.endereco.hasError('pattern')) {
+              <mat-error>Endereço inválido.</mat-error>
+            }
+          </mat-form-field>
+          @if (protocolo() === 'OIDC') {
+            <div class="dupla">
+              <mat-form-field appearance="outline">
+                <mat-label>ID do aplicativo (client ID)</mat-label>
+                <input matInput formControlName="clienteId" autocomplete="off" />
+                @if (formulario.controls.clienteId.hasError('required')) { <mat-error>Informe o client ID.</mat-error> }
+              </mat-form-field>
+              <mat-form-field appearance="outline">
+                <mat-label>Segredo (client secret)</mat-label>
+                <input matInput formControlName="segredo" type="password" autocomplete="new-password"
+                       [placeholder]="temSegredo() ? '•••••••• (mantém o atual)' : ''" />
+                @if (temSegredo()) { <mat-hint>Deixe em branco para manter o atual.</mat-hint> }
+                @if (formulario.controls.segredo.hasError('required')) { <mat-error>Informe o segredo.</mat-error> }
+              </mat-form-field>
+            </div>
+          }
+        </section>
+
+        <div class="opcoes">
+          <mat-slide-toggle formControlName="habilitado">Mostrar o botão na tela de login</mat-slide-toggle>
+          <mat-slide-toggle formControlName="confiaSegundoFator">
+            Aceitar a verificação em duas etapas feita pelo IdP
+          </mat-slide-toggle>
+          <p class="ajuda">
+            <span class="material-symbols-rounded" aria-hidden="true">shield_person</span>
+            Ligue só se o IdP exige MFA de todos (ex.: acesso condicional do Entra ID). Desligado, quem precisa da
+            verificação em duas etapas digita também o código do aplicativo da Aurora.
+          </p>
+        </div>
+
+        <p class="ajuda">
+          <span class="material-symbols-rounded" aria-hidden="true">group</span>
+          Só entra pelo SSO quem já foi convidado aqui, pelo mesmo e-mail. Perfis e unidades continuam definidos na
+          Aurora; o login com senha segue disponível.
+        </p>
+
+        @if (confirmandoRemocao()) {
+          <p class="erro" role="alert">
+            <span class="material-symbols-rounded" aria-hidden="true">warning</span>
+            Remover o SSO desfaz o vínculo das contas com o IdP. Quem não tem senha na Aurora precisa pedir uma nova
+            pelo “Esqueceu a senha?”.
+          </p>
+        }
+        @if (erro()) {
+          <p class="erro" role="alert"><span class="material-symbols-rounded" aria-hidden="true">error</span>{{ erro() }}</p>
+        }
+      </div>
+    </mat-dialog-content>
+    <mat-dialog-actions>
+      @if (provedor()) {
+        @if (confirmandoRemocao()) {
+          <button matButton="filled" type="button" class="perigo" (click)="remover()" [disabled]="salvando()">
+            Confirmar remoção
+          </button>
+        } @else {
+          <button matButton type="button" class="perigo" (click)="confirmandoRemocao.set(true)">Remover SSO</button>
+        }
+      }
+      <span class="espaco"></span>
+      <button matButton type="button" (click)="fechar()">Cancelar</button>
+      <button matButton="filled" type="submit" [disabled]="salvando()">
+        @if (salvando()) { <mat-spinner diameter="18" aria-label="Salvando" /> }
+        Salvar
+      </button>
+    </mat-dialog-actions>
+  </form>
+</ng-template>

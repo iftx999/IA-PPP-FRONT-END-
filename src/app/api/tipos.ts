@@ -71,3 +71,6 @@ export type MensagemAssistente = Esquemas['MensagemAssistenteResponse'];
 export type FonteCitada = Esquemas['FonteCitadaDto'];
 export type LinhaDeDados = Esquemas['LinhaDeDadosDto'];
 export type VersaoAnteriorDaMeta = Esquemas['VersaoAnteriorDaMeta'];
+export type SsoCorporativo = Esquemas['SsoResponse'];
+export type ProvedorCorporativo = Esquemas['ProvedorResponse'];
+export type PedidoSso = Esquemas['SsoRequest'];

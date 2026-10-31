@@ -84,6 +84,22 @@ export interface paths {
     patch?: never;
     trace?: never;
   };
+  '/api/v1/seguranca/sso': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get: operations['obterSso'];
+    put: operations['salvarSso'];
+    post?: never;
+    delete: operations['removerSso'];
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
   '/api/v1/seguranca/segundo-fator': {
     parameters: {
       query?: never;
@@ -1091,6 +1107,31 @@ export interface components {
     MoverUnidadeRequest: {
       /** Format: uuid */
       unidadePaiId: string;
+    };
+    SsoRequest: {
+      /** @enum {string} */
+      protocolo: 'OIDC' | 'SAML';
+      nome: string;
+      endereco: string;
+      clienteId: string | null;
+      segredo: string | null;
+      habilitado: boolean;
+      confiaSegundoFator: boolean;
+    };
+    ProvedorResponse: {
+      /** @enum {string} */
+      protocolo: 'OIDC' | 'SAML';
+      nome: string;
+      endereco: string;
+      clienteId: string | null;
+      habilitado: boolean;
+    };
+    SsoResponse: {
+      provedor: components['schemas']['ProvedorResponse'] | null;
+      confiaSegundoFator: boolean;
+      enderecoRetorno: string;
+      entidadeSaml: string;
+      metadadosSaml: string;
     };
     PoliticaSegundoFatorRequest: {
       todos: boolean;
@@ -2159,6 +2200,70 @@ export interface operations {
           [name: string]: unknown;
         };
         content?: never;
+      };
+    };
+  };
+  obterSso: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description OK */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          '*/*': components['schemas']['SsoResponse'];
+        };
+      };
+    };
+  };
+  salvarSso: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        'application/json': components['schemas']['SsoRequest'];
+      };
+    };
+    responses: {
+      /** @description OK */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          '*/*': components['schemas']['SsoResponse'];
+        };
+      };
+    };
+  };
+  removerSso: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description OK */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          '*/*': components['schemas']['SsoResponse'];
+        };
       };
     };
   };
