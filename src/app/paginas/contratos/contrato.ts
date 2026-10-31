@@ -26,7 +26,7 @@ import { SessaoService } from '../../nucleo/sessao';
 import { arvoreDeUnidades, filtrarUnidades, subarvore, type OpcaoUnidade } from '../../nucleo/unidades-arvore';
 import { Selo } from '../../ui/selo';
 import { VisualizadorPdf } from '../../ui/visualizador-pdf';
-import { SITUACOES_DOCUMENTO, STATUS_ITEM, TIPOS_ITEM, referencia } from './rotulos';
+import { SITUACOES_DOCUMENTO, STATUS_ITEM, TIPOS_ITEM, referencia, situacaoDoPrazo } from './rotulos';
 
 type Filtro = 'TODOS' | StatusItem;
 
@@ -122,6 +122,7 @@ export class ContratoPagina {
   protected readonly tipoItem = (i: { tipo: TipoItem }) => TIPOS_ITEM[i.tipo];
   protected readonly rotuloTipo = (tipo: TipoItem) => TIPOS_ITEM[tipo].rotulo;
   protected readonly diferencas = diferencasDaIa;
+  protected readonly prazo = (i: ItemContratual) => situacaoDoPrazo(i);
 
   constructor() {
     // Enquanto algum documento está sendo processado, consulta de novo a cada 2 s.
@@ -380,6 +381,19 @@ export class ContratoPagina {
     await this.enviarRevisao(
       () => this.http.post(`/api/v1/contratos/itens/${item.id}/rejeicao`, { motivo: this.motivo.value.trim() }),
       'Item rejeitado.',
+    );
+  }
+
+  /** ADR 0024: prazo cumprido encerra o alerta; reabrir volta a acompanhar. */
+  protected async definirCumprimento(cumprido: boolean): Promise<void> {
+    const item = this.emRevisao();
+    if (!item) {
+      return;
+    }
+    const url = `/api/v1/contratos/itens/${item.id}/cumprimento`;
+    await this.enviarRevisao(
+      () => (cumprido ? this.http.post(url, null) : this.http.delete(url)),
+      cumprido ? 'Prazo marcado como cumprido. O alerta se resolve na próxima verificação.' : 'Prazo reaberto.',
     );
   }
 

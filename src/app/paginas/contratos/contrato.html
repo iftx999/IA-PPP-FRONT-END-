@@ -146,6 +146,7 @@
                     @if (i.dataLimite) { <span>até <span class="dado">{{ fmt.data(i.dataLimite + 'T12:00:00') }}</span></span> }
                     @if (i.origem === 'MANUAL') { <span class="manual">manual</span> }
                     @if (i.status === 'SUBSTITUIDO') { <span class="manual">trocado por aditivo</span> }
+                    @if (prazo(i); as p) { <aurora-selo [tom]="p.tom">{{ p.rotulo }}</aurora-selo> }
                   </span>
                 </span>
                 <span class="item-situacao">
@@ -202,6 +203,17 @@
                 {{ i.status === 'REJEITADO' ? 'Rejeitado' : 'Aprovado' }} por {{ i.revisadoPor ?? '—' }}
                 {{ i.revisadoEm ? 'em ' + fmt.dataEHora(i.revisadoEm) : '' }}
                 @if (i.motivoRevisao) { · motivo: {{ i.motivoRevisao }} }
+              </p>
+            }
+            @if (i.cumpridoEm) {
+              <p class="ajuda">
+                <span class="material-symbols-rounded" aria-hidden="true">event_available</span>
+                Prazo cumprido, informado por {{ i.cumpridoPor ?? '—' }} em {{ fmt.dataEHora(i.cumpridoEm) }}.
+              </p>
+            } @else if (prazo(i); as p) {
+              <p class="ajuda">
+                <span class="material-symbols-rounded" aria-hidden="true">notifications_active</span>
+                {{ p.rotulo }}. A Aurora gera alerta a partir de 60 dias antes até o prazo ser marcado como cumprido.
               </p>
             }
             @if (i.status === 'SUBSTITUIDO' && i.substituidoPor) {
@@ -364,6 +376,14 @@
               <button matButton="filled" type="button" (click)="aprovar()" [disabled]="salvando()">
                 @if (salvando()) { <mat-spinner diameter="16" /> } Aprovar
               </button>
+            } @else if (i.status === 'APROVADO' && i.tipo === 'PRAZO') {
+              @if (i.cumpridoEm) {
+                <button matButton="outlined" type="button" (click)="definirCumprimento(false)" [disabled]="salvando()">Reabrir prazo</button>
+              } @else {
+                <button matButton="filled" type="button" (click)="definirCumprimento(true)" [disabled]="salvando()">
+                  @if (salvando()) { <mat-spinner diameter="16" /> } Marcar como cumprido
+                </button>
+              }
             }
           } @else {
             <button matButton="filled" type="submit" form="form-item" [disabled]="salvando()">Cadastrar item</button>

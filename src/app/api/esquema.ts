@@ -164,6 +164,22 @@ export interface paths {
     patch?: never;
     trace?: never;
   };
+  '/api/v1/alertas/preferencias': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get: operations['minhas'];
+    put: operations['definir_1'];
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
   '/api/v1/usuarios': {
     parameters: {
       query?: never;
@@ -431,6 +447,22 @@ export interface paths {
     put?: never;
     post: operations['rejeitar'];
     delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/api/v1/contratos/itens/{item}/cumprimento': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    post: operations['cumprir'];
+    delete: operations['reabrir'];
     options?: never;
     head?: never;
     patch?: never;
@@ -1114,6 +1146,15 @@ export interface components {
       /** Format: int32 */
       avaliacao: number;
       comentario: string | null;
+    };
+    PreferenciasRequest: {
+      /** @enum {string} */
+      email: 'NENHUM' | 'CRITICOS' | 'TODOS';
+    };
+    PreferenciasResponse: {
+      /** @enum {string} */
+      email: 'NENHUM' | 'CRITICOS' | 'TODOS';
+      envioLigado: boolean;
     };
     ConviteRequest: {
       nome: string;
@@ -1862,6 +1903,9 @@ export interface components {
       motivoRevisao: string | null;
       /** Format: uuid */
       substituidoPor: string | null;
+      cumpridoPor: string | null;
+      /** Format: date-time */
+      cumpridoEm: string | null;
     };
     VerificacaoResponse: {
       /** Format: int64 */
@@ -2275,6 +2319,50 @@ export interface operations {
           [name: string]: unknown;
         };
         content?: never;
+      };
+    };
+  };
+  minhas: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description OK */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          '*/*': components['schemas']['PreferenciasResponse'];
+        };
+      };
+    };
+  };
+  definir_1: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        'application/json': components['schemas']['PreferenciasRequest'];
+      };
+    };
+    responses: {
+      /** @description OK */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          '*/*': components['schemas']['PreferenciasResponse'];
+        };
       };
     };
   };
@@ -2870,6 +2958,46 @@ export interface operations {
         'application/json': components['schemas']['RejeicaoRequest'];
       };
     };
+    responses: {
+      /** @description OK */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
+      };
+    };
+  };
+  cumprir: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        item: string;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description OK */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
+      };
+    };
+  };
+  reabrir: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        item: string;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
     responses: {
       /** @description OK */
       200: {

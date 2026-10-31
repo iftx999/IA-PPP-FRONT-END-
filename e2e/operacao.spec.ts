@@ -22,6 +22,22 @@ test.describe('Operação', () => {
     await expect(page).toHaveURL(/\/painel\?unidade=/);
   });
 
+  test('alertas: preferência de e-mail da própria pessoa', async ({ page }) => {
+    await entrar(page, 'diretoria@exemplo.dev', '/alertas');
+    const preferencia = page.getByRole('region', { name: 'Alertas por e-mail' });
+    await expect(preferencia.getByRole('radio', { name: 'Só críticos' })).toBeChecked();
+    await expect(preferencia).toContainText('Um resumo por verificação');
+    await preferencia.getByRole('radio', { name: 'Todos' }).click();
+    await expect(page.locator('.mat-mdc-snack-bar-label').first()).toContainText('todos os alertas novos');
+    await page.screenshot({ path: 'e2e/capturas/alertas-preferencia.png' });
+
+    await page.reload();
+    await expect(preferencia.getByRole('radio', { name: 'Todos' })).toBeChecked();
+    // Volta ao padrão para a próxima execução.
+    await preferencia.getByRole('radio', { name: 'Só críticos' }).click();
+    await expect(page.locator('.mat-mdc-snack-bar-label').first()).toContainText('alertas críticos novos');
+  });
+
   test('integrações: cadastrar fonte, credencial do agente e histórico', async ({ page }) => {
     await entrar(page, 'admin@exemplo.dev', '/admin/integracoes');
     await expect(page.getByRole('heading', { level: 1 })).toHaveText('Integrações');

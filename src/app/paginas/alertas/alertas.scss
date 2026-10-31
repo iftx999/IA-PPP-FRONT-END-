@@ -3,6 +3,11 @@
 h1 { font: 700 var(--fs-h1) var(--font-display); margin: 0; }
 .legenda { margin: 0; color: var(--text-2); font-size: var(--fs-small); }
 .aviso { display: grid; gap: var(--space-2); max-width: 520px; p { margin: 0; } }
+.preferencia { display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-2) var(--space-3); margin-bottom: var(--space-4);
+  padding: var(--space-2) var(--space-3); border-radius: var(--radius-m); background: var(--bg-2); color: var(--text-2);
+  > .material-symbols-rounded { color: var(--accent); } }
+.rotulo-preferencia { font: 600 var(--fs-small) var(--font-ui); color: var(--text-1); }
+.ajuda-preferencia { font-size: var(--fs-label); color: var(--text-3); }
 .filtro { margin-bottom: var(--space-3); }
 .contagem { margin-left: 6px; padding: 0 6px; border-radius: 999px; background: color-mix(in srgb, var(--warn) 20%, transparent); color: var(--warn); font-size: var(--fs-label); }
 

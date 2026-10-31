@@ -55,6 +55,19 @@ test.describe('Contratos', () => {
     await itens.getByRole('radio', { name: /Aprovados/ }).click();
     await expect(itens.getByRole('button', { name: 'Abrir item Concluir a ETE Norte' })).toContainText('Aprovado');
 
+    // Prazo aprovado: marcar como cumprido (encerra o alerta de prazo) e reabrir (ADR 0024).
+    await itens.getByRole('button', { name: 'Abrir item Concluir a ETE Norte' }).click();
+    dialogo = page.getByRole('dialog', { name: /Item/ });
+    await dialogo.getByRole('button', { name: 'Marcar como cumprido' }).click();
+    await expect(dialogo).toBeHidden();
+    await expect(page.locator('.mat-mdc-snack-bar-label').first()).toContainText('Prazo marcado como cumprido');
+    await itens.getByRole('button', { name: 'Abrir item Concluir a ETE Norte' }).click();
+    dialogo = page.getByRole('dialog', { name: /Item/ });
+    await expect(dialogo).toContainText('Prazo cumprido, informado por');
+    await dialogo.getByRole('button', { name: 'Reabrir prazo' }).click();
+    await expect(dialogo).toBeHidden();
+    await expect(page.locator('.mat-mdc-snack-bar-label').first()).toContainText('Prazo reaberto');
+
     // Meta sem unidade e sem início de vigência não é aprovada; é rejeitada com motivo.
     await page.getByRole('button', { name: 'Novo item' }).click();
     dialogo = page.getByRole('dialog', { name: 'Novo item' });

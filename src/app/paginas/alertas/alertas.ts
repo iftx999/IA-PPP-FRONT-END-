@@ -7,7 +7,7 @@ import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { RouterLink } from '@angular/router';
 import { firstValueFrom } from 'rxjs';
-import type { AlertaApi } from '../../api/tipos';
+import type { AlertaApi, PreferenciaEmail, PreferenciasAlertas } from '../../api/tipos';
 import { AlertasService } from '../../nucleo/alertas';
 import { mensagemDeErro } from '../../nucleo/erro-api';
 import { dataEHora, haQuantoTempo, numero } from '../../nucleo/formato';
@@ -21,6 +21,12 @@ export const ICONES_ALERTA: Record<AlertaApi['tipo'], string> = {
   FONTE_ATRASADA: 'cloud_off',
   PRAZO_CONTRATUAL: 'event_busy',
   TRILHA_ALTERADA: 'gpp_bad',
+};
+
+export const MENSAGENS_PREFERENCIA: Record<PreferenciaEmail, string> = {
+  NENHUM: 'Você não vai receber alertas por e-mail.',
+  CRITICOS: 'Você vai receber por e-mail os alertas críticos novos.',
+  TODOS: 'Você vai receber por e-mail todos os alertas novos.',
 };
 
 /** "/painel?unidade=x" → rota e parâmetros para o routerLink. */
@@ -50,6 +56,11 @@ export class Alertas {
     this.sessao.pode('indicador:ler') ? { url: '/api/v1/alertas', params: { estado: this.estado() } } : undefined,
   );
   protected readonly alertas = computed(() => (this.dados.hasValue() ? this.dados.value() : undefined));
+  /** ADR 0024: cada pessoa escolhe quais alertas novos recebe por e-mail. */
+  protected readonly preferencias = httpResource<PreferenciasAlertas>(() =>
+    this.sessao.usuario() ? '/api/v1/alertas/preferencias' : undefined,
+  );
+  protected readonly salvandoPreferencia = signal(false);
   protected readonly reconhecendo = signal<string | null>(null);
   protected readonly avaliando = signal(false);
 
@@ -82,6 +93,20 @@ export class Alertas {
       this.avisos.open(mensagemDeErro(falha), 'Fechar', { duration: 8000 });
     } finally {
       this.avaliando.set(false);
+    }
+  }
+
+  protected async definirPreferencia(email: PreferenciaEmail): Promise<void> {
+    this.salvandoPreferencia.set(true);
+    try {
+      const salvas = await firstValueFrom(this.http.put<PreferenciasAlertas>('/api/v1/alertas/preferencias', { email }));
+      this.preferencias.set(salvas);
+      this.avisos.open(MENSAGENS_PREFERENCIA[email], undefined, { duration: 4000 });
+    } catch (falha) {
+      this.avisos.open(mensagemDeErro(falha), 'Fechar', { duration: 8000 });
+      this.preferencias.reload();
+    } finally {
+      this.salvandoPreferencia.set(false);
     }
   }
 

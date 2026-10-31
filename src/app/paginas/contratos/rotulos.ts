@@ -1,4 +1,4 @@
-import type { SituacaoDocumento, StatusItem, TipoItem } from '../../api/tipos';
+import type { ItemContratual, SituacaoDocumento, StatusItem, TipoItem } from '../../api/tipos';
 import type { Tom } from '../../ui/selo';
 
 export const TIPOS_ITEM: Record<TipoItem, { rotulo: string; icone: string }> = {
@@ -31,4 +31,33 @@ export const SITUACOES_DOCUMENTO: Record<SituacaoDocumento, { rotulo: string; to
 /** "cl. 7.2 · p. 2", ou só a página quando falta a cláusula. */
 export function referencia(clausula: string | null | undefined, pagina: number): string {
   return clausula ? `cl. ${clausula} · p. ${pagina}` : `p. ${pagina}`;
+}
+
+/**
+ * Situação de um prazo aprovado (ADR 0024), com as mesmas faixas do alerta: até 60 dias
+ * em atenção, 15 dias ou vencido em perigo. Nulo para os demais itens.
+ */
+export function situacaoDoPrazo(
+  item: Pick<ItemContratual, 'tipo' | 'status' | 'dataLimite' | 'cumpridoEm'>,
+  hoje = new Date(),
+): { rotulo: string; tom: Tom } | null {
+  if (item.tipo !== 'PRAZO' || item.status !== 'APROVADO' || !item.dataLimite) {
+    return null;
+  }
+  if (item.cumpridoEm) {
+    return { rotulo: 'Cumprido', tom: 'ok' };
+  }
+  const [ano, mes, dia] = item.dataLimite.split('-').map(Number);
+  const inicioDoDia = Date.UTC(hoje.getFullYear(), hoje.getMonth(), hoje.getDate());
+  const dias = Math.round((Date.UTC(ano!, mes! - 1, dia!) - inicioDoDia) / 86_400_000);
+  if (dias < 0) {
+    return { rotulo: dias === -1 ? 'Venceu há 1 dia' : `Venceu há ${-dias} dias`, tom: 'perigo' };
+  }
+  if (dias === 0) {
+    return { rotulo: 'Vence hoje', tom: 'perigo' };
+  }
+  if (dias <= 60) {
+    return { rotulo: dias === 1 ? 'Vence amanhã' : `Vence em ${dias} dias`, tom: dias <= 15 ? 'perigo' : 'atencao' };
+  }
+  return null;
 }

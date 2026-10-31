@@ -37,6 +37,8 @@ export const EVENTOS: Record<string, InfoEvento> = {
   DOCUMENTO_CONTRATO_ENVIADO: { rotulo: 'Documento de contrato enviado', icone: 'upload_file', grupo: 'Contratos' },
   ITEM_CONTRATUAL_APROVADO: { rotulo: 'Item contratual aprovado', icone: 'task_alt', grupo: 'Contratos' },
   ITEM_CONTRATUAL_REJEITADO: { rotulo: 'Item contratual rejeitado', icone: 'cancel', grupo: 'Contratos' },
+  PRAZO_CONTRATUAL_CUMPRIDO: { rotulo: 'Prazo contratual cumprido', icone: 'event_available', grupo: 'Contratos' },
+  PRAZO_CONTRATUAL_REABERTO: { rotulo: 'Prazo contratual reaberto', icone: 'event_repeat', grupo: 'Contratos' },
   FONTE_CRIADA: { rotulo: 'Fonte de dados criada', icone: 'database', grupo: 'Integrações' },
   CARGA_CONCLUIDA: { rotulo: 'Carga concluída', icone: 'cloud_done', grupo: 'Integrações' },
   MARCACAO_CRIADA: { rotulo: 'Marcação no mapa', icone: 'location_on', grupo: 'Mapa' },

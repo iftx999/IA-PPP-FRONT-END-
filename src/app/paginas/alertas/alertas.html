@@ -12,6 +12,27 @@
   }
 </header>
 
+@if (preferencias.hasValue()) {
+  <section class="preferencia" aria-label="Alertas por e-mail">
+    <span class="material-symbols-rounded" aria-hidden="true">mail</span>
+    <span class="rotulo-preferencia">Receber por e-mail</span>
+    <mat-button-toggle-group [value]="preferencias.value().email" (change)="definirPreferencia($event.value)"
+                             [disabled]="salvandoPreferencia()" aria-label="Quais alertas novos receber por e-mail"
+                             hideSingleSelectionIndicator>
+      <mat-button-toggle value="NENHUM">Nenhum</mat-button-toggle>
+      <mat-button-toggle value="CRITICOS">Só críticos</mat-button-toggle>
+      <mat-button-toggle value="TODOS">Todos</mat-button-toggle>
+    </mat-button-toggle-group>
+    <span class="ajuda-preferencia">
+      @if (preferencias.value().envioLigado) {
+        Um resumo por verificação, só com alertas que você pode ver.
+      } @else {
+        O envio de e-mail não está configurado neste ambiente; sua escolha vale quando for ligado.
+      }
+    </span>
+  </section>
+}
+
 @if (!sessao.usuario()) {
   <div class="esqueleto" aria-busy="true" aria-label="Carregando"></div>
 } @else if (!sessao.pode('indicador:ler')) {
