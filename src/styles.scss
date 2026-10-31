@@ -176,7 +176,7 @@ kbd {
 .formulario { display: grid; gap: var(--space-4); padding-top: var(--space-1); }
 .formulario .dupla { display: grid; grid-template-columns: 1fr 1fr; gap: var(--space-3); }
 .formulario mat-form-field { width: 100%; }
-.formulario .ajuda {
+.formulario .ajuda, .vencimentos .ajuda {
   display: flex; align-items: center; gap: 6px; margin: 0;
   font-size: var(--fs-small); color: var(--text-3);
   .material-symbols-rounded { font-size: 16px; }

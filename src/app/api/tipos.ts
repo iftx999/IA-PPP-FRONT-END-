@@ -74,3 +74,5 @@ export type VersaoAnteriorDaMeta = Esquemas['VersaoAnteriorDaMeta'];
 export type SsoCorporativo = Esquemas['SsoResponse'];
 export type ProvedorCorporativo = Esquemas['ProvedorResponse'];
 export type PedidoSso = Esquemas['SsoRequest'];
+export type AgendaDePrazo = Esquemas['AgendaResponse'];
+export type Recorrencia = NonNullable<AgendaDePrazo['recorrencia']>;

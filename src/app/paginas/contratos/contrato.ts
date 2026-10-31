@@ -17,7 +17,7 @@ import { MatTooltipModule } from '@angular/material/tooltip';
 import { RouterLink } from '@angular/router';
 import { debounceTime, firstValueFrom, type Observable } from 'rxjs';
 import type {
-  DetalheContrato, DocumentoContrato, ItemContratual, PedidoItem, StatusItem, TipoItem, Unidade,
+  AgendaDePrazo, DetalheContrato, DocumentoContrato, ItemContratual, PedidoItem, Recorrencia, StatusItem, TipoItem, Unidade,
 } from '../../api/tipos';
 import { deIso, paraIso } from '../../nucleo/datas';
 import { mensagemDeErro } from '../../nucleo/erro-api';
@@ -26,7 +26,7 @@ import { SessaoService } from '../../nucleo/sessao';
 import { arvoreDeUnidades, filtrarUnidades, subarvore, type OpcaoUnidade } from '../../nucleo/unidades-arvore';
 import { Selo } from '../../ui/selo';
 import { VisualizadorPdf } from '../../ui/visualizador-pdf';
-import { SITUACOES_DOCUMENTO, STATUS_ITEM, TIPOS_ITEM, referencia, situacaoDoPrazo } from './rotulos';
+import { RECORRENCIAS, SITUACOES_DOCUMENTO, STATUS_ITEM, TIPOS_ITEM, referencia, situacaoDoPrazo, temVencimento } from './rotulos';
 
 type Filtro = 'TODOS' | StatusItem;
 
@@ -123,6 +123,16 @@ export class ContratoPagina {
   protected readonly rotuloTipo = (tipo: TipoItem) => TIPOS_ITEM[tipo].rotulo;
   protected readonly diferencas = diferencasDaIa;
   protected readonly prazo = (i: ItemContratual) => situacaoDoPrazo(i);
+  protected readonly temVencimento = temVencimento;
+  protected readonly rotuloRecorrencia = (r: Recorrencia) => RECORRENCIAS[r].rotulo;
+  protected readonly recorrencias = Object.entries(RECORRENCIAS).map(([codigo, info]) => ({
+    codigo: codigo as Recorrencia,
+    rotulo: info.rotulo,
+  }));
+  /** ADR 0026: obrigações que o contrato diz que se repetem, mas ainda sem data para a Aurora acompanhar. */
+  protected readonly recorrentesSemData = computed(
+    () => (this.itens() ?? []).filter((i) => temVencimento(i) && !i.agenda && i.recorrenciaSugerida).length,
+  );
 
   constructor() {
     // Enquanto algum documento está sendo processado, consulta de novo a cada 2 s.
@@ -250,6 +260,13 @@ export class ContratoPagina {
   protected readonly erro = signal<string | null>(null);
   protected readonly rejeitando = signal(false);
   protected readonly motivo = new FormControl('', { nonNullable: true, validators: [Validators.required, Validators.minLength(3)] });
+
+  /** ADR 0026: quando o prazo ou a obrigação aprovado vence e se repete ('UNICA' = não se repete). */
+  protected readonly agendaForm = new FormGroup({
+    primeiroVencimento: new FormControl<Date | null>(null, Validators.required),
+    recorrencia: new FormControl<Recorrencia | 'UNICA'>('UNICA', { nonNullable: true }),
+  });
+  protected readonly editandoAgenda = signal(false);
 
   protected readonly formulario = new FormGroup({
     documentoId: new FormControl<string | null>(null, Validators.required),
@@ -384,21 +401,75 @@ export class ContratoPagina {
     );
   }
 
-  /** ADR 0024: prazo cumprido encerra o alerta; reabrir volta a acompanhar. */
+  /**
+   * ADR 0024, ADR 0026: cumprir encerra o alerta do vencimento em aberto e, se o item se repete, passa ao seguinte;
+   * desfazer reabre o último cumprido.
+   */
   protected async definirCumprimento(cumprido: boolean): Promise<void> {
     const item = this.emRevisao();
+    const vencimento = item?.agenda?.proximoVencimento;
     if (!item) {
       return;
     }
     const url = `/api/v1/contratos/itens/${item.id}/cumprimento`;
-    await this.enviarRevisao(
-      () => (cumprido ? this.http.post(url, null) : this.http.delete(url)),
-      cumprido ? 'Prazo marcado como cumprido. O alerta se resolve na próxima verificação.' : 'Prazo reaberto.',
+    await this.alterarAgenda(
+      () => (cumprido ? this.http.post<AgendaDePrazo>(url, null) : this.http.delete<AgendaDePrazo>(url)),
+      (agenda) =>
+        cumprido
+          ? `Vencimento de ${data(vencimento + 'T12:00:00')} cumprido.` +
+            (agenda.proximoVencimento ? ` Próximo: ${data(agenda.proximoVencimento + 'T12:00:00')}.` : '')
+          : 'Último cumprimento desfeito.',
     );
+  }
+
+  protected abrirEdicaoAgenda(item: ItemContratual): void {
+    this.agendaForm.reset({
+      primeiroVencimento: deIso(item.agenda?.primeiroVencimento ?? item.dataLimite ?? null),
+      recorrencia: item.agenda ? (item.agenda.recorrencia ?? 'UNICA') : (item.recorrenciaSugerida ?? 'UNICA'),
+    });
+    this.editandoAgenda.set(true);
+  }
+
+  protected async salvarAgenda(): Promise<void> {
+    const item = this.emRevisao();
+    if (!item || this.agendaForm.invalid) {
+      this.agendaForm.markAllAsTouched();
+      return;
+    }
+    const v = this.agendaForm.getRawValue();
+    const pedido = { primeiroVencimento: paraIso(v.primeiroVencimento), recorrencia: v.recorrencia === 'UNICA' ? null : v.recorrencia };
+    await this.alterarAgenda(
+      () => this.http.put<AgendaDePrazo>(`/api/v1/contratos/itens/${item.id}/agenda`, pedido),
+      (agenda) =>
+        agenda.proximoVencimento
+          ? `Vencimento definido. Próximo: ${data(agenda.proximoVencimento + 'T12:00:00')}.`
+          : 'Vencimento definido.',
+    );
+  }
+
+  /** Agenda muda sem fechar o diálogo: o item aberto e a lista refletem a resposta. */
+  private async alterarAgenda(acao: () => Observable<AgendaDePrazo>, sucesso: (a: AgendaDePrazo) => string): Promise<void> {
+    const item = this.emRevisao();
+    this.salvando.set(true);
+    this.erro.set(null);
+    try {
+      const agenda = await firstValueFrom(acao());
+      if (item) {
+        this.emRevisao.set({ ...item, agenda });
+      }
+      this.editandoAgenda.set(false);
+      this.avisos.open(sucesso(agenda), undefined, { duration: 5000 });
+      this.dadosItens.reload();
+    } catch (falha) {
+      this.erro.set(mensagemDeErro(falha));
+    } finally {
+      this.salvando.set(false);
+    }
   }
 
   private prepararDialogo(item: ItemContratual | null): void {
     this.erro.set(null);
+    this.editandoAgenda.set(false);
     this.rejeitando.set(false);
     this.motivo.reset('');
     this.emRevisao.set(item);

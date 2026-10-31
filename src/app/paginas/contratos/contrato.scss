@@ -84,3 +84,35 @@ p.cartao.vazio { padding: var(--space-5); text-align: center; }
 .esqueleto.pequeno { min-height: 160px; }
 @keyframes brilho { from { background-position: 100% 0; } to { background-position: -100% 0; } }
 .ocr { color: var(--warn); }
+
+// ADR 0026: agenda de vencimentos de prazos e obrigações aprovados.
+.aviso-agenda {
+  display: flex; align-items: flex-start; gap: var(--space-2); margin: 0 0 var(--space-3);
+  color: var(--text-2); font-size: var(--fs-small);
+  .material-symbols-rounded { color: var(--warn); font-size: 20px; }
+}
+.rotulo-icone { font-size: 14px; vertical-align: -2px; color: var(--text-3); }
+.vencimentos {
+  display: grid; gap: var(--space-3); margin-top: var(--space-4); padding: var(--space-3);
+  border: var(--border); border-radius: var(--radius-m);
+  h3 { margin: 0; display: flex; align-items: center; gap: var(--space-2); font: 600 var(--fs-body) var(--font-ui); }
+  h3 .material-symbols-rounded { color: var(--accent); font-size: 20px; }
+  .ajuda { margin: 0; }
+  .nota { color: var(--text-3); font-size: var(--fs-small); }
+}
+.agenda {
+  display: grid; grid-template-columns: max-content 1fr; gap: var(--space-2) var(--space-4); margin: 0;
+  dt { color: var(--text-3); font-size: var(--fs-small); }
+  dd { margin: 0; display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-2); }
+}
+.historico {
+  margin: 0; padding: 0; list-style: none; display: grid; gap: 4px; font-size: var(--fs-small);
+  li { display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-2); }
+  .material-symbols-rounded { font-size: 16px; color: var(--ok); }
+}
+.form-agenda {
+  display: grid; grid-template-columns: 1fr 1fr; gap: var(--space-2) var(--space-3); align-items: start;
+  .acoes-agenda { grid-column: 1 / -1; display: flex; justify-content: flex-end; gap: var(--space-2); }
+}
+.definir-agenda { justify-self: start; }
+@media (max-width: 640px) { .form-agenda { grid-template-columns: 1fr; } }

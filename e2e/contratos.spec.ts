@@ -55,18 +55,39 @@ test.describe('Contratos', () => {
     await itens.getByRole('radio', { name: /Aprovados/ }).click();
     await expect(itens.getByRole('button', { name: 'Abrir item Concluir a ETE Norte' })).toContainText('Aprovado');
 
-    // Prazo aprovado: marcar como cumprido (encerra o alerta de prazo) e reabrir (ADR 0024).
+    // Prazo aprovado sem data: definir o vencimento (mensal), cumprir, avançar e desfazer (ADR 0024, ADR 0026).
     await itens.getByRole('button', { name: 'Abrir item Concluir a ETE Norte' }).click();
     dialogo = page.getByRole('dialog', { name: /Item/ });
-    await dialogo.getByRole('button', { name: 'Marcar como cumprido' }).click();
+    const vencimentos = dialogo.getByRole('region', { name: 'Vencimentos' });
+    await expect(vencimentos).toContainText('Sem data de vencimento');
+    await expect(dialogo.getByRole('button', { name: /como cumprido/ })).toHaveCount(0);
+    await vencimentos.getByRole('button', { name: 'Definir vencimento' }).click();
+    const primeiro = new Date();
+    primeiro.setDate(primeiro.getDate() + 5);
+    const proximo = new Date(primeiro.getFullYear(), primeiro.getMonth() + 1, primeiro.getDate());
+    const br = (d: Date) => d.toLocaleDateString('pt-BR');
+    await vencimentos.getByLabel('Vencimento').fill(br(primeiro));
+    await vencimentos.getByRole('combobox', { name: 'Repetição' }).click();
+    await page.getByRole('option', { name: 'Mensal' }).click();
+    await vencimentos.getByRole('button', { name: 'Salvar vencimento' }).click();
+    await expect(vencimentos).toContainText(`Próximo${br(primeiro)}`);
+    await expect(vencimentos).toContainText('Vence em 5 dias');
+    await expect(vencimentos).toContainText('Mensal');
+    await page.waitForTimeout(300);
+    await page.screenshot({ path: 'e2e/capturas/contrato-vencimentos.png' });
+
+    await dialogo.getByRole('button', { name: `Marcar ${br(primeiro)} como cumprido` }).click();
+    await expect(page.locator('.mat-mdc-snack-bar-label').first()).toContainText(`Próximo: ${br(proximo)}`);
+    await expect(vencimentos).toContainText(`Próximo${br(proximo)}`);
+    await expect(vencimentos.getByRole('list', { name: 'Vencimentos cumpridos' })).toContainText(br(primeiro));
+    await dialogo.getByRole('button', { name: 'Desfazer último cumprimento' }).click();
+    await expect(vencimentos).toContainText(`Próximo${br(primeiro)}`);
+    await expect(vencimentos.getByRole('list', { name: 'Vencimentos cumpridos' })).toHaveCount(0);
+    await dialogo.getByRole('button', { name: 'Fechar' }).click();
     await expect(dialogo).toBeHidden();
-    await expect(page.locator('.mat-mdc-snack-bar-label').first()).toContainText('Prazo marcado como cumprido');
-    await itens.getByRole('button', { name: 'Abrir item Concluir a ETE Norte' }).click();
-    dialogo = page.getByRole('dialog', { name: /Item/ });
-    await expect(dialogo).toContainText('Prazo cumprido, informado por');
-    await dialogo.getByRole('button', { name: 'Reabrir prazo' }).click();
-    await expect(dialogo).toBeHidden();
-    await expect(page.locator('.mat-mdc-snack-bar-label').first()).toContainText('Prazo reaberto');
+    await expect(itens.getByRole('button', { name: 'Abrir item Concluir a ETE Norte' })).toContainText(
+      `Mensal · próximo ${br(primeiro)}`,
+    );
 
     // Meta sem unidade e sem início de vigência não é aprovada; é rejeitada com motivo.
     await page.getByRole('button', { name: 'Novo item' }).click();

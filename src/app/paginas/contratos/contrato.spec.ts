@@ -1,14 +1,14 @@
-import type { ItemContratual } from '../../api/tipos';
+import type { ItemContratual, Recorrencia } from '../../api/tipos';
 import { subarvore } from '../../nucleo/unidades-arvore';
 import { diferencasDaIa } from './contrato';
-import { referencia, situacaoDoPrazo } from './rotulos';
+import { referencia, situacaoDoPrazo, temVencimento } from './rotulos';
 
 const item = (mudancas: Partial<ItemContratual>): ItemContratual => ({
   id: 'i', contratoId: 'c', documentoId: 'd', tipo: 'META', titulo: 'Adesão mínima', resumo: 'r', clausula: '7.2',
   pagina: 2, trecho: 't', valorReferencia: 80, unidadeMedida: '%', dataLimite: '2026-12-31', periodicidade: null,
   unidadeId: 'u', unidadeNome: 'Concessão A', valorAlerta: 75, vigenciaInicio: null, status: 'PROPOSTO', origem: 'IA',
   modeloIa: 'claude-opus-5-5', confianca: 0.9, semReferencia: false, propostoEm: '2026-10-22T12:00:00Z',
-  revisadoPor: null, revisadoEm: null, motivoRevisao: null, substituidoPor: null, cumpridoPor: null, cumpridoEm: null,
+  revisadoPor: null, revisadoEm: null, motivoRevisao: null, substituidoPor: null, agenda: null, recorrenciaSugerida: null,
   propostaIa: {
     titulo: 'Adesão mínima', clausula: '7.2', pagina: 2, valorReferencia: 80, valorAlerta: null,
     dataLimite: '2026-12-31', vigenciaInicio: null, unidadeAlvo: 'Concessão A',
@@ -36,18 +36,30 @@ describe('Contrato', () => {
     expect(subarvore(nos, 'nao-existe')).toEqual([]);
   });
 
+  it('só prazos e obrigações aprovados têm vencimento', () => {
+    expect(temVencimento(item({ tipo: 'OBRIGACAO', status: 'APROVADO' }))).toBe(true);
+    expect(temVencimento(item({ tipo: 'PRAZO', status: 'PROPOSTO' }))).toBe(false);
+    expect(temVencimento(item({ tipo: 'PENALIDADE', status: 'APROVADO' }))).toBe(false);
+  });
+
   it('situação do prazo aprovado segue as faixas do alerta', () => {
     const hoje = new Date(2026, 9, 31, 15, 0);
-    const prazo = (dataLimite: string, extra: Partial<ItemContratual> = {}) =>
-      situacaoDoPrazo(item({ tipo: 'PRAZO', status: 'APROVADO', dataLimite, ...extra }), hoje);
+    const agenda = (proximo: string | null, recorrencia: Recorrencia | null = null): ItemContratual['agenda'] => ({
+      primeiroVencimento: '2026-01-31', recorrencia, proximoVencimento: proximo, cumprimentos: [],
+    });
+    const prazo = (proximo: string | null, recorrencia: Recorrencia | null = null) =>
+      situacaoDoPrazo(item({ tipo: 'PRAZO', status: 'APROVADO', agenda: agenda(proximo, recorrencia) }), hoje);
     expect(prazo('2027-03-01')).toBeNull();
     expect(prazo('2026-11-30')).toEqual({ rotulo: 'Vence em 30 dias', tom: 'atencao' });
     expect(prazo('2026-11-10')).toEqual({ rotulo: 'Vence em 10 dias', tom: 'perigo' });
     expect(prazo('2026-11-01')).toEqual({ rotulo: 'Vence amanhã', tom: 'perigo' });
     expect(prazo('2026-10-31')).toEqual({ rotulo: 'Vence hoje', tom: 'perigo' });
     expect(prazo('2026-10-28')).toEqual({ rotulo: 'Venceu há 3 dias', tom: 'perigo' });
-    expect(prazo('2026-10-28', { cumpridoEm: '2026-10-29T12:00:00Z' })).toEqual({ rotulo: 'Cumprido', tom: 'ok' });
-    expect(prazo('2026-11-10', { status: 'PROPOSTO' })).toBeNull();
+    expect(prazo(null)).toEqual({ rotulo: 'Cumprido', tom: 'ok' });
     expect(situacaoDoPrazo(item({ status: 'APROVADO' }), hoje)).toBeNull();
+    // Mensal: antecedência de 15 dias e perigo a 7 (como no alerta).
+    expect(prazo('2026-11-20', 'MENSAL')).toBeNull();
+    expect(prazo('2026-11-12', 'MENSAL')).toEqual({ rotulo: 'Vence em 12 dias', tom: 'atencao' });
+    expect(prazo('2026-11-06', 'MENSAL')).toEqual({ rotulo: 'Vence em 6 dias', tom: 'perigo' });
   });
 });

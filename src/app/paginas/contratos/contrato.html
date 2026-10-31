@@ -120,6 +120,15 @@
       </div>
     </div>
 
+    @if (recorrentesSemData() > 0) {
+      <p class="cartao aviso-agenda" role="note">
+        <span class="material-symbols-rounded" aria-hidden="true">event_busy</span>
+        <span>
+          {{ recorrentesSemData() === 1 ? '1 obrigação recorrente está' : recorrentesSemData() + ' obrigações recorrentes estão' }}
+          sem data de vencimento. Abra o item e defina o vencimento para a Aurora avisar antes de cada um.
+        </span>
+      </p>
+    }
     @if (itens()) {
       @if (itensVisiveis().length === 0) {
         <p class="cartao vazio">
@@ -143,7 +152,20 @@
                       <span class="dado">meta {{ fmt.percentual(i.valorReferencia) }}</span>
                     }
                     @if (i.unidadeNome) { <span>{{ i.unidadeNome }}</span> }
-                    @if (i.dataLimite) { <span>até <span class="dado">{{ fmt.data(i.dataLimite + 'T12:00:00') }}</span></span> }
+                    @if (i.agenda?.recorrencia && i.agenda?.proximoVencimento) {
+                      <span>
+                        <span class="material-symbols-rounded rotulo-icone" aria-hidden="true">event_repeat</span>
+                        {{ rotuloRecorrencia(i.agenda!.recorrencia!) }} · próximo
+                        <span class="dado">{{ fmt.data(i.agenda!.proximoVencimento! + 'T12:00:00') }}</span>
+                      </span>
+                    } @else if (i.agenda?.proximoVencimento) {
+                      <span>até <span class="dado">{{ fmt.data(i.agenda!.proximoVencimento! + 'T12:00:00') }}</span></span>
+                    } @else if (i.dataLimite) {
+                      <span>até <span class="dado">{{ fmt.data(i.dataLimite + 'T12:00:00') }}</span></span>
+                    }
+                    @if (temVencimento(i) && !i.agenda && i.recorrenciaSugerida) {
+                      <span class="manual">{{ rotuloRecorrencia(i.recorrenciaSugerida).toLowerCase() }}, sem data</span>
+                    }
                     @if (i.origem === 'MANUAL') { <span class="manual">manual</span> }
                     @if (i.status === 'SUBSTITUIDO') { <span class="manual">trocado por aditivo</span> }
                     @if (prazo(i); as p) { <aurora-selo [tom]="p.tom">{{ p.rotulo }}</aurora-selo> }
@@ -203,17 +225,6 @@
                 {{ i.status === 'REJEITADO' ? 'Rejeitado' : 'Aprovado' }} por {{ i.revisadoPor ?? '—' }}
                 {{ i.revisadoEm ? 'em ' + fmt.dataEHora(i.revisadoEm) : '' }}
                 @if (i.motivoRevisao) { · motivo: {{ i.motivoRevisao }} }
-              </p>
-            }
-            @if (i.cumpridoEm) {
-              <p class="ajuda">
-                <span class="material-symbols-rounded" aria-hidden="true">event_available</span>
-                Prazo cumprido, informado por {{ i.cumpridoPor ?? '—' }} em {{ fmt.dataEHora(i.cumpridoEm) }}.
-              </p>
-            } @else if (prazo(i); as p) {
-              <p class="ajuda">
-                <span class="material-symbols-rounded" aria-hidden="true">notifications_active</span>
-                {{ p.rotulo }}. A Aurora gera alerta a partir de 60 dias antes até o prazo ser marcado como cumprido.
               </p>
             }
             @if (i.status === 'SUBSTITUIDO' && i.substituidoPor) {
@@ -363,6 +374,89 @@
             <p class="erro" role="alert"><span class="material-symbols-rounded" aria-hidden="true">error</span>{{ erro() }}</p>
           }
         </form>
+        @if (emRevisao(); as i) {
+          @if (temVencimento(i)) {
+            <section class="vencimentos" aria-labelledby="titulo-vencimentos">
+              <h3 id="titulo-vencimentos">
+                <span class="material-symbols-rounded" aria-hidden="true">event_repeat</span> Vencimentos
+              </h3>
+              @if (i.agenda; as a) {
+                <dl class="agenda">
+                  <dt>Próximo</dt>
+                  <dd>
+                    @if (a.proximoVencimento) {
+                      <span class="dado">{{ fmt.data(a.proximoVencimento + 'T12:00:00') }}</span>
+                      @if (prazo(i); as p) { <aurora-selo [tom]="p.tom">{{ p.rotulo }}</aurora-selo> }
+                    } @else {
+                      <aurora-selo tom="ok">Tudo cumprido</aurora-selo>
+                    }
+                  </dd>
+                  <dt>Repetição</dt>
+                  <dd>
+                    {{ a.recorrencia ? rotuloRecorrencia(a.recorrencia) : 'Não se repete' }}
+                    <span class="nota">· {{ a.recorrencia ? 'desde' : 'em' }} {{ fmt.data(a.primeiroVencimento + 'T12:00:00') }}</span>
+                  </dd>
+                </dl>
+                @if (a.cumprimentos.length) {
+                  <ul class="historico" aria-label="Vencimentos cumpridos">
+                    @for (c of a.cumprimentos.slice(0, 6); track c.vencimento) {
+                      <li>
+                        <span class="material-symbols-rounded" aria-hidden="true">check_circle</span>
+                        <span class="dado">{{ fmt.data(c.vencimento + 'T12:00:00') }}</span>
+                        <span class="nota">cumprido · {{ c.cumpridoPor ?? '—' }}, {{ fmt.dataEHora(c.cumpridoEm) }}</span>
+                      </li>
+                    }
+                  </ul>
+                }
+                <p class="ajuda">
+                  <span class="material-symbols-rounded" aria-hidden="true">notifications_active</span>
+                  <span>A Aurora gera alerta antes de cada vencimento até ele ser marcado como cumprido.</span>
+                </p>
+              } @else {
+                <p class="ajuda">
+                  <span class="material-symbols-rounded" aria-hidden="true">event_busy</span>
+                  <span>
+                    Sem data de vencimento: a Aurora ainda não acompanha este item.
+                    @if (i.recorrenciaSugerida) {
+                      O contrato indica repetição {{ rotuloRecorrencia(i.recorrenciaSugerida).toLowerCase() }}.
+                    }
+                  </span>
+                </p>
+              }
+              @if (podeGerir()) {
+                @if (editandoAgenda()) {
+                  <form class="form-agenda" [formGroup]="agendaForm" (ngSubmit)="salvarAgenda()">
+                    <mat-form-field>
+                      <mat-label>{{ agendaForm.controls.recorrencia.value === 'UNICA' ? 'Vencimento' : 'Primeiro vencimento' }}</mat-label>
+                      <input matInput [matDatepicker]="calVencimento" formControlName="primeiroVencimento" placeholder="dd/mm/aaaa" />
+                      <mat-datepicker-toggle matIconSuffix [for]="calVencimento" />
+                      <mat-datepicker #calVencimento />
+                      <mat-error>Informe a data.</mat-error>
+                    </mat-form-field>
+                    <mat-form-field>
+                      <mat-label>Repetição</mat-label>
+                      <mat-select formControlName="recorrencia">
+                        <mat-option value="UNICA">Não se repete</mat-option>
+                        @for (r of recorrencias; track r.codigo) {
+                          <mat-option [value]="r.codigo">{{ r.rotulo }}</mat-option>
+                        }
+                      </mat-select>
+                    </mat-form-field>
+                    <div class="acoes-agenda">
+                      <button matButton type="button" (click)="editandoAgenda.set(false)">Cancelar</button>
+                      <button matButton="filled" type="submit" [disabled]="salvando()">Salvar vencimento</button>
+                    </div>
+                  </form>
+                } @else {
+                  <button matButton="outlined" type="button" class="definir-agenda" (click)="abrirEdicaoAgenda(i)">
+                    <span class="material-symbols-rounded" aria-hidden="true">edit_calendar</span>
+                    {{ i.agenda ? 'Alterar vencimento' : 'Definir vencimento' }}
+                  </button>
+                }
+              }
+            </section>
+          }
+        }
       </mat-dialog-content>
       <mat-dialog-actions align="end">
         <button matButton type="button" (click)="fechar()">Fechar</button>
@@ -376,12 +470,16 @@
               <button matButton="filled" type="button" (click)="aprovar()" [disabled]="salvando()">
                 @if (salvando()) { <mat-spinner diameter="16" /> } Aprovar
               </button>
-            } @else if (i.status === 'APROVADO' && i.tipo === 'PRAZO') {
-              @if (i.cumpridoEm) {
-                <button matButton="outlined" type="button" (click)="definirCumprimento(false)" [disabled]="salvando()">Reabrir prazo</button>
-              } @else {
+            } @else if (i.agenda; as a) {
+              @if (a.cumprimentos.length) {
+                <button matButton="outlined" type="button" (click)="definirCumprimento(false)" [disabled]="salvando()">
+                  Desfazer último cumprimento
+                </button>
+              }
+              @if (a.proximoVencimento) {
                 <button matButton="filled" type="button" (click)="definirCumprimento(true)" [disabled]="salvando()">
-                  @if (salvando()) { <mat-spinner diameter="16" /> } Marcar como cumprido
+                  @if (salvando()) { <mat-spinner diameter="16" /> }
+                  Marcar {{ fmt.data(a.proximoVencimento + 'T12:00:00') }} como cumprido
                 </button>
               }
             }

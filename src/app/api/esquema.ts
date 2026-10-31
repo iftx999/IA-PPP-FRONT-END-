@@ -164,6 +164,22 @@ export interface paths {
     patch?: never;
     trace?: never;
   };
+  '/api/v1/contratos/itens/{item}/agenda': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put: operations['definirAgenda'];
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
   '/api/v1/assistente/mensagens/{id}/avaliacao': {
     parameters: {
       query?: never;
@@ -1183,6 +1199,46 @@ export interface components {
       /** Format: date */
       vigenciaInicio: string | null;
     };
+    AgendaRequest: {
+      /** Format: date */
+      primeiroVencimento: string | null;
+      /** @enum {string|null} */
+      recorrencia:
+        | 'MENSAL'
+        | 'BIMESTRAL'
+        | 'TRIMESTRAL'
+        | 'QUADRIMESTRAL'
+        | 'SEMESTRAL'
+        | 'ANUAL'
+        | 'QUADRIENAL'
+        | 'QUINQUENAL'
+        | null;
+    };
+    AgendaResponse: {
+      /** Format: date */
+      primeiroVencimento: string;
+      /** @enum {string|null} */
+      recorrencia:
+        | 'MENSAL'
+        | 'BIMESTRAL'
+        | 'TRIMESTRAL'
+        | 'QUADRIMESTRAL'
+        | 'SEMESTRAL'
+        | 'ANUAL'
+        | 'QUADRIENAL'
+        | 'QUINQUENAL'
+        | null;
+      /** Format: date */
+      proximoVencimento: string | null;
+      cumprimentos: components['schemas']['CumprimentoResponse'][];
+    };
+    CumprimentoResponse: {
+      /** Format: date */
+      vencimento: string;
+      /** Format: date-time */
+      cumpridoEm: string;
+      cumpridoPor: string | null;
+    };
     AvaliacaoRequest: {
       /** Format: int32 */
       avaliacao: number;
@@ -1944,9 +2000,18 @@ export interface components {
       motivoRevisao: string | null;
       /** Format: uuid */
       substituidoPor: string | null;
-      cumpridoPor: string | null;
-      /** Format: date-time */
-      cumpridoEm: string | null;
+      agenda: components['schemas']['AgendaResponse'] | null;
+      /** @enum {string|null} */
+      recorrenciaSugerida:
+        | 'MENSAL'
+        | 'BIMESTRAL'
+        | 'TRIMESTRAL'
+        | 'QUADRIMESTRAL'
+        | 'SEMESTRAL'
+        | 'ANUAL'
+        | 'QUADRIENAL'
+        | 'QUINQUENAL'
+        | null;
     };
     VerificacaoResponse: {
       /** Format: int64 */
@@ -2400,6 +2465,32 @@ export interface operations {
           [name: string]: unknown;
         };
         content?: never;
+      };
+    };
+  };
+  definirAgenda: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        item: string;
+      };
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        'application/json': components['schemas']['AgendaRequest'];
+      };
+    };
+    responses: {
+      /** @description OK */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          '*/*': components['schemas']['AgendaResponse'];
+        };
       };
     };
   };
@@ -3089,7 +3180,9 @@ export interface operations {
         headers: {
           [name: string]: unknown;
         };
-        content?: never;
+        content: {
+          '*/*': components['schemas']['AgendaResponse'];
+        };
       };
     };
   };
@@ -3109,7 +3202,9 @@ export interface operations {
         headers: {
           [name: string]: unknown;
         };
-        content?: never;
+        content: {
+          '*/*': components['schemas']['AgendaResponse'];
+        };
       };
     };
   };
