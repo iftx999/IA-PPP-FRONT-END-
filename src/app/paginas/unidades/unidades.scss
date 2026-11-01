@@ -25,7 +25,7 @@ h1 { font: 700 var(--fs-h1) var(--font-display); }
   &:hover { background: color-mix(in srgb, var(--bg-3) 70%, transparent); }
   &:focus-visible { outline: none; box-shadow: var(--shadow-focus); }
 }
-.no.selecionado { background: color-mix(in srgb, var(--accent) 14%, var(--bg-2)); }
+.no.selecionado { background: color-mix(in srgb, var(--accent) 14%, var(--bg-2)); code { color: var(--text-2); } }
 .no.inativo .nome, .no.inativo .tipo { color: var(--text-3); }
 .seta {
   flex: none; display: grid; place-items: center; width: 24px; height: 24px; padding: 0;

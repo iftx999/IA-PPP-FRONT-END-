@@ -39,7 +39,7 @@
                 <span class="perfil-nome" [matTooltip]="p.descricao ?? p.nome" matTooltipShowDelay="400">{{ p.nome }}</span>
                 <button matIconButton type="button" class="menu" [matMenuTriggerFor]="acoes"
                         [attr.aria-label]="'Ações do perfil ' + p.nome">
-                  <span class="material-symbols-rounded">more_vert</span>
+                  <span class="material-symbols-rounded" aria-hidden="true">more_vert</span>
                 </button>
                 <mat-menu #acoes="matMenu" xPosition="before">
                   <button mat-menu-item type="button" (click)="abrirEdicao(p)">

@@ -7,7 +7,7 @@
   <div class="pessoa">
     <span class="email">{{ email() }}</span>
     <button matIconButton type="button" (click)="sair()" matTooltip="Sair" aria-label="Sair">
-      <span class="material-symbols-rounded">logout</span>
+      <span class="material-symbols-rounded" aria-hidden="true">logout</span>
     </button>
   </div>
 </header>
@@ -84,7 +84,7 @@
           <th mat-header-cell *matHeaderCellDef aria-label="Ações"></th>
           <td mat-cell *matCellDef="let c">
             <button matIconButton type="button" [matMenuTriggerFor]="menu" [attr.aria-label]="'Ações de ' + c.nome">
-              <span class="material-symbols-rounded">more_vert</span>
+              <span class="material-symbols-rounded" aria-hidden="true">more_vert</span>
             </button>
             <mat-menu #menu="matMenu">
               <button mat-menu-item type="button" (click)="abrirEdicao(c)">

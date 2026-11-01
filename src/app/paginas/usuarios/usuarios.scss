@@ -42,7 +42,11 @@ h1 { font: 700 var(--fs-h1) var(--font-display); }
 .mat-column-acoes { width: 56px; text-align: right; }
 
 .pessoa { display: flex; align-items: center; gap: var(--space-3); padding: 6px 0; }
-.pessoa.inativa { opacity: .6; }
+.pessoa.inativa {
+  // Sem opacidade: o texto continua legível (WCAG 1.4.3); o selo "Inativo" e o tom marcam a situação.
+  .avatar { background: var(--bg-3); color: var(--text-2); }
+  .identificacao { color: var(--text-2); }
+}
 .avatar {
   flex: none; display: grid; place-items: center; width: 36px; height: 36px; border-radius: 50%;
   background: color-mix(in srgb, var(--accent) 16%, var(--bg-2)); color: var(--text-1);

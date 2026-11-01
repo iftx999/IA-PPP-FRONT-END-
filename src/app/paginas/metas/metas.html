@@ -58,7 +58,7 @@
               <button matIconButton type="button" class="alternar" (click)="alternar(r.linha.unidadeId)"
                       [attr.aria-expanded]="!recolhidas().has(r.linha.unidadeId)"
                       [attr.aria-label]="(recolhidas().has(r.linha.unidadeId) ? 'Expandir ' : 'Recolher ') + r.linha.unidadeNome">
-                <span class="material-symbols-rounded">{{ recolhidas().has(r.linha.unidadeId) ? 'chevron_right' : 'expand_more' }}</span>
+                <span class="material-symbols-rounded" aria-hidden="true">{{ recolhidas().has(r.linha.unidadeId) ? 'chevron_right' : 'expand_more' }}</span>
               </button>
             } @else {
               <span class="sem-alternar" aria-hidden="true"></span>
@@ -141,17 +141,17 @@
         <td mat-cell *matCellDef="let r" class="acoes">
           <button matIconButton type="button" matTooltip="Histórico de metas"
                   [attr.aria-label]="'Histórico de metas de ' + r.linha.unidadeNome" (click)="abrirHistorico(r.linha)">
-            <span class="material-symbols-rounded">history</span>
+            <span class="material-symbols-rounded" aria-hidden="true">history</span>
           </button>
           @if (sessao.pode('indicador:gerenciar') && r.linha.propria && !r.linha.propria.doContrato && !r.linha.propria.origem) {
             <button matIconButton type="button" matTooltip="Encerrar meta" [attr.aria-label]="'Encerrar meta de ' + r.linha.unidadeNome"
                     (click)="abrirEncerrar(r.linha)">
-              <span class="material-symbols-rounded">event_busy</span>
+              <span class="material-symbols-rounded" aria-hidden="true">event_busy</span>
             </button>
           } @else if (sessao.pode('indicador:gerenciar') && !r.linha.propria) {
             <button matIconButton type="button" matTooltip="Definir meta própria"
                     [attr.aria-label]="'Definir meta própria para ' + r.linha.unidadeNome" (click)="abrirNova(r.linha)">
-              <span class="material-symbols-rounded">add_circle</span>
+              <span class="material-symbols-rounded" aria-hidden="true">add_circle</span>
             </button>
           }
         </td>

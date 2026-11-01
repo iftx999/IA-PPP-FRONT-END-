@@ -74,7 +74,7 @@
       <a matIconButton routerLink="/alertas" class="sino" [class.com-alertas]="alertas.pendentes()"
          [matTooltip]="alertas.pendentes() ? alertas.pendentes() + ' alertas pedem atenção' : 'Nenhum alerta pendente'"
          [attr.aria-label]="alertas.pendentes() ? 'Alertas: ' + alertas.pendentes() + ' pendentes' : 'Alertas: nenhum pendente'">
-        <span class="material-symbols-rounded">{{ alertas.pendentes() ? 'notifications_active' : 'notifications' }}</span>
+        <span class="material-symbols-rounded" aria-hidden="true">{{ alertas.pendentes() ? 'notifications_active' : 'notifications' }}</span>
         @if (alertas.pendentes()) {
           <span class="selo-sino" [class.critico]="alertas.criticos()" aria-hidden="true">{{ alertas.pendentes() > 99 ? '99+' : alertas.pendentes() }}</span>
         }
@@ -83,15 +83,17 @@
     <button matIconButton type="button" (click)="tema.alternar()"
             [matTooltip]="tema.tema() === 'dark' ? 'Usar tema claro' : 'Usar tema escuro'"
             [attr.aria-label]="tema.tema() === 'dark' ? 'Usar tema claro' : 'Usar tema escuro'">
-      <span class="material-symbols-rounded">{{ tema.tema() === 'dark' ? 'light_mode' : 'dark_mode' }}</span>
+      <span class="material-symbols-rounded" aria-hidden="true">{{ tema.tema() === 'dark' ? 'light_mode' : 'dark_mode' }}</span>
     </button>
     @if (sessao.usuario(); as eu) {
-      <button type="button" class="usuario" [matMenuTriggerFor]="menuUsuario" aria-label="Menu da conta">
+      <!-- Nome acessível = texto visível + "menu da conta" (WCAG 2.5.3, regra label-content-name-mismatch do axe). -->
+      <button type="button" class="usuario" [matMenuTriggerFor]="menuUsuario">
         <span class="avatar" aria-hidden="true">{{ sessao.iniciais() }}</span>
         <span class="usuario-texto">
           <span>{{ eu.nome }}</span>
           <span class="email">{{ eu.email }}</span>
         </span>
+        <span class="visualmente-oculto">, menu da conta</span>
         <span class="material-symbols-rounded seta" aria-hidden="true">expand_more</span>
       </button>
       <mat-menu #menuUsuario="matMenu" xPosition="before">
@@ -101,7 +103,7 @@
       </mat-menu>
     }
     <button matIconButton type="button" (click)="sessao.sair()" matTooltip="Sair" aria-label="Sair">
-      <span class="material-symbols-rounded">logout</span>
+      <span class="material-symbols-rounded" aria-hidden="true">logout</span>
     </button>
   </div>
 </header>

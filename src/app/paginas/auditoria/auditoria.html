@@ -58,7 +58,7 @@
         </p>
       </div>
       <button matIconButton type="button" (click)="verificacao.set(null)" aria-label="Fechar resultado da verificação">
-        <span class="material-symbols-rounded">close</span>
+        <span class="material-symbols-rounded" aria-hidden="true">close</span>
       </button>
     </section>
   }
@@ -156,7 +156,7 @@
                   <button matIconButton type="button" (click)="alternar(e.sequencia); $event.stopPropagation()"
                           [attr.aria-expanded]="abertos().has(e.sequencia)"
                           [attr.aria-label]="(abertos().has(e.sequencia) ? 'Ocultar' : 'Ver') + ' detalhes do evento ' + e.sequencia">
-                    <span class="material-symbols-rounded">{{ abertos().has(e.sequencia) ? 'expand_less' : 'expand_more' }}</span>
+                    <span class="material-symbols-rounded" aria-hidden="true">{{ abertos().has(e.sequencia) ? 'expand_less' : 'expand_more' }}</span>
                   </button>
                 </td>
               </tr>

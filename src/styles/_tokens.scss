@@ -1,11 +1,13 @@
 // Design tokens da Aurora (docs/07-identidade-visual.md). Nenhum valor de cor fixo nos componentes.
 :root {
   --bg-0: #051313; --bg-1: #081018; --bg-2: #0c181c; --bg-3: #12212a; --line: #1c2e36;
-  --text-1: #e8f0ee; --text-2: #b4c1c3; --text-3: #6f8288;
+  --text-1: #e8f0ee; --text-2: #b4c1c3;
+  // WCAG AA (4,5:1) também sobre --bg-3 e nos selos (axe nos E2E).
+  --text-3: #7a8d93;
   --accent: #4ad7bc; --accent-2: #1acbd8; --accent-3: #2c9aeb;
   --accent-glow: rgba(74, 215, 188, .35);
   --on-accent: #04201b;
-  --ok: #3de693; --warn: #ecc32a; --danger: #e76069; --danger-soft: #ee7a62; --neutral: #86929e;
+  --ok: #3de693; --warn: #ecc32a; --danger: #ec8087; --danger-soft: #ee7a62; --neutral: #86929e;
   --net-confirmed: #43c3c5; --net-presumed: #e0c573;
 
   --space-1: 4px; --space-2: 8px; --space-3: 12px; --space-4: 16px; --space-5: 24px; --space-6: 32px;
@@ -30,8 +32,10 @@
 :root[data-theme='light'] {
   --bg-0: #e9f1ef; --bg-1: #f4f8f7; --bg-2: #ffffff; --bg-3: #e9f1ef; --line: #d3e0dd;
   --text-1: #0b1a1f; --text-2: #3d5359; --text-3: #5b6f74;
-  --accent: #0f9d86;
-  --accent-glow: rgba(15, 157, 134, .25);
+  // Tons escurecidos para servir também de texto sobre fundo claro e nos selos (WCAG AA 4,5:1).
+  --accent: #0a6b5b;
+  --accent-glow: rgba(10, 107, 91, .25);
+  --ok: #176038; --warn: #6a5813; --danger: #8b3a3f; --neutral: #58636e;
   --on-accent: #ffffff;
   --shadow-card: 0 8px 30px rgba(11, 26, 31, .08);
   color-scheme: light;

@@ -46,7 +46,7 @@
             @if (l.temFilhas) {
               <button type="button" class="seta" tabindex="-1" (click)="alternar(l.no.id, $event)"
                       [attr.aria-label]="(l.aberta ? 'Recolher ' : 'Expandir ') + l.no.nome">
-                <span class="material-symbols-rounded">{{ l.aberta ? 'expand_more' : 'chevron_right' }}</span>
+                <span class="material-symbols-rounded" aria-hidden="true">{{ l.aberta ? 'expand_more' : 'chevron_right' }}</span>
               </button>
             } @else {
               <span class="seta" aria-hidden="true"></span>

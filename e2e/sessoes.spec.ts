@@ -19,7 +19,7 @@ test.describe('Sessões e trilha de acesso', () => {
     const outraPagina = await outro.newPage();
     await entrar(outraPagina, 'auditoria@exemplo.dev', '/painel');
 
-    await page.getByRole('button', { name: 'Menu da conta' }).click();
+    await page.getByRole('button', { name: /menu da conta/ }).click();
     await page.screenshot({ path: 'e2e/capturas/sessoes-menu.png' });
     await page.getByRole('menuitem', { name: 'Sair de todos os dispositivos' }).click();
     await page.waitForURL(/\/realms\/[^/]+\/protocol|\/acesso/);

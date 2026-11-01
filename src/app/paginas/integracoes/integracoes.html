@@ -56,7 +56,7 @@
             </dl>
           </div>
           <button matIconButton type="button" [matMenuTriggerFor]="menu" [attr.aria-label]="'Ações da fonte ' + f.nome">
-            <span class="material-symbols-rounded">more_vert</span>
+            <span class="material-symbols-rounded" aria-hidden="true">more_vert</span>
           </button>
           <mat-menu #menu="matMenu" xPosition="before">
             @if (f.ativo) {
@@ -199,7 +199,7 @@
           <div class="chave-valor">
             <code class="dado">{{ gerada.chave }}</code>
             <button matIconButton type="button" (click)="copiar(gerada.chave)" aria-label="Copiar a chave">
-              <span class="material-symbols-rounded">content_copy</span>
+              <span class="material-symbols-rounded" aria-hidden="true">content_copy</span>
             </button>
           </div>
         </div>

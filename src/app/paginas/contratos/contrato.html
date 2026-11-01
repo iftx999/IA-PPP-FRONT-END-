@@ -83,7 +83,7 @@
               }
             </div>
             <button matIconButton type="button" [matMenuTriggerFor]="menuDoc" [attr.aria-label]="'Ações do documento ' + doc.titulo">
-              <span class="material-symbols-rounded">more_vert</span>
+              <span class="material-symbols-rounded" aria-hidden="true">more_vert</span>
             </button>
             <mat-menu #menuDoc="matMenu" xPosition="before">
               <button mat-menu-item type="button" (click)="mostrarPdfAvulso(doc)">
@@ -276,7 +276,7 @@
                 <mat-label>Página</mat-label>
                 <input matInput type="number" min="1" formControlName="pagina" class="dado" (change)="irParaPagina()" />
                 <button matIconSuffix matIconButton type="button" (click)="irParaPagina()" aria-label="Abrir o PDF nesta página">
-                  <span class="material-symbols-rounded">open_in_new</span>
+                  <span class="material-symbols-rounded" aria-hidden="true">open_in_new</span>
                 </button>
               </mat-form-field>
             </div>

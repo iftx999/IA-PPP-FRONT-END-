@@ -46,7 +46,7 @@
   }
 
   <section class="cartao lista" aria-label="Imóveis sem ligação">
-    <div class="rolagem">
+    <div class="rolagem" tabindex="0" role="region" aria-label="Lista de imóveis sem ligação">
       <table mat-table [dataSource]="itens()">
         <ng-container matColumnDef="matricula">
           <th mat-header-cell *matHeaderCellDef>Matrícula</th>

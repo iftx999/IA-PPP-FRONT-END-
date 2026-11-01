@@ -210,3 +210,9 @@ button.perigo { --mat-button-filled-container-color: var(--danger); --mat-button
 :root:not([data-theme='light']) .maplibregl-ctrl-group .maplibregl-ctrl-icon { filter: invert(1) hue-rotate(180deg); }
 .maplibregl-ctrl-attrib, .maplibregl-ctrl-scale { background: color-mix(in srgb, var(--bg-2) 85%, transparent); color: var(--text-2); }
 .maplibregl-ctrl-attrib a { color: var(--text-2); }
+
+// Texto só para leitor de tela (ex.: completar o nome acessível de um botão).
+.visualmente-oculto {
+  position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden;
+  clip: rect(0 0 0 0); white-space: nowrap; border: 0;
+}

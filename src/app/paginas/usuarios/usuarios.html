@@ -125,7 +125,7 @@
         <th mat-header-cell *matHeaderCellDef><span class="cdk-visually-hidden">Ações</span></th>
         <td mat-cell *matCellDef="let u" class="acoes">
           <button matIconButton type="button" [matMenuTriggerFor]="menu" [attr.aria-label]="'Ações de ' + u.nome">
-            <span class="material-symbols-rounded">more_vert</span>
+            <span class="material-symbols-rounded" aria-hidden="true">more_vert</span>
           </button>
           <mat-menu #menu="matMenu" xPosition="before">
             <button mat-menu-item type="button" (click)="abrirAcesso(u)">
@@ -217,7 +217,7 @@
         </mat-form-field>
         <button matIconButton type="button" class="remover" [disabled]="concessoes.length === 1"
                 (click)="removerConcessao(i)" [attr.aria-label]="'Remover concessão ' + (i + 1)">
-          <span class="material-symbols-rounded">delete</span>
+          <span class="material-symbols-rounded" aria-hidden="true">delete</span>
         </button>
       </div>
     }
