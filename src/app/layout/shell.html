@@ -5,8 +5,17 @@
   </a>
 
   <div class="escopo">
+    @if (sessao.usuario()?.tenantTemLogo) {
+      <img class="logo-cliente" [src]="'/api/v1/publico/clientes/' + sessao.usuario()!.tenantCodigo + '/logo'"
+           [alt]="'Logo de ' + sessao.usuario()!.tenant" />
+    }
     <span class="rotulo">Seu escopo</span>
     <span class="escopo-nome">{{ sessao.usuario()?.tenant ?? (sessao.semAcesso() || sessao.segundoFatorNecessario() ? '—' : 'Carregando…') }}</span>
+    @if (variosClientes) {
+      <button type="button" class="trocar" (click)="sessao.trocarDeEmpresa()">
+        <span class="material-symbols-rounded" aria-hidden="true">swap_horiz</span> Trocar de empresa
+      </button>
+    }
   </div>
 
   <nav aria-label="Menu principal">

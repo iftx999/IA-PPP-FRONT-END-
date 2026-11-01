@@ -21,10 +21,10 @@ let enderecoInicial: string | null = null;
  * Login OIDC (código + PKCE) no Keycloak. O token só é anexado às chamadas para /api.
  * O tenant é identificado pela API a partir do emissor do token, nunca pelo front.
  */
-export function provideAutenticacao(configuracao: ConfiguracaoAurora): EnvironmentProviders {
+export function provideAutenticacao(configuracao: ConfiguracaoAurora, retorno = ROTA_RETORNO): EnvironmentProviders {
   const origem = window.location.origin;
   const pedido = window.location.pathname + window.location.search + window.location.hash;
-  enderecoInicial = pedido.startsWith(`/${ROTA_RETORNO}`) || pedido === '/' ? null : pedido;
+  enderecoInicial = pedido.startsWith(`/${retorno}`) || pedido === '/' ? null : pedido;
   return provideAuth(
     {
       config: {
@@ -32,9 +32,9 @@ export function provideAutenticacao(configuracao: ConfiguracaoAurora): Environme
         clientId: configuracao.clienteId,
         // Retorno numa rota própria, sem redirecionamentos: evita a corrida entre o redirecionamento de "/" e a
         // navegação para a rota pedida (a pessoa caía no Painel).
-        redirectUrl: `${origem}/${ROTA_RETORNO}`,
+        redirectUrl: `${origem}/${retorno}`,
         // Depois do callback a biblioteca navega para cá (o padrão "/" redirecionava ao Painel).
-        postLoginRoute: `/${ROTA_RETORNO}`,
+        postLoginRoute: `/${retorno}`,
         postLogoutRedirectUri: origem,
         scope: 'openid profile email',
         responseType: 'code',
@@ -83,7 +83,9 @@ export class RetornoDoLogin implements OnInit {
     const { isAuthenticated } = await firstValueFrom(this.oidc.isAuthenticated$);
     const destino = sessionStorage.getItem(CHAVE_RETORNO);
     sessionStorage.removeItem(CHAVE_RETORNO);
-    const seguro = destino?.startsWith('/') && !destino.startsWith('//') && !destino.startsWith(`/${ROTA_RETORNO}`);
-    await this.router.navigateByUrl(isAuthenticated && seguro ? destino! : '/painel', { replaceUrl: true });
+    const seguro = destino?.startsWith('/') && !destino.startsWith('//') && !destino.includes(`/${ROTA_RETORNO}`);
+    // A plataforma volta para a própria área; os clientes, para o Painel.
+    const padrao = this.router.url.startsWith('/plataforma') ? '/plataforma' : '/painel';
+    await this.router.navigateByUrl(isAuthenticated && seguro ? destino! : padrao, { replaceUrl: true });
   }
 }

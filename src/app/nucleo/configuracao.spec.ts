@@ -8,7 +8,22 @@ describe('configuração do ambiente', () => {
     const lida = await carregarConfiguracao(
       respondendo(200, { emissor: 'https://id.empresa.com.br/realms/aurora', clienteId: 'aurora-web', extra: 1 }),
     );
-    expect(lida).toEqual({ emissor: 'https://id.empresa.com.br/realms/aurora', clienteId: 'aurora-web' });
+    expect(lida).toEqual({ emissor: 'https://id.empresa.com.br/realms/aurora', clienteId: 'aurora-web', escolherCliente: false });
+  });
+
+  it('vários clientes e realm da plataforma (ADR 0027); plataforma vazia é ignorada', async () => {
+    const completo = await carregarConfiguracao(
+      respondendo(200, {
+        emissor: 'e', clienteId: 'c', escolherCliente: true, emissorPlataforma: 'https://id/realms/plataforma',
+        clientePlataforma: 'aurora-plataforma-web',
+      }),
+    );
+    expect(completo.escolherCliente).toBe(true);
+    expect(completo.emissorPlataforma).toBe('https://id/realms/plataforma');
+    const semPlataforma = await carregarConfiguracao(
+      respondendo(200, { emissor: 'e', clienteId: 'c', escolherCliente: 'sim', emissorPlataforma: '', clientePlataforma: 'x' }),
+    );
+    expect(semPlataforma).toEqual({ emissor: 'e', clienteId: 'c', escolherCliente: false });
   });
 
   it('cai nos valores locais sem arquivo ou com arquivo incompleto', async () => {

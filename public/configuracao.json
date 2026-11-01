@@ -1,4 +1,7 @@
 {
   "emissor": "http://localhost:8180/realms/aurora",
-  "clienteId": "aurora-web"
+  "clienteId": "aurora-web",
+  "escolherCliente": true,
+  "emissorPlataforma": "http://localhost:8180/realms/plataforma",
+  "clientePlataforma": "aurora-plataforma-web"
 }

@@ -9,6 +9,14 @@ export interface ConfiguracaoAurora {
   /** Emissor OIDC (realm do Keycloak). */
   emissor: string;
   clienteId: string;
+  /**
+   * Vários clientes na mesma instalação (ADR 0027): antes do login a pessoa informa o código da empresa, que leva ao
+   * realm dela. Desligado = todos entram no {@link emissor} (instalação de um cliente só).
+   */
+  escolherCliente?: boolean;
+  /** Realm e client de quem administra a plataforma (/plataforma). */
+  emissorPlataforma?: string;
+  clientePlataforma?: string;
   /** Fundo do mapa contratado; ausente = OpenStreetMap (só desenvolvimento). */
   fundoDoMapa?: FundoDoMapa;
 }
@@ -17,6 +25,9 @@ export interface ConfiguracaoAurora {
 export const CONFIGURACAO_LOCAL: ConfiguracaoAurora = {
   emissor: 'http://localhost:8180/realms/aurora',
   clienteId: 'aurora-web',
+  escolherCliente: true,
+  emissorPlataforma: 'http://localhost:8180/realms/plataforma',
+  clientePlataforma: 'aurora-plataforma-web',
 };
 
 export const CONFIGURACAO = new InjectionToken<ConfiguracaoAurora>('CONFIGURACAO', {
@@ -34,7 +45,15 @@ export async function carregarConfiguracao(buscar: typeof fetch = fetch): Promis
     if (!lida.emissor || !lida.clienteId) {
       return CONFIGURACAO_LOCAL;
     }
-    return { emissor: lida.emissor, clienteId: lida.clienteId, ...(lida.fundoDoMapa ? { fundoDoMapa: lida.fundoDoMapa } : {}) };
+    return {
+      emissor: lida.emissor,
+      clienteId: lida.clienteId,
+      escolherCliente: lida.escolherCliente === true,
+      ...(lida.emissorPlataforma && lida.clientePlataforma
+        ? { emissorPlataforma: lida.emissorPlataforma, clientePlataforma: lida.clientePlataforma }
+        : {}),
+      ...(lida.fundoDoMapa ? { fundoDoMapa: lida.fundoDoMapa } : {}),
+    };
   } catch {
     return CONFIGURACAO_LOCAL;
   }

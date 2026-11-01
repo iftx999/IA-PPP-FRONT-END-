@@ -76,3 +76,7 @@ export type ProvedorCorporativo = Esquemas['ProvedorResponse'];
 export type PedidoSso = Esquemas['SsoRequest'];
 export type AgendaDePrazo = Esquemas['AgendaResponse'];
 export type Recorrencia = NonNullable<AgendaDePrazo['recorrencia']>;
+export type ClientePlataforma = Esquemas['ClienteResponse'];
+export type LimitesCliente = Esquemas['LimitesDto'];
+export type PedidoNovoCliente = Esquemas['NovoClienteRequest'];
+export type PedidoAlteracaoCliente = Esquemas['AlteracaoClienteRequest'];

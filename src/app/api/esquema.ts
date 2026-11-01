@@ -116,6 +116,38 @@ export interface paths {
     patch?: never;
     trace?: never;
   };
+  '/api/v1/plataforma/clientes/{id}': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get: operations['buscar'];
+    put: operations['alterar_1'];
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/api/v1/plataforma/clientes/{id}/logo': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put: operations['definirLogo'];
+    post?: never;
+    delete: operations['removerLogo'];
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
   '/api/v1/perfis/{id}': {
     parameters: {
       query?: never;
@@ -124,7 +156,7 @@ export interface paths {
       cookie?: never;
     };
     get?: never;
-    put: operations['alterar_1'];
+    put: operations['alterar_2'];
     post?: never;
     delete: operations['remover'];
     options?: never;
@@ -140,7 +172,7 @@ export interface paths {
       cookie?: never;
     };
     get?: never;
-    put: operations['alterar_2'];
+    put: operations['alterar_3'];
     post?: never;
     delete?: never;
     options?: never;
@@ -276,7 +308,7 @@ export interface paths {
     patch?: never;
     trace?: never;
   };
-  '/api/v1/perfis': {
+  '/api/v1/plataforma/clientes': {
     parameters: {
       query?: never;
       header?: never;
@@ -292,7 +324,39 @@ export interface paths {
     patch?: never;
     trace?: never;
   };
-  '/api/v1/metas': {
+  '/api/v1/plataforma/clientes/{id}/provisionamento': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    post: operations['concluirProvisionamento'];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/api/v1/plataforma/clientes/{id}/convite': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    post: operations['reenviarConvite_1'];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/api/v1/perfis': {
     parameters: {
       query?: never;
       header?: never;
@@ -302,6 +366,22 @@ export interface paths {
     get: operations['listar_3'];
     put?: never;
     post: operations['criar_2'];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/api/v1/metas': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get: operations['listar_4'];
+    put?: never;
+    post: operations['criar_3'];
     delete?: never;
     options?: never;
     head?: never;
@@ -331,9 +411,9 @@ export interface paths {
       path?: never;
       cookie?: never;
     };
-    get: operations['listar_4'];
+    get: operations['listar_5'];
     put?: never;
-    post: operations['criar_3'];
+    post: operations['criar_4'];
     delete?: never;
     options?: never;
     head?: never;
@@ -365,7 +445,7 @@ export interface paths {
     };
     get: operations['fontes'];
     put?: never;
-    post: operations['criar_4'];
+    post: operations['criar_5'];
     delete?: never;
     options?: never;
     head?: never;
@@ -427,9 +507,9 @@ export interface paths {
       path?: never;
       cookie?: never;
     };
-    get: operations['listar_5'];
+    get: operations['listar_6'];
     put?: never;
-    post: operations['criar_5'];
+    post: operations['criar_6'];
     delete?: never;
     options?: never;
     head?: never;
@@ -676,6 +756,38 @@ export interface paths {
     patch?: never;
     trace?: never;
   };
+  '/api/v1/publico/clientes/{codigo}': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get: operations['porCodigo'];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/api/v1/publico/clientes/{codigo}/logo': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get: operations['logo'];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
   '/api/v1/permissoes': {
     parameters: {
       query?: never;
@@ -811,7 +923,7 @@ export interface paths {
       path?: never;
       cookie?: never;
     };
-    get: operations['listar_6'];
+    get: operations['listar_7'];
     put?: never;
     post?: never;
     delete?: never;
@@ -1035,7 +1147,7 @@ export interface paths {
       path?: never;
       cookie?: never;
     };
-    get: operations['listar_7'];
+    get: operations['listar_8'];
     put?: never;
     post?: never;
     delete?: never;
@@ -1156,6 +1268,35 @@ export interface components {
       todos: boolean;
       administradores: boolean;
     };
+    AlteracaoClienteRequest: {
+      nome: string;
+      ativo: boolean;
+      limites: components['schemas']['LimitesDto'] | null;
+    };
+    LimitesDto: {
+      /** Format: int32 */
+      usuarios: number | null;
+      /** Format: int64 */
+      assistenteTokensPorMes: number | null;
+      assistenteUsdPorMes: number | null;
+    };
+    ClienteResponse: {
+      /** Format: uuid */
+      id: string;
+      codigo: string;
+      nome: string;
+      ativo: boolean;
+      /** Format: date-time */
+      criadoEm: string;
+      emissor: string | null;
+      contatoNome: string | null;
+      contatoEmail: string | null;
+      limites: components['schemas']['LimitesDto'];
+      /** Format: int64 */
+      usuariosAtivos: number;
+      temLogo: boolean;
+      provisionado: boolean;
+    };
     PerfilRequest: {
       nome: string;
       descricao: string | null;
@@ -1273,6 +1414,13 @@ export interface components {
     UnidadeCriada: {
       /** Format: uuid */
       id: string;
+    };
+    NovoClienteRequest: {
+      codigo: string;
+      nome: string;
+      contatoNome: string;
+      contatoEmail: string;
+      limites: components['schemas']['LimitesDto'] | null;
     };
     PerfilCriado: {
       /** Format: uuid */
@@ -1577,6 +1725,12 @@ export interface components {
       filhasAtivas: number;
       /** Format: int64 */
       acessos: number;
+    };
+    ClientePublico: {
+      codigo?: string;
+      nome?: string;
+      emissor?: string;
+      temLogo?: boolean;
     };
     PermissaoResponse: {
       codigo: string;
@@ -1894,6 +2048,8 @@ export interface components {
       /** Format: uuid */
       tenantId: string;
       tenant: string;
+      tenantCodigo: string;
+      tenantTemLogo: boolean;
       permissoes: string[];
     };
     ContratoResponse: {
@@ -2376,7 +2532,106 @@ export interface operations {
       };
     };
   };
+  buscar: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        id: string;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description OK */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          '*/*': components['schemas']['ClienteResponse'];
+        };
+      };
+    };
+  };
   alterar_1: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        id: string;
+      };
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        'application/json': components['schemas']['AlteracaoClienteRequest'];
+      };
+    };
+    responses: {
+      /** @description OK */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          '*/*': components['schemas']['ClienteResponse'];
+        };
+      };
+    };
+  };
+  definirLogo: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        id: string;
+      };
+      cookie?: never;
+    };
+    requestBody?: {
+      content: {
+        'multipart/form-data': {
+          /** Format: binary */
+          arquivo: string;
+        };
+      };
+    };
+    responses: {
+      /** @description OK */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          '*/*': components['schemas']['ClienteResponse'];
+        };
+      };
+    };
+  };
+  removerLogo: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        id: string;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description OK */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          '*/*': components['schemas']['ClienteResponse'];
+        };
+      };
+    };
+  };
+  alterar_2: {
     parameters: {
       query?: never;
       header?: never;
@@ -2420,7 +2675,7 @@ export interface operations {
       };
     };
   };
-  alterar_2: {
+  alterar_3: {
     parameters: {
       query?: never;
       header?: never;
@@ -2705,12 +2960,98 @@ export interface operations {
           [name: string]: unknown;
         };
         content: {
-          '*/*': components['schemas']['PerfilResponse'][];
+          '*/*': components['schemas']['ClienteResponse'][];
         };
       };
     };
   };
   criar_1: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        'application/json': components['schemas']['NovoClienteRequest'];
+      };
+    };
+    responses: {
+      /** @description Created */
+      201: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          '*/*': components['schemas']['ClienteResponse'];
+        };
+      };
+    };
+  };
+  concluirProvisionamento: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        id: string;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description OK */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          '*/*': components['schemas']['ClienteResponse'];
+        };
+      };
+    };
+  };
+  reenviarConvite_1: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        id: string;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description No Content */
+      204: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
+      };
+    };
+  };
+  listar_3: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description OK */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          '*/*': components['schemas']['PerfilResponse'][];
+        };
+      };
+    };
+  };
+  criar_2: {
     parameters: {
       query?: never;
       header?: never;
@@ -2734,7 +3075,7 @@ export interface operations {
       };
     };
   };
-  listar_3: {
+  listar_4: {
     parameters: {
       query?: never;
       header?: never;
@@ -2754,7 +3095,7 @@ export interface operations {
       };
     };
   };
-  criar_2: {
+  criar_3: {
     parameters: {
       query?: never;
       header?: never;
@@ -2802,7 +3143,7 @@ export interface operations {
       };
     };
   };
-  listar_4: {
+  listar_5: {
     parameters: {
       query?: {
         oeste?: number;
@@ -2827,7 +3168,7 @@ export interface operations {
       };
     };
   };
-  criar_3: {
+  criar_4: {
     parameters: {
       query?: never;
       header?: never;
@@ -2895,7 +3236,7 @@ export interface operations {
       };
     };
   };
-  criar_4: {
+  criar_5: {
     parameters: {
       query?: never;
       header?: never;
@@ -3014,7 +3355,7 @@ export interface operations {
       };
     };
   };
-  listar_5: {
+  listar_6: {
     parameters: {
       query?: never;
       header?: never;
@@ -3034,7 +3375,7 @@ export interface operations {
       };
     };
   };
-  criar_5: {
+  criar_6: {
     parameters: {
       query?: never;
       header?: never;
@@ -3464,6 +3805,50 @@ export interface operations {
       };
     };
   };
+  porCodigo: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        codigo: string;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description OK */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          '*/*': components['schemas']['ClientePublico'];
+        };
+      };
+    };
+  };
+  logo: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        codigo: string;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description OK */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          '*/*': string;
+        };
+      };
+    };
+  };
   catalogo: {
     parameters: {
       query?: never;
@@ -3656,7 +4041,7 @@ export interface operations {
       };
     };
   };
-  listar_6: {
+  listar_7: {
     parameters: {
       query?: {
         unidade?: string;
@@ -3971,7 +4356,7 @@ export interface operations {
       };
     };
   };
-  listar_7: {
+  listar_8: {
     parameters: {
       query?: {
         estado?: 'ABERTOS' | 'RECONHECIDOS' | 'RESOLVIDOS';

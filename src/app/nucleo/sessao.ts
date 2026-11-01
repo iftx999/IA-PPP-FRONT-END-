@@ -4,6 +4,7 @@ import { Router } from '@angular/router';
 import { OidcSecurityService } from 'angular-auth-oidc-client';
 import type { Eu } from '../api/tipos';
 import { entrarDeNovo } from './autenticacao';
+import { esquecerCliente } from './cliente';
 import { SegundoFatorEstado, exigeSegundoFator } from './segundo-fator';
 
 
@@ -46,6 +47,15 @@ export class SessaoService {
   }
 
   sair(): void {
+    this.oidc.logoff().subscribe();
+  }
+
+  /**
+   * ADR 0027: esquece a empresa deste navegador e encerra a sessão; na volta, sem empresa lembrada, a pessoa cai na
+   * tela do código.
+   */
+  trocarDeEmpresa(): void {
+    esquecerCliente();
     this.oidc.logoff().subscribe();
   }
 }

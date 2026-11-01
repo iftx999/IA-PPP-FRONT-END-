@@ -3,6 +3,7 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { Router, RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
 import { AlertasService } from '../nucleo/alertas';
+import { CONFIGURACAO } from '../nucleo/configuracao';
 import { SessaoService } from '../nucleo/sessao';
 import { TemaService } from '../nucleo/tema';
 
@@ -22,6 +23,8 @@ interface ItemMenu {
 export class Shell {
   protected readonly tema = inject(TemaService);
   protected readonly sessao = inject(SessaoService);
+  /** ADR 0027: instalação com vários clientes (tela do código da empresa). */
+  protected readonly variosClientes = inject(CONFIGURACAO).escolherCliente === true;
   protected readonly alertas = inject(AlertasService);
   private readonly roteador = inject(Router);
 

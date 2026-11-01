@@ -16,13 +16,13 @@ import { CONFIGURACAO, type ConfiguracaoAurora } from './nucleo/configuracao';
 
 registerLocaleData(localePt);
 
-export function configuracaoDoApp(configuracao: ConfiguracaoAurora): ApplicationConfig {
+export function configuracaoDoApp(configuracao: ConfiguracaoAurora, retornoDoLogin?: string): ApplicationConfig {
   return {
   providers: [
     { provide: CONFIGURACAO, useValue: configuracao },
     provideBrowserGlobalErrorListeners(),
     provideHttpClient(withInterceptors([authInterceptor(), interceptarSegundoFator])),
-    provideAutenticacao(configuracao),
+    provideAutenticacao(configuracao, retornoDoLogin),
     provideRouter(routes, withComponentInputBinding()),
     { provide: LOCALE_ID, useValue: 'pt-BR' },
     // Campos do Material: contorno e sem espaço reservado para mensagens quando não há mensagem.

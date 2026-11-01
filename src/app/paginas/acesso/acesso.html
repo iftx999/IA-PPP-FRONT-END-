@@ -1,0 +1,28 @@
+<main class="acesso">
+  <section class="cartao painel" aria-labelledby="titulo-acesso">
+    <div class="marca">
+      <span class="logo" aria-hidden="true"></span>
+      <span class="nome">Aurora</span>
+    </div>
+    <h1 id="titulo-acesso">Entrar na Aurora</h1>
+    <p class="texto">Informe o código da sua empresa. Ele vem no convite e fica lembrado neste navegador.</p>
+    <form class="formulario" [formGroup]="formulario" (ngSubmit)="continuar()">
+      <mat-form-field>
+        <mat-label>Código da empresa</mat-label>
+        <input matInput formControlName="codigo" autocomplete="organization" autocapitalize="off" spellcheck="false"
+               placeholder="ex.: grupo-saneamento" cdkFocusInitial />
+        @if (formulario.controls.codigo.invalid && formulario.controls.codigo.touched) {
+          <mat-error>Use de 3 a 40 letras, números ou hífens.</mat-error>
+        }
+      </mat-form-field>
+      @if (erro()) {
+        <p class="erro" role="alert"><span class="material-symbols-rounded" aria-hidden="true">error</span>{{ erro() }}</p>
+      }
+      <button matButton="filled" type="submit" [disabled]="buscando()">
+        @if (buscando()) { <mat-spinner diameter="18" aria-label="Consultando" /> }
+        Continuar
+      </button>
+    </form>
+  </section>
+  <p class="rodape">Ambiente com dados fictícios de demonstração</p>
+</main>

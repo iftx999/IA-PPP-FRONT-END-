@@ -1,0 +1,244 @@
+<header class="topo">
+  <div class="marca">
+    <span class="logo" aria-hidden="true"></span>
+    <span class="nome">Aurora</span>
+    <span class="area">Administração da plataforma</span>
+  </div>
+  <div class="pessoa">
+    <span class="email">{{ email() }}</span>
+    <button matIconButton type="button" (click)="sair()" matTooltip="Sair" aria-label="Sair">
+      <span class="material-symbols-rounded">logout</span>
+    </button>
+  </div>
+</header>
+
+<main class="conteudo">
+  <header class="cabecalho">
+    <div class="titulo">
+      <span class="rotulo">Plataforma</span>
+      <h1>Clientes</h1>
+      @if (clientes.hasValue()) {
+        <div class="resumo">
+          <span class="indicador"><b class="dado">{{ fmt.numero(resumo().total) }}</b> clientes</span>
+          <span class="indicador"><b class="dado">{{ fmt.numero(resumo().ativos) }}</b> ativos</span>
+          @if (resumo().pendentes) {
+            <span class="indicador atencao"><b class="dado">{{ fmt.numero(resumo().pendentes) }}</b> com provisionamento pendente</span>
+          }
+        </div>
+      }
+    </div>
+    @if (clientes.hasValue()) {
+      <button matButton="filled" type="button" (click)="abrirNovo()">
+        <span class="material-symbols-rounded" aria-hidden="true">add_business</span> Novo cliente
+      </button>
+    }
+  </header>
+
+  @if (semCodigo()) {
+    <section class="cartao aviso" role="alert">
+      <p class="rotulo">Verificação em duas etapas</p>
+      <p>A administração da plataforma exige o código do aplicativo autenticador.</p>
+      <button matButton="filled" type="button" (click)="entrarComCodigo()">Entrar com o código</button>
+    </section>
+  } @else if (clientes.error()) {
+    <section class="cartao aviso" role="alert">
+      <p class="rotulo">Sem acesso</p>
+      <p>{{ mensagemDeErro(clientes.error()) }}</p>
+    </section>
+  } @else if (!clientes.hasValue()) {
+    <div class="esqueleto" aria-busy="true" aria-label="Carregando"></div>
+  } @else {
+    <section class="cartao tabela">
+      <table mat-table [dataSource]="lista()" aria-label="Clientes">
+        <ng-container matColumnDef="cliente">
+          <th mat-header-cell *matHeaderCellDef>Cliente</th>
+          <td mat-cell *matCellDef="let c">
+            <div class="cliente">
+              <span class="avatar" aria-hidden="true">
+                {{ c.nome.slice(0, 1) }}
+                @if (c.temLogo && c.ativo) { <img [src]="logo(c)" alt="" (error)="$any($event.target).hidden = true" /> }
+              </span>
+              <span class="identificacao">
+                <span class="nome-cliente">{{ c.nome }}</span>
+                <span class="codigo dado">{{ c.codigo }}</span>
+              </span>
+            </div>
+          </td>
+        </ng-container>
+        <ng-container matColumnDef="situacao">
+          <th mat-header-cell *matHeaderCellDef>Situação</th>
+          <td mat-cell *matCellDef="let c"><aurora-selo [tom]="situacao(c).tom">{{ situacao(c).rotulo }}</aurora-selo></td>
+        </ng-container>
+        <ng-container matColumnDef="usuarios">
+          <th mat-header-cell *matHeaderCellDef>Usuários ativos</th>
+          <td mat-cell *matCellDef="let c">
+            <span class="dado" [class.cheio]="uso(c).cheio">{{ uso(c).texto }}</span>
+            @if (c.contatoEmail) { <span class="nota">1º admin: {{ c.contatoEmail }}</span> }
+          </td>
+        </ng-container>
+        <ng-container matColumnDef="criado">
+          <th mat-header-cell *matHeaderCellDef>Criado em</th>
+          <td mat-cell *matCellDef="let c" class="dado">{{ fmt.data(c.criadoEm) }}</td>
+        </ng-container>
+        <ng-container matColumnDef="acoes">
+          <th mat-header-cell *matHeaderCellDef aria-label="Ações"></th>
+          <td mat-cell *matCellDef="let c">
+            <button matIconButton type="button" [matMenuTriggerFor]="menu" [attr.aria-label]="'Ações de ' + c.nome">
+              <span class="material-symbols-rounded">more_vert</span>
+            </button>
+            <mat-menu #menu="matMenu">
+              <button mat-menu-item type="button" (click)="abrirEdicao(c)">
+                <span class="material-symbols-rounded" aria-hidden="true">edit</span> Editar
+              </button>
+              @if (!c.provisionado) {
+                <button mat-menu-item type="button" (click)="concluirProvisionamento(c)">
+                  <span class="material-symbols-rounded" aria-hidden="true">build</span> Concluir provisionamento
+                </button>
+              }
+              @if (c.contatoEmail && c.provisionado) {
+                <button mat-menu-item type="button" (click)="reenviarConvite(c)">
+                  <span class="material-symbols-rounded" aria-hidden="true">forward_to_inbox</span> Reenviar convite do 1º admin
+                </button>
+              }
+            </mat-menu>
+          </td>
+        </ng-container>
+        <tr mat-header-row *matHeaderRowDef="colunas"></tr>
+        <tr mat-row *matRowDef="let c; columns: colunas" [class.inativo]="!c.ativo"></tr>
+      </table>
+      @if (lista().length === 0) {
+        <p class="sem-resultado">Nenhum cliente ainda. Crie o primeiro.</p>
+      }
+    </section>
+  }
+</main>
+
+<ng-template #campoLimites let-grupo>
+  <fieldset class="limites" [formGroup]="grupo">
+    <legend class="rotulo">Limites do contrato</legend>
+    <div class="tripla">
+      <mat-form-field>
+        <mat-label>Usuários ativos</mat-label>
+        <input matInput type="number" min="1" step="1" formControlName="usuarios" />
+      </mat-form-field>
+      <mat-form-field>
+        <mat-label>Tokens por mês</mat-label>
+        <input matInput type="number" min="1" step="1000" formControlName="assistenteTokensPorMes" />
+        <mat-hint>Assistente de IA</mat-hint>
+      </mat-form-field>
+      <mat-form-field>
+        <mat-label>US$ por mês</mat-label>
+        <input matInput type="number" min="0.01" step="0.01" formControlName="assistenteUsdPorMes" />
+        <mat-hint>Assistente de IA</mat-hint>
+      </mat-form-field>
+    </div>
+    <p class="ajuda"><span class="material-symbols-rounded" aria-hidden="true">all_inclusive</span><span>Vazio = sem limite.</span></p>
+  </fieldset>
+</ng-template>
+
+<ng-template #modeloNovo>
+  <h2 mat-dialog-title>Novo cliente</h2>
+  <form [formGroup]="novo" (ngSubmit)="criar()">
+    <mat-dialog-content>
+      <div class="formulario">
+        <div class="dupla">
+          <mat-form-field>
+            <mat-label>Nome do cliente</mat-label>
+            <input matInput formControlName="nome" maxlength="120" placeholder="Grupo Saneamento X" />
+            <mat-error>Informe o nome.</mat-error>
+          </mat-form-field>
+          <mat-form-field>
+            <mat-label>Código</mat-label>
+            <input matInput formControlName="codigo" maxlength="40" (input)="codigoDigitado()" autocapitalize="off" spellcheck="false" />
+            <mat-hint>Digitado na entrada e no endereço do login. Não muda depois.</mat-hint>
+            <mat-error>De 3 a 40 letras minúsculas, números ou hífens.</mat-error>
+          </mat-form-field>
+        </div>
+        <fieldset class="limites">
+          <legend class="rotulo">Primeiro administrador</legend>
+          <div class="dupla">
+            <mat-form-field>
+              <mat-label>Nome completo</mat-label>
+              <input matInput formControlName="contatoNome" maxlength="120" />
+              <mat-error>Informe o nome.</mat-error>
+            </mat-form-field>
+            <mat-form-field>
+              <mat-label>E-mail</mat-label>
+              <input matInput type="email" formControlName="contatoEmail" maxlength="254" />
+              <mat-error>Informe um e-mail válido.</mat-error>
+            </mat-form-field>
+          </div>
+          <p class="ajuda">
+            <span class="material-symbols-rounded" aria-hidden="true">mail</span>
+            <span>Recebe o convite para criar a senha e depois convida o restante da equipe.</span>
+          </p>
+        </fieldset>
+        <ng-container *ngTemplateOutlet="campoLimites; context: { $implicit: novo.controls.limites }" />
+        <p class="ajuda">
+          <span class="material-symbols-rounded" aria-hidden="true">info</span>
+          <span>A Aurora cria o login próprio do cliente, a unidade principal, os perfis do sistema e envia o convite.</span>
+        </p>
+        @if (erro()) {
+          <p class="erro" role="alert"><span class="material-symbols-rounded" aria-hidden="true">error</span>{{ erro() }}</p>
+        }
+      </div>
+    </mat-dialog-content>
+    <mat-dialog-actions align="end">
+      <button matButton type="button" (click)="fechar()">Cancelar</button>
+      <button matButton="filled" type="submit" [disabled]="salvando()">
+        @if (salvando()) { <mat-spinner diameter="18" aria-label="Criando" /> } Criar cliente
+      </button>
+    </mat-dialog-actions>
+  </form>
+</ng-template>
+
+<ng-template #modeloEdicao>
+  <h2 mat-dialog-title>{{ emEdicao()?.nome }}</h2>
+  <form [formGroup]="edicao" (ngSubmit)="salvarEdicao()">
+    <mat-dialog-content>
+      @if (emEdicao(); as c) {
+        <div class="formulario">
+          <dl class="ficha">
+            <dt>Código</dt><dd class="dado">{{ c.codigo }}</dd>
+            <dt>Login (emissor)</dt><dd class="dado">{{ c.emissor ?? '—' }}</dd>
+            <dt>Situação</dt><dd><aurora-selo [tom]="situacao(c).tom">{{ situacao(c).rotulo }}</aurora-selo></dd>
+          </dl>
+          <mat-form-field>
+            <mat-label>Nome do cliente</mat-label>
+            <input matInput formControlName="nome" maxlength="120" />
+            <mat-error>Informe o nome.</mat-error>
+          </mat-form-field>
+          <mat-slide-toggle formControlName="ativo">Cliente ativo</mat-slide-toggle>
+          @if (!edicao.controls.ativo.value) {
+            <p class="erro" role="note">
+              <span class="material-symbols-rounded" aria-hidden="true">block</span>
+              Inativo: ninguém do cliente consegue usar a Aurora (os dados são mantidos).
+            </p>
+          }
+          <ng-container *ngTemplateOutlet="campoLimites; context: { $implicit: edicao.controls.limites }" />
+          <fieldset class="limites">
+            <legend class="rotulo">Logo</legend>
+            <div class="logo-edicao">
+              <span class="previa">
+                @if (c.temLogo && c.ativo) { <img [src]="logo(c) + '?v=' + c.codigo + salvando()" alt="Logo atual" /> } @else { Sem logo }
+              </span>
+              <input #arquivoLogo type="file" accept="image/png,image/jpeg,image/webp" hidden (change)="enviarLogo($event)" />
+              <button matButton="outlined" type="button" (click)="arquivoLogo.click()" [disabled]="salvando()">Enviar logo</button>
+              @if (c.temLogo) {
+                <button matButton type="button" class="perigo" (click)="removerLogo()" [disabled]="salvando()">Remover</button>
+              }
+            </div>
+            <p class="ajuda"><span class="material-symbols-rounded" aria-hidden="true">image</span><span>PNG, JPEG ou WebP até 256 KB. Aparece no menu do cliente.</span></p>
+          </fieldset>
+          @if (erro()) {
+            <p class="erro" role="alert"><span class="material-symbols-rounded" aria-hidden="true">error</span>{{ erro() }}</p>
+          }
+        </div>
+      }
+    </mat-dialog-content>
+    <mat-dialog-actions align="end">
+      <button matButton type="button" (click)="fechar()">Cancelar</button>
+      <button matButton="filled" type="submit" [disabled]="salvando()">Salvar</button>
+    </mat-dialog-actions>
+  </form>
+</ng-template>

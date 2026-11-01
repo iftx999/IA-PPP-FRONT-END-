@@ -1,6 +1,7 @@
 import { Routes } from '@angular/router';
 import { Shell } from './layout/shell';
 import { ROTA_RETORNO, RetornoDoLogin, exigirLogin } from './nucleo/autenticacao';
+import { ROTA_ACESSO, ROTA_PLATAFORMA } from './nucleo/cliente';
 
 /** Telas na ordem da barra lateral (docs/01, seção 1.4). */
 const telas: Routes = [
@@ -23,6 +24,15 @@ const telas: Routes = [
 /** Tudo exige login: sem sessão, o guard guarda a rota pedida e leva ao Keycloak; a volta é por /entrar. */
 export const routes: Routes = [
   { path: ROTA_RETORNO, component: RetornoDoLogin },
+  // ADR 0027: tela do código da empresa (sem login) e administração da plataforma (realm próprio, sem o menu).
+  { path: ROTA_ACESSO, title: 'Entrar · Aurora', loadComponent: () => import('./paginas/acesso/acesso').then((m) => m.Acesso) },
+  { path: `${ROTA_PLATAFORMA}/${ROTA_RETORNO}`, component: RetornoDoLogin },
+  {
+    path: ROTA_PLATAFORMA,
+    title: 'Plataforma · Aurora',
+    canActivate: [exigirLogin],
+    loadComponent: () => import('./paginas/plataforma/plataforma').then((m) => m.Plataforma),
+  },
   { path: '', component: Shell, canActivate: [exigirLogin], children: telas },
   { path: '**', redirectTo: '' },
 ];

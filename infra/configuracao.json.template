@@ -1,4 +1,7 @@
 {
   "emissor": "${AURORA_EMISSOR}",
-  "clienteId": "${AURORA_CLIENTE_ID}"
+  "clienteId": "${AURORA_CLIENTE_ID}",
+  "escolherCliente": ${AURORA_ESCOLHER_CLIENTE},
+  "emissorPlataforma": "${AURORA_EMISSOR_PLATAFORMA}",
+  "clientePlataforma": "aurora-plataforma-web"
 }

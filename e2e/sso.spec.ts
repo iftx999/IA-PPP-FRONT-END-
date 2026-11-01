@@ -19,7 +19,7 @@ async function abrirSso(page: Page) {
 }
 
 async function entrarPelaEmpresa(page: Page, email: string) {
-  await page.goto('/painel');
+  await page.goto('/painel?cliente=aurora');
   await page.waitForURL(/\/realms\/aurora\//);
   await page.getByRole('link', { name: NOME }).click();
   await page.waitForURL(/\/realms\/corporativo-exemplo\//);
@@ -64,7 +64,7 @@ test.describe.serial('SSO corporativo', () => {
   });
 
   test('pessoa convidada entra com a conta da empresa', async ({ page }) => {
-    await page.goto('/painel');
+    await page.goto('/painel?cliente=aurora');
     await page.waitForURL(/\/realms\/aurora\//);
     await expect(page.getByRole('link', { name: NOME })).toBeVisible();
     await page.screenshot({ path: 'e2e/capturas/sso-login.png' });
@@ -92,7 +92,7 @@ test.describe.serial('SSO corporativo', () => {
 
     // Navegador sem sessão: a tela de login volta a ter só e-mail e senha.
     const anonima = await browser.newPage();
-    await anonima.goto('/painel');
+    await anonima.goto('/painel?cliente=aurora');
     await anonima.waitForURL(/\/realms\/aurora\//);
     await expect(anonima.locator('#username')).toBeVisible();
     await expect(anonima.getByRole('link', { name: NOME })).toHaveCount(0);
