@@ -28,8 +28,8 @@
     <mat-button-toggle-group class="abas" [value]="aba()" (change)="escolherAba($event.value)" aria-label="Situação"
                              hideSingleSelectionIndicator>
       <mat-button-toggle value="TODOS">Todos <span class="contagem dado">{{ fmt.numero(p.totais.todos) }}</span></mat-button-toggle>
-      <mat-button-toggle value="FACTIVEL">Factíveis <span class="contagem dado">{{ fmt.numero(p.totais.factiveis) }}</span></mat-button-toggle>
-      <mat-button-toggle value="CORTADO">Cortados <span class="contagem dado">{{ fmt.numero(p.totais.cortados) }}</span></mat-button-toggle>
+      <mat-button-toggle value="FACTIVEL" [matTooltip]="definicoes.FACTIVEL">Factíveis <span class="contagem dado">{{ fmt.numero(p.totais.factiveis) }}</span></mat-button-toggle>
+      <mat-button-toggle value="CORTADO" [matTooltip]="definicoes.CORTADO">Cortados <span class="contagem dado">{{ fmt.numero(p.totais.cortados) }}</span></mat-button-toggle>
     </mat-button-toggle-group>
     <mat-form-field class="busca">
       <span matPrefix class="material-symbols-rounded prefixo" aria-hidden="true">search</span>
@@ -59,7 +59,7 @@
         <ng-container matColumnDef="situacao">
           <th mat-header-cell *matHeaderCellDef>Situação</th>
           <td mat-cell *matCellDef="let item">
-            <aurora-selo [tom]="item.situacao === 'CORTADO' ? 'perigo' : 'atencao'">
+            <aurora-selo [tom]="item.situacao === 'CORTADO' ? 'perigo' : 'atencao'" [matTooltip]="definicao(item)">
               {{ item.situacao === 'CORTADO' ? 'Cortado' : 'Factível' }}
             </aurora-selo>
           </td>

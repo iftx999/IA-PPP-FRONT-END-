@@ -81,6 +81,16 @@ export class SemLigacao {
   );
 
   protected readonly fmt = { numero, competenciaCurta, competenciaLonga };
+
+  /** RN-02: o que separa factível de cortado é a conexão física. */
+  protected readonly definicoes: Record<SituacaoImovel, string> = {
+    FACTIVEL: 'Rede pública disponível na rua, mas o imóvel ainda não fez a conexão física.',
+    CORTADO: 'Imóvel conectado, com o serviço interrompido por falta de pagamento ou suspenso a pedido do cliente.',
+  };
+
+  protected definicao(item: ImovelSemLigacao): string {
+    return this.definicoes[item.situacao];
+  }
   protected readonly colunas = ['matricula', 'unidade', 'situacao', 'tempo', 'origem'];
 
   /** Busca por matrícula enquanto digita (espera 400 ms entre teclas). */
