@@ -169,6 +169,7 @@
                     {{ fmt.numero(e.lidos) }} lidos
                     @if (e.novos || e.atualizados) { · {{ fmt.numero(e.novos) }} novos · {{ fmt.numero(e.atualizados) }} atualizados }
                     @if (e.rejeitados) { · <span class="rejeitados">{{ fmt.numero(e.rejeitados) }} rejeitados</span> }
+                    @if (e.comAviso) { · <span class="com-aviso">{{ fmt.numero(e.comAviso) }} com aviso</span> }
                   } @else { — }
                 </td>
                 <td class="dado">{{ e.fim ? duracao(e.inicio, e.fim) : '—' }}</td>
@@ -244,8 +245,9 @@
         <span>
           CSV com as colunas <code>matricula;unidade;situacao</code> (código da unidade; situação LIGADO, FACTIVEL,
           CORTADO ou POTENCIAL). FACTIVEL: rede na rua, sem conexão física. CORTADO: conectado, com corte por falta de
-          pagamento ou suspensão a pedido do cliente. Só matrícula: nome e endereço não entram na Aurora. A adesão da
-          competência é recalculada.
+          pagamento ou suspensão a pedido do cliente; a coluna opcional <code>motivo_corte</code> (INADIMPLENCIA ou
+          A_PEDIDO) diz qual. Só matrícula: nome e endereço não entram na Aurora. A adesão da competência é
+          recalculada.
         </span>
       </p>
       <div class="dupla">
@@ -277,6 +279,9 @@
             <div><dt>Sem mudança</dt><dd class="dado">{{ fmt.numero(r.inalterados) }}</dd></div>
             <div><dt>Recusados</dt><dd class="dado" [class.rejeitados]="r.rejeitados">{{ fmt.numero(r.rejeitados) }}</dd></div>
             <div><dt>Unidades recalculadas</dt><dd class="dado">{{ r.medicoesRecalculadas }}</dd></div>
+            @if (r.comAviso) {
+              <div><dt>Com aviso</dt><dd class="dado com-aviso">{{ fmt.numero(r.comAviso) }}</dd></div>
+            }
           </dl>
           @if (r.rejeicoes.length) {
             <table class="tabela-cargas" aria-label="Linhas recusadas">
@@ -289,6 +294,20 @@
             </table>
             @if (r.rejeitados > r.rejeicoes.length) {
               <p class="nota">Mostrando as {{ r.rejeicoes.length }} primeiras de {{ fmt.numero(r.rejeitados) }} recusas.</p>
+            }
+          }
+          @if (r.avisos.length) {
+            <p class="nota">Gravados, mas confira na origem: factível nunca teve conexão física (RN-02).</p>
+            <table class="tabela-cargas" aria-label="Linhas gravadas com aviso">
+              <thead><tr><th scope="col">Matrícula</th><th scope="col">Aviso</th></tr></thead>
+              <tbody>
+                @for (a of r.avisos; track a.matricula) {
+                  <tr><td class="dado">{{ a.matricula }}</td><td>{{ a.mensagem }}</td></tr>
+                }
+              </tbody>
+            </table>
+            @if (r.comAviso > r.avisos.length) {
+              <p class="nota">Mostrando os {{ r.avisos.length }} primeiros de {{ fmt.numero(r.comAviso) }} avisos.</p>
             }
           }
         </div>

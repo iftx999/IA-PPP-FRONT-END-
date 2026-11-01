@@ -11,7 +11,7 @@ const PAGINA: DadosSemLigacao = {
   unidadeId: 'cid-a',
   unidadeNome: 'Cidade A',
   competencia: '2026-08',
-  totais: { todos: 5, factiveis: 4, cortados: 1 },
+  totais: { todos: 5, factiveis: 4, cortados: 1, cortadosPorInadimplencia: 1, cortadosAPedido: 0 },
   itens: [
     {
       matricula: '••••001',
@@ -21,6 +21,7 @@ const PAGINA: DadosSemLigacao = {
       ultimoMesLigado: '2026-07',
       primeiraCompetencia: '2026-06',
       mesesSemLigacao: 1,
+      motivoCorte: 'INADIMPLENCIA',
     },
     {
       matricula: '••••002',
@@ -30,6 +31,7 @@ const PAGINA: DadosSemLigacao = {
       ultimoMesLigado: null,
       primeiraCompetencia: '2026-06',
       mesesSemLigacao: null,
+      motivoCorte: null,
     },
   ],
   proximo: 'cursor-opaco',
@@ -64,6 +66,8 @@ describe('SemLigacao', () => {
     expect(texto).toContain('Factíveis 4');
     expect(texto).toContain('Ligado até jul/2026');
     expect(texto).toContain('Nunca ligado');
+    // RN-02: motivo do corte informado pela carga.
+    expect(texto).toContain('falta de pagamento');
     expect(texto).toContain('Sem ligação desde jun/2026');
     expect(texto).toContain('Matrículas parcialmente ocultas');
     expect(texto).toContain('Mostrando 2 de 5');

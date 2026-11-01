@@ -88,6 +88,31 @@ export class SemLigacao {
     CORTADO: 'Imóvel conectado, com o serviço interrompido por falta de pagamento ou suspenso a pedido do cliente.',
   };
 
+  /** Motivo do corte informado pela carga (RN-02). */
+  protected readonly motivos: Record<NonNullable<ImovelSemLigacao['motivoCorte']>, string> = {
+    INADIMPLENCIA: 'falta de pagamento',
+    A_PEDIDO: 'a pedido do cliente',
+  };
+
+  protected motivo(item: ImovelSemLigacao): string | null {
+    return item.motivoCorte ? this.motivos[item.motivoCorte] : null;
+  }
+
+  /** Definição e, se a carga informou, quantos cortados por motivo. */
+  protected dicaCortados(totais: DadosSemLigacao['totais']): string {
+    const porInadimplencia = totais.cortadosPorInadimplencia ?? 0;
+    const aPedido = totais.cortadosAPedido ?? 0;
+    if (!porInadimplencia && !aPedido) {
+      return this.definicoes.CORTADO;
+    }
+    const semMotivo = totais.cortados - porInadimplencia - aPedido;
+    const partes = [`${numero(porInadimplencia)} por falta de pagamento`, `${numero(aPedido)} a pedido do cliente`];
+    if (semMotivo > 0) {
+      partes.push(`${numero(semMotivo)} sem motivo informado`);
+    }
+    return `${this.definicoes.CORTADO} ${partes.join(', ')}.`;
+  }
+
   protected definicao(item: ImovelSemLigacao): string {
     return this.definicoes[item.situacao];
   }

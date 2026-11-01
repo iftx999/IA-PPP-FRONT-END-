@@ -1582,6 +1582,10 @@ export interface components {
       prefixo: string;
       chave: string;
     };
+    Aviso: {
+      matricula?: string;
+      mensagem?: string;
+    };
     CargaResponse: {
       /** Format: uuid */
       execucao: string;
@@ -1599,6 +1603,9 @@ export interface components {
       rejeicoes: components['schemas']['Rejeicao'][];
       /** Format: int32 */
       medicoesRecalculadas: number;
+      /** Format: int64 */
+      comAviso: number;
+      avisos: components['schemas']['Aviso'][];
     };
     Rejeicao: {
       /** Format: int32 */
@@ -1721,6 +1728,7 @@ export interface components {
       matricula: string | null;
       unidade: string | null;
       situacao: string | null;
+      motivoCorte: string | null;
     };
     ResultadoCargaResponse: {
       /** Format: uuid */
@@ -1739,6 +1747,9 @@ export interface components {
       rejeicoes: components['schemas']['Rejeicao'][];
       /** Format: int32 */
       medicoesRecalculadas: number;
+      /** Format: int64 */
+      comAviso: number;
+      avisos: components['schemas']['Aviso'][];
     };
     ConcessaoResponse: {
       /** Format: uuid */
@@ -2085,6 +2096,8 @@ export interface components {
       /** Format: int64 */
       inalterados: number;
       erro: string | null;
+      /** Format: int64 */
+      comAviso: number;
     };
     CredencialResponse: {
       prefixo: string;
@@ -2103,6 +2116,8 @@ export interface components {
       primeiraCompetencia: string;
       /** Format: int64 */
       mesesSemLigacao: number | null;
+      /** @enum {string|null} */
+      motivoCorte: 'INADIMPLENCIA' | 'A_PEDIDO' | null;
     };
     SemLigacaoResponse: {
       /** Format: uuid */
@@ -2121,6 +2136,10 @@ export interface components {
       factiveis: number;
       /** Format: int64 */
       cortados: number;
+      /** Format: int64 */
+      cortadosPorInadimplencia: number;
+      /** Format: int64 */
+      cortadosAPedido: number;
     };
     EuResponse: {
       /** Format: uuid */

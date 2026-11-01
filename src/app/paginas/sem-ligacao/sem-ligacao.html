@@ -29,7 +29,7 @@
                              hideSingleSelectionIndicator>
       <mat-button-toggle value="TODOS">Todos <span class="contagem dado">{{ fmt.numero(p.totais.todos) }}</span></mat-button-toggle>
       <mat-button-toggle value="FACTIVEL" [matTooltip]="definicoes.FACTIVEL">Factíveis <span class="contagem dado">{{ fmt.numero(p.totais.factiveis) }}</span></mat-button-toggle>
-      <mat-button-toggle value="CORTADO" [matTooltip]="definicoes.CORTADO">Cortados <span class="contagem dado">{{ fmt.numero(p.totais.cortados) }}</span></mat-button-toggle>
+      <mat-button-toggle value="CORTADO" [matTooltip]="dicaCortados(p.totais)">Cortados <span class="contagem dado">{{ fmt.numero(p.totais.cortados) }}</span></mat-button-toggle>
     </mat-button-toggle-group>
     <mat-form-field class="busca">
       <span matPrefix class="material-symbols-rounded prefixo" aria-hidden="true">search</span>
@@ -62,6 +62,9 @@
             <aurora-selo [tom]="item.situacao === 'CORTADO' ? 'perigo' : 'atencao'" [matTooltip]="definicao(item)">
               {{ item.situacao === 'CORTADO' ? 'Cortado' : 'Factível' }}
             </aurora-selo>
+            @if (motivo(item); as m) {
+              <span class="motivo">{{ m }}</span>
+            }
           </td>
         </ng-container>
         <ng-container matColumnDef="tempo">

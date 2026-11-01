@@ -51,3 +51,4 @@ table { width: 100%; }
   animation: brilho 1.2s ease-in-out infinite;
 }
 @keyframes brilho { from { background-position: 100% 0; } to { background-position: -100% 0; } }
+.motivo { display: block; margin-top: 2px; color: var(--text-3); font-size: var(--fs-small); }

@@ -44,3 +44,4 @@ button.perigo:not([matButton="filled"]) { color: var(--danger); }
 .resultado-titulo { margin: 0; display: flex; align-items: center; gap: var(--space-2); font-weight: 600;
   .material-symbols-rounded { color: var(--ok); } }
 .rejeitados { color: var(--warn); }
+.com-aviso { color: var(--warn); }
