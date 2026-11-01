@@ -1,17 +1,25 @@
 import { HttpClient, httpResource } from '@angular/common/http';
-import { Component, computed, inject, linkedSignal, signal } from '@angular/core';
+import { Component, TemplateRef, computed, inject, linkedSignal, signal, viewChild } from '@angular/core';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { FormControl, FormGroup, ReactiveFormsModule } from '@angular/forms';
 import { MatAutocompleteModule } from '@angular/material/autocomplete';
 import { MatButtonModule } from '@angular/material/button';
 import { MatDatepickerModule } from '@angular/material/datepicker';
+import { MatDialog, MatDialogModule, type MatDialogRef } from '@angular/material/dialog';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatSelectModule } from '@angular/material/select';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { firstValueFrom } from 'rxjs';
-import type { AutorAuditoria, EventoAuditoria, PaginaAuditoria, Unidade, VerificacaoAuditoria } from '../../api/tipos';
+import type {
+  AutorAuditoria,
+  EventoAuditoria,
+  PaginaAuditoria,
+  RetencaoAuditoria,
+  Unidade,
+  VerificacaoAuditoria,
+} from '../../api/tipos';
 import { paraIso } from '../../nucleo/datas';
 import { DownloadService } from '../../nucleo/download';
 import { mensagemDeErro } from '../../nucleo/erro-api';
@@ -19,6 +27,7 @@ import { dataEHora, haQuantoTempo, numero } from '../../nucleo/formato';
 import { SessaoService } from '../../nucleo/sessao';
 import { arvoreDeUnidades, filtrarUnidades, type OpcaoUnidade } from '../../nucleo/unidades-arvore';
 import { Selo } from '../../ui/selo';
+import { descreverPrazo } from '../usuarios/retencao-auditoria';
 import { gruposDeEventos, infoEvento, paresDeDetalhes } from './eventos';
 
 const LIMITE = '50';
@@ -60,7 +69,7 @@ export function parametros(f: Filtros): Record<string, string | string[]> {
   selector: 'aurora-auditoria',
   imports: [
     ReactiveFormsModule, MatButtonModule, MatFormFieldModule, MatInputModule, MatSelectModule, MatAutocompleteModule,
-    MatDatepickerModule, MatTooltipModule, MatProgressSpinnerModule, Selo,
+    MatDatepickerModule, MatDialogModule, MatTooltipModule, MatProgressSpinnerModule, Selo,
   ],
   templateUrl: './auditoria.html',
   styleUrl: './auditoria.scss',
@@ -72,6 +81,14 @@ export class Auditoria {
 
   private readonly podeVer = computed(() => this.sessao.pode('auditoria:ler'));
   protected readonly podeExportar = computed(() => this.sessao.pode('relatorio:exportar'));
+
+  /** ADR 0029: prazo de retenção da trilha, só leitura (alterar é da gestão de acesso, em Usuários). */
+  protected readonly retencao = httpResource<RetencaoAuditoria>(() =>
+    this.podeVer() ? '/api/v1/auditoria/retencao' : undefined,
+  );
+  private readonly dialogos = inject(MatDialog);
+  private readonly modeloRetencao = viewChild.required<TemplateRef<unknown>>('modeloRetencao');
+  private dialogoRetencao: MatDialogRef<unknown> | null = null;
 
   protected readonly filtros = signal<Filtros>(SEM_FILTROS);
   protected readonly dados = httpResource<PaginaAuditoria>(() =>
@@ -125,7 +142,7 @@ export class Auditoria {
   protected readonly verificacao = signal<VerificacaoAuditoria | null>(null);
   protected readonly erroVerificacao = signal<string | null>(null);
 
-  protected readonly fmt = { numero, dataEHora, haQuantoTempo };
+  protected readonly fmt = { numero, dataEHora, haQuantoTempo, prazo: descreverPrazo };
   protected readonly info = infoEvento;
   protected readonly pares = paresDeDetalhes;
 
@@ -209,6 +226,14 @@ export class Auditoria {
     } finally {
       this.verificando.set(false);
     }
+  }
+
+  protected abrirRetencao(): void {
+    this.dialogoRetencao = this.dialogos.open(this.modeloRetencao(), { width: '520px' });
+  }
+
+  protected fecharRetencao(): void {
+    this.dialogoRetencao?.close();
   }
 
   protected quem(e: EventoAuditoria): string {

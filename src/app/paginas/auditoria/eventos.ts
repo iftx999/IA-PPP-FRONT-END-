@@ -10,6 +10,8 @@ export const EVENTOS: Record<string, InfoEvento> = {
   LOGIN_FALHOU: { rotulo: 'Falha de login', icone: 'gpp_maybe', grupo: 'Acesso e usuários' },
   CONTA_BLOQUEADA: { rotulo: 'Conta bloqueada por tentativas', icone: 'lock_person', grupo: 'Acesso e usuários' },
   LOGOUT: { rotulo: 'Logout', icone: 'logout', grupo: 'Acesso e usuários' },
+  RETENCAO_AUDITORIA_ALTERADA: { rotulo: 'Prazo de retenção da trilha alterado', icone: 'history', grupo: 'Acesso e usuários' },
+  TRILHA_EXPURGADA: { rotulo: 'Eventos antigos removidos pelo prazo de retenção', icone: 'auto_delete', grupo: 'Acesso e usuários' },
   SESSOES_ENCERRADAS: { rotulo: 'Sessões encerradas em todos os dispositivos', icone: 'devices_off', grupo: 'Acesso e usuários' },
   USUARIO_CONVIDADO: { rotulo: 'Usuário convidado', icone: 'person_add', grupo: 'Acesso e usuários' },
   CONVITE_REENVIADO: { rotulo: 'Convite reenviado', icone: 'forward_to_inbox', grupo: 'Acesso e usuários' },

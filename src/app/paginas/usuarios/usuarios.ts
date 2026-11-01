@@ -27,6 +27,7 @@ import { data, dataEHora, haQuantoTempo, numero } from '../../nucleo/formato';
 import { SessaoService } from '../../nucleo/sessao';
 import { Selo, type Tom } from '../../ui/selo';
 import { GERIR_USUARIOS } from '../perfis/perfis';
+import { RetencaoAuditoriaPolitica } from './retencao-auditoria';
 import { SsoCorporativo } from './sso-corporativo';
 import { arvoreDeUnidades, filtrarUnidades, semAcento, type OpcaoUnidade } from '../../nucleo/unidades-arvore';
 
@@ -90,7 +91,7 @@ class PaginadorPtBr extends MatPaginatorIntl {
   imports: [
     NgTemplateOutlet, ReactiveFormsModule, MatTableModule, MatPaginatorModule, MatButtonModule, MatButtonToggleModule,
     MatFormFieldModule, MatInputModule, MatSelectModule, MatAutocompleteModule, MatDatepickerModule, MatDialogModule,
-    MatMenuModule, MatTooltipModule, MatProgressSpinnerModule, MatSnackBarModule, MatSlideToggleModule, Selo, SsoCorporativo,
+    MatMenuModule, MatTooltipModule, MatProgressSpinnerModule, MatSnackBarModule, MatSlideToggleModule, Selo, RetencaoAuditoriaPolitica, SsoCorporativo,
   ],
   providers: [{ provide: MatPaginatorIntl, useClass: PaginadorPtBr }],
   templateUrl: './usuarios.html',

@@ -35,6 +35,7 @@ export type EventoAuditoria = Esquemas['EventoDto'];
 export type PaginaAuditoria = Esquemas['EventosResponse'];
 export type AutorAuditoria = Esquemas['AutorDto'];
 export type VerificacaoAuditoria = Esquemas['VerificacaoResponse'];
+export type RetencaoAuditoria = Esquemas['RetencaoAuditoria'];
 export type Contrato = Esquemas['ContratoResponse'];
 export type DetalheContrato = Esquemas['DetalheContratoResponse'];
 export type DocumentoContrato = Esquemas['DocumentoResponse'];

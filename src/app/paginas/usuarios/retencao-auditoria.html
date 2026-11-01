@@ -1,0 +1,53 @@
+@if (dados.hasValue()) {
+  @let r = dados.value();
+  <section class="cartao politica" aria-labelledby="titulo-retencao">
+    <span class="material-symbols-rounded icone" aria-hidden="true">history</span>
+    <div class="politica-texto">
+      <h2 id="titulo-retencao">Retenção da auditoria</h2>
+      <p>
+        A trilha guarda os eventos por {{ fmt.prazo(r.meses) }}; depois, o expurgo diário remove os mais antigos.
+        @if (r.totalExpurgado) { {{ fmt.numero(r.totalExpurgado) }} removidos até agora. }
+      </p>
+    </div>
+    <button matButton="outlined" type="button" (click)="abrir()">Alterar prazo</button>
+  </section>
+
+  <ng-template #modelo>
+    <h2 mat-dialog-title>Retenção da auditoria</h2>
+    <mat-dialog-content>
+      <form id="form-retencao" class="formulario" [formGroup]="form" (ngSubmit)="salvar()">
+        <p class="ajuda">
+          Prazo pelo qual a trilha guarda cada evento. O mínimo de {{ r.minimo }} meses vale também no banco de dados.
+        </p>
+        <mat-form-field>
+          <mat-label>Prazo em meses</mat-label>
+          <input matInput type="text" inputmode="numeric" maxlength="3" autocomplete="off" formControlName="meses" />
+          <mat-hint>Entre {{ r.minimo }} e {{ r.maximo }} meses.</mat-hint>
+          @if (form.controls.meses.invalid) {
+            <mat-error>Informe um prazo entre {{ r.minimo }} e {{ r.maximo }} meses.</mat-error>
+          }
+        </mat-form-field>
+        @if (mesesInformados() < (r.meses ?? 0)) {
+          <p class="aviso-reducao" role="alert">
+            <span class="material-symbols-rounded" aria-hidden="true">warning</span>
+            Reduzir o prazo apaga, no próximo expurgo diário, os eventos mais antigos que ele. Se precisar arquivá-los,
+            peça a quem tem a Auditoria para exportar o CSV antes.
+          </p>
+        }
+        @if (r.ultimoExpurgoEm) {
+          <p class="ajuda">
+            Último expurgo em {{ fmt.dataEHora(r.ultimoExpurgoEm) }} (eventos anteriores a
+            {{ fmt.dataEHora(r.ultimoExpurgoLimite!) }}).
+          </p>
+        }
+        @if (erro()) { <p class="erro" role="alert">{{ erro() }}</p> }
+      </form>
+    </mat-dialog-content>
+    <mat-dialog-actions align="end">
+      <button matButton type="button" (click)="fechar()">Cancelar</button>
+      <button matButton="filled" type="submit" form="form-retencao" [disabled]="salvando()">
+        @if (salvando()) { <mat-spinner diameter="18" /> } Salvar
+      </button>
+    </mat-dialog-actions>
+  </ng-template>
+}

@@ -6,6 +6,11 @@
   </div>
   @if (eventos()) {
     <div class="acoes-topo">
+      <button matButton="outlined" type="button" (click)="abrirRetencao()" [disabled]="!retencao.hasValue()"
+              [matTooltip]="retencao.hasValue() ? 'Eventos guardados por ' + fmt.prazo(retencao.value().meses) : ''">
+        <span class="material-symbols-rounded" aria-hidden="true">history</span>
+        Retenção
+      </button>
       <button matButton="outlined" type="button" (click)="verificar()" [disabled]="verificando()">
         @if (verificando()) { <mat-spinner diameter="16" /> } @else {
           <span class="material-symbols-rounded" aria-hidden="true">verified</span>
@@ -49,6 +54,7 @@
         <p class="nota">
           {{ fmt.numero(v.verificados) }} com assinatura conferida
           @if (v.legados) { · {{ fmt.numero(v.legados) }} importados do sistema anterior (só o encadeamento é conferido) }
+          @if (v.expurgados) { · {{ fmt.numero(v.expurgados) }} removidos pelo prazo de retenção (a cadeia segue da âncora do expurgo) }
         </p>
       </div>
       <button matIconButton type="button" (click)="verificacao.set(null)" aria-label="Fechar resultado da verificação">
@@ -192,3 +198,26 @@
     <div class="esqueleto" aria-busy="true" aria-label="Carregando os eventos"></div>
   }
 }
+
+<ng-template #modeloRetencao>
+  <h2 mat-dialog-title>Retenção da trilha</h2>
+  <mat-dialog-content>
+    @if (retencao.hasValue()) {
+      @let r = retencao.value();
+      <p>A trilha guarda os eventos por <b>{{ fmt.prazo(r.meses) }}</b>. Depois disso, o expurgo diário apaga os mais
+        antigos e registra na própria trilha quantos saíram.</p>
+      @if (r.ultimoExpurgoEm) {
+        <p class="nota">
+          Último expurgo em {{ fmt.dataEHora(r.ultimoExpurgoEm) }}: eventos anteriores a
+          {{ fmt.dataEHora(r.ultimoExpurgoLimite!) }} · {{ fmt.numero(r.totalExpurgado ?? 0) }} removidos no total.
+        </p>
+      } @else {
+        <p class="nota">Nenhum evento foi removido até agora.</p>
+      }
+      <p class="nota">O prazo é definido por quem gere usuários e perfis (Usuários › Retenção da auditoria).</p>
+    }
+  </mat-dialog-content>
+  <mat-dialog-actions align="end">
+    <button matButton type="button" (click)="fecharRetencao()">Fechar</button>
+  </mat-dialog-actions>
+</ng-template>

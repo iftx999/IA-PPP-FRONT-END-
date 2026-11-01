@@ -116,6 +116,22 @@ export interface paths {
     patch?: never;
     trace?: never;
   };
+  '/api/v1/seguranca/retencao-auditoria': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get: operations['obterRetencaoAuditoria'];
+    put: operations['definirRetencaoAuditoria'];
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
   '/api/v1/plataforma/clientes/{id}': {
     parameters: {
       query?: never;
@@ -1044,6 +1060,22 @@ export interface paths {
     patch?: never;
     trace?: never;
   };
+  '/api/v1/auditoria/retencao': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get: operations['retencao'];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
   '/api/v1/auditoria/eventos': {
     parameters: {
       query?: never;
@@ -1299,6 +1331,24 @@ export interface components {
     PoliticaSegundoFatorResponse: {
       todos: boolean;
       administradores: boolean;
+    };
+    RetencaoAuditoriaRequest: {
+      /** Format: int32 */
+      meses: number;
+    };
+    RetencaoAuditoria: {
+      /** Format: int32 */
+      meses?: number;
+      /** Format: int32 */
+      minimo?: number;
+      /** Format: int32 */
+      maximo?: number;
+      /** Format: date-time */
+      ultimoExpurgoEm?: string;
+      /** Format: date-time */
+      ultimoExpurgoLimite?: string;
+      /** Format: int64 */
+      totalExpurgado?: number;
     };
     AlteracaoClienteRequest: {
       nome: string;
@@ -2211,6 +2261,8 @@ export interface components {
       /** Format: int64 */
       primeiraQuebra: number | null;
       integra: boolean;
+      /** Format: int64 */
+      expurgados: number;
     };
     EventoDto: {
       /** Format: int64 */
@@ -2560,6 +2612,50 @@ export interface operations {
         };
         content: {
           '*/*': components['schemas']['PoliticaSegundoFatorResponse'];
+        };
+      };
+    };
+  };
+  obterRetencaoAuditoria: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description OK */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          '*/*': components['schemas']['RetencaoAuditoria'];
+        };
+      };
+    };
+  };
+  definirRetencaoAuditoria: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        'application/json': components['schemas']['RetencaoAuditoriaRequest'];
+      };
+    };
+    responses: {
+      /** @description OK */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          '*/*': components['schemas']['RetencaoAuditoria'];
         };
       };
     };
@@ -4246,6 +4342,26 @@ export interface operations {
         };
         content: {
           '*/*': string[];
+        };
+      };
+    };
+  };
+  retencao: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description OK */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          '*/*': components['schemas']['RetencaoAuditoria'];
         };
       };
     };
