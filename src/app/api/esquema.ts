@@ -212,6 +212,22 @@ export interface paths {
     patch?: never;
     trace?: never;
   };
+  '/api/v1/contratos/itens/{item}/regra-de-penalidade': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put: operations['definir_1'];
+    post?: never;
+    delete: operations['remover_1'];
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
   '/api/v1/contratos/itens/{item}/agenda': {
     parameters: {
       query?: never;
@@ -252,7 +268,7 @@ export interface paths {
       cookie?: never;
     };
     get: operations['minhas'];
-    put: operations['definir_1'];
+    put: operations['definir_2'];
     post?: never;
     delete?: never;
     options?: never;
@@ -772,6 +788,22 @@ export interface paths {
     patch?: never;
     trace?: never;
   };
+  '/api/v1/simulador': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get: operations['simular'];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
   '/api/v1/publico/clientes/{codigo}': {
     parameters: {
       query?: never;
@@ -996,6 +1028,22 @@ export interface paths {
     patch?: never;
     trace?: never;
   };
+  '/api/v1/contratos/{contrato}/regras-de-penalidade': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get: operations['listar_8'];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
   '/api/v1/contratos/documentos/{documento}': {
     parameters: {
       query?: never;
@@ -1179,7 +1227,7 @@ export interface paths {
       path?: never;
       cookie?: never;
     };
-    get: operations['listar_8'];
+    get: operations['listar_9'];
     put?: never;
     post?: never;
     delete?: never;
@@ -1246,7 +1294,7 @@ export interface paths {
     get?: never;
     put?: never;
     post?: never;
-    delete: operations['remover_1'];
+    delete: operations['remover_2'];
     options?: never;
     head?: never;
     patch?: never;
@@ -1421,6 +1469,45 @@ export interface components {
       valorAlerta: number | null;
       /** Format: date */
       vigenciaInicio: string | null;
+    };
+    RegraDePenalidadeRequest: {
+      /** @enum {string} */
+      formula: 'PERCENTUAL_DA_BASE_POR_PONTO' | 'VALOR_POR_PONTO' | 'VALOR_FIXO';
+      valor: number;
+      baseValor: number | null;
+      baseDescricao: string | null;
+      /** @enum {string} */
+      contagem: 'PROPORCIONAL' | 'POR_PONTO_OU_FRACAO';
+      /** @enum {string} */
+      periodicidade: 'MENSAL' | 'ANUAL';
+      teto: number | null;
+    };
+    RegraDePenalidadeResponse: {
+      /** Format: uuid */
+      itemId: string;
+      /** Format: uuid */
+      contratoId: string;
+      contratoNumero: string;
+      titulo: string;
+      clausula: string | null;
+      /** Format: int32 */
+      pagina: number;
+      /** Format: uuid */
+      unidadeId: string;
+      unidadeNome: string;
+      /** @enum {string} */
+      formula: 'PERCENTUAL_DA_BASE_POR_PONTO' | 'VALOR_POR_PONTO' | 'VALOR_FIXO';
+      valor: number;
+      baseValor: number | null;
+      baseDescricao: string | null;
+      /** @enum {string} */
+      contagem: 'PROPORCIONAL' | 'POR_PONTO_OU_FRACAO';
+      /** @enum {string} */
+      periodicidade: 'MENSAL' | 'ANUAL';
+      teto: number | null;
+      /** Format: date-time */
+      atualizadoEm: string;
+      atualizadoPor: string | null;
     };
     AgendaRequest: {
       /** Format: date */
@@ -1818,6 +1905,91 @@ export interface components {
       filhasAtivas: number;
       /** Format: int64 */
       acessos: number;
+    };
+    CenarioResponse: {
+      ligacoesPorMes: number;
+      mesAtingimento: string | null;
+      adesaoNoPrazo: number | null;
+      multaTotal: number;
+      meses: components['schemas']['MesProjetadoResponse'][];
+    };
+    MesMedidoResponse: {
+      competencia: string;
+      /** Format: int64 */
+      ligados: number;
+      /** Format: int64 */
+      comRede: number;
+    };
+    MesProjetadoResponse: {
+      competencia: string;
+      /** Format: int64 */
+      ligados: number;
+      adesao: number;
+      medido: boolean;
+      pontosAbaixo: number;
+      aferido: boolean;
+      multa: number;
+    };
+    MetaSimuladaResponse: {
+      valor: number;
+      prazo: string | null;
+      /** Format: uuid */
+      unidadeId: string;
+      unidadeNome: string;
+      herdada: boolean;
+      origem: string | null;
+    };
+    RegraSimuladaResponse: {
+      /** Format: uuid */
+      itemId: string;
+      /** Format: uuid */
+      contratoId: string;
+      contratoNumero: string;
+      titulo: string;
+      clausula: string | null;
+      /** Format: int32 */
+      pagina: number;
+      /** @enum {string} */
+      formula: 'PERCENTUAL_DA_BASE_POR_PONTO' | 'VALOR_POR_PONTO' | 'VALOR_FIXO';
+      valor: number;
+      baseValor: number | null;
+      baseDescricao: string | null;
+      /** @enum {string} */
+      contagem: 'PROPORCIONAL' | 'POR_PONTO_OU_FRACAO';
+      /** @enum {string} */
+      periodicidade: 'MENSAL' | 'ANUAL';
+      teto: number | null;
+      multaRitmoAtual: number;
+      multaCenario: number;
+    };
+    SimulacaoResponse: {
+      /** Format: uuid */
+      unidadeId: string;
+      unidadeNome: string;
+      unidadeTipo: string;
+      competencia: string;
+      /** Format: int64 */
+      ligados: number;
+      /** Format: int64 */
+      comRede: number;
+      adesao: number;
+      ritmoAtual: number | null;
+      meta: components['schemas']['MetaSimuladaResponse'] | null;
+      serie: components['schemas']['MesMedidoResponse'][];
+      ligacoesNecessariasPorMes: number | null;
+      fim: string;
+      regrasVisiveis: boolean;
+      unidadesComRegra: components['schemas']['UnidadeComRegraResponse'][];
+      regras: components['schemas']['RegraSimuladaResponse'][];
+      ritmoAtualProjetado: components['schemas']['CenarioResponse'];
+      cenario: components['schemas']['CenarioResponse'];
+    };
+    UnidadeComRegraResponse: {
+      /** Format: uuid */
+      id: string;
+      nome: string;
+      /** Format: int32 */
+      regras: number;
     };
     ClientePublico: {
       codigo?: string;
@@ -2870,6 +3042,52 @@ export interface operations {
       };
     };
   };
+  definir_1: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        item: string;
+      };
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        'application/json': components['schemas']['RegraDePenalidadeRequest'];
+      };
+    };
+    responses: {
+      /** @description OK */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          '*/*': components['schemas']['RegraDePenalidadeResponse'];
+        };
+      };
+    };
+  };
+  remover_1: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        item: string;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description No Content */
+      204: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
+      };
+    };
+  };
   definirAgenda: {
     parameters: {
       query?: never;
@@ -2940,7 +3158,7 @@ export interface operations {
       };
     };
   };
-  definir_1: {
+  definir_2: {
     parameters: {
       query?: never;
       header?: never;
@@ -3952,6 +4170,30 @@ export interface operations {
       };
     };
   };
+  simular: {
+    parameters: {
+      query?: {
+        unidade?: string;
+        ligacoesPorMes?: number;
+        mesesAposPrazo?: number;
+      };
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description OK */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          '*/*': components['schemas']['SimulacaoResponse'];
+        };
+      };
+    };
+  };
   porCodigo: {
     parameters: {
       query?: never;
@@ -4281,6 +4523,28 @@ export interface operations {
       };
     };
   };
+  listar_8: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        contrato: string;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description OK */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          '*/*': components['schemas']['RegraDePenalidadeResponse'][];
+        };
+      };
+    };
+  };
   documento: {
     parameters: {
       query?: never;
@@ -4523,7 +4787,7 @@ export interface operations {
       };
     };
   };
-  listar_8: {
+  listar_9: {
     parameters: {
       query?: {
         estado?: 'ABERTOS' | 'RECONHECIDOS' | 'RESOLVIDOS';
@@ -4606,7 +4870,7 @@ export interface operations {
       };
     };
   };
-  remover_1: {
+  remover_2: {
     parameters: {
       query?: never;
       header?: never;

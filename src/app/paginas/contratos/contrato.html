@@ -456,6 +456,9 @@
               }
             </section>
           }
+          @if (i.tipo === 'PENALIDADE' && i.status === 'APROVADO') {
+            <aurora-regra-penalidade [item]="i" [podeGerir]="podeGerir()" />
+          }
         }
       </mat-dialog-content>
       <mat-dialog-actions align="end">

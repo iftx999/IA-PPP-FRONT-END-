@@ -26,6 +26,7 @@ import { SessaoService } from '../../nucleo/sessao';
 import { arvoreDeUnidades, filtrarUnidades, subarvore, type OpcaoUnidade } from '../../nucleo/unidades-arvore';
 import { Selo } from '../../ui/selo';
 import { VisualizadorPdf } from '../../ui/visualizador-pdf';
+import { RegraPenalidade } from './regra-penalidade';
 import { RECORRENCIAS, SITUACOES_DOCUMENTO, STATUS_ITEM, TIPOS_ITEM, referencia, situacaoDoPrazo, temVencimento } from './rotulos';
 
 type Filtro = 'TODOS' | StatusItem;
@@ -65,7 +66,7 @@ export function diferencasDaIa(item: ItemContratual): Diferenca[] {
   imports: [
     ReactiveFormsModule, RouterLink, MatButtonModule, MatButtonToggleModule, MatDialogModule, MatFormFieldModule,
     MatInputModule, MatSelectModule, MatAutocompleteModule, MatDatepickerModule, MatMenuModule, MatTooltipModule,
-    MatProgressSpinnerModule, MatSnackBarModule, Selo, VisualizadorPdf,
+    MatProgressSpinnerModule, MatSnackBarModule, Selo, VisualizadorPdf, RegraPenalidade,
   ],
   templateUrl: './contrato.html',
   styleUrl: './contrato.scss',

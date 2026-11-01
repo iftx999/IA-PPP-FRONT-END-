@@ -109,6 +109,10 @@
           Ritmo atual: média das novas ligações nos últimos {{ p.projecao.mesesNaBase }} meses com a rede do tamanho
           atual (meses em que a rede mudou ficam fora). A projeção não prevê expansão da rede.
         </p>
+        <a class="simular" routerLink="/simulador" [queryParams]="{ unidade: p.unidade.id }">
+          <span class="material-symbols-rounded" aria-hidden="true">calculate</span>
+          Simular ritmos e penalidades →
+        </a>
       } @else {
         <p class="metodo">Sem meta aplicável: não há projeção para esta unidade.</p>
       }

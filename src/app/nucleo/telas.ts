@@ -27,6 +27,7 @@ export const SECOES: { titulo: string; telas: Tela[] }[] = [
     titulo: 'Contrato',
     telas: [
       { rota: '/contratos', rotulo: 'Contratos', permissao: 'contrato:ler' },
+      { rota: '/simulador', rotulo: 'Simulador', permissao: 'indicador:ler' },
       { rota: '/assistente', rotulo: 'Assistente', permissao: 'assistente:usar' },
     ],
   },

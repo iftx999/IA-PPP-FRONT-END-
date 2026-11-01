@@ -1,0 +1,204 @@
+@if (simulacao(); as s) {
+  <header class="cabecalho">
+    <div class="titulo">
+      <span class="rotulo">Simulador de penalidades</span>
+      <h1>{{ s.unidadeNome }}</h1>
+      <p class="sub">
+        Medido em {{ fmt.competenciaLonga(s.competencia) }}:
+        <span class="dado">{{ fmt.percentual(s.adesao) }}</span> ({{ fmt.numero(s.ligados) }} de {{ fmt.numero(s.comRede) }}).
+        <a [routerLink]="['/painel']" [queryParams]="{ unidade: s.unidadeId }">Ver no painel →</a>
+      </p>
+    </div>
+    <aurora-selo tom="atencao">Estimativa</aurora-selo>
+  </header>
+
+  @if (s.unidadesComRegra.length > 1 || (s.unidadesComRegra.length === 1 && s.unidadesComRegra[0]!.id !== s.unidadeId)) {
+    <nav class="atalhos" aria-label="Unidades com penalidade calculável">
+      <span class="nota">Penalidades calculáveis em:</span>
+      @for (u of s.unidadesComRegra; track u.id) {
+        <button matButton="tonal" type="button" [class.atual]="u.id === s.unidadeId" [attr.aria-current]="u.id === s.unidadeId ? 'page' : null"
+                (click)="trocarUnidade(u.id)">
+          {{ u.nome }} <span class="contagem">{{ u.regras }}</span>
+        </button>
+      }
+    </nav>
+  }
+
+  <div class="grade">
+    <section class="cartao controles" aria-labelledby="titulo-cenario">
+      <h2 id="titulo-cenario">Cenário</h2>
+      <label class="rotulo" for="ritmo">Ligações novas por mês</label>
+      <div class="ritmo">
+        <mat-slider class="controle" [min]="0" [max]="maximoDoControle()" [step]="1" discrete>
+          <input matSliderThumb id="ritmo" aria-label="Ligações novas por mês" [value]="ritmoNaTela()"
+                 (valueChange)="rascunho.set($event)" (change)="aplicarRitmo(ritmoNaTela())" />
+        </mat-slider>
+        <mat-form-field class="numero">
+          <input matInput type="number" min="0" step="1" aria-label="Ligações por mês (número)" [value]="ritmoNaTela()"
+                 (change)="aplicarRitmo($any($event.target).value)" (keydown.enter)="aplicarRitmo($any($event.target).value)" />
+          <span matTextSuffix>/mês</span>
+        </mat-form-field>
+      </div>
+      <div class="referencias">
+        @if (s.ritmoAtual != null) {
+          <button matButton="outlined" type="button" (click)="aplicarRitmo(s.ritmoAtual)">
+            <span class="material-symbols-rounded" aria-hidden="true">trending_flat</span>
+            Ritmo atual · {{ fmt.numero(s.ritmoAtual) }}
+          </button>
+        }
+        @if (s.ligacoesNecessariasPorMes != null && s.ligacoesNecessariasPorMes > 0) {
+          <button matButton="outlined" type="button" (click)="aplicarRitmo(s.ligacoesNecessariasPorMes)">
+            <span class="material-symbols-rounded" aria-hidden="true">flag</span>
+            Para a meta no prazo · {{ fmt.numero(s.ligacoesNecessariasPorMes) }}
+          </button>
+        }
+      </div>
+      @if (s.meta?.prazo) {
+        <mat-form-field class="horizonte">
+          <mat-label>Projetar</mat-label>
+          <mat-select [value]="horizonteDe()" (selectionChange)="navegar({ meses: '' + $event.value })">
+            @for (h of horizontes; track h) {
+              <mat-option [value]="h">{{ rotuloHorizonte(h) }}</mat-option>
+            }
+          </mat-select>
+        </mat-form-field>
+      }
+      @if (s.meta; as meta) {
+        <p class="nota">
+          Meta de <span class="dado">{{ fmt.percentual(meta.valor) }}</span>
+          @if (meta.prazo) { até {{ fmt.competenciaCurta(meta.prazo) }} } @else { sem prazo }
+          @if (meta.herdada) { · segue {{ meta.unidadeNome }} } @else if (meta.origem) { · {{ meta.origem }} }
+        </p>
+      }
+    </section>
+
+    <section class="cartao resultado" aria-labelledby="titulo-resultado" aria-live="polite">
+      <h2 id="titulo-resultado">Resultado</h2>
+      <p class="veredito">{{ fmt.veredito(s, s.cenario) }}</p>
+      @if (s.regras.length) {
+        <dl class="numeros">
+          <div>
+            <dt>Multa estimada no cenário</dt>
+            <dd class="dado numero-heroi" [class.zero]="s.cenario.multaTotal === 0">{{ fmt.moeda(s.cenario.multaTotal) }}</dd>
+          </div>
+          <div>
+            <dt>No ritmo atual</dt>
+            <dd class="dado">{{ fmt.moeda(s.ritmoAtualProjetado.multaTotal) }}</dd>
+          </div>
+        </dl>
+        @if (fmt.comparacao(s); as c) {
+          <aurora-selo [tom]="c.tom">{{ c.texto }}</aurora-selo>
+        }
+        <p class="nota">Até {{ fmt.competenciaCurta(s.fim) }}, somando as aferições de cada penalidade.</p>
+      } @else {
+        <p class="nota">{{ fmt.veredito(s, s.ritmoAtualProjetado) }}</p>
+      }
+    </section>
+
+    <section class="cartao grafico" aria-labelledby="titulo-grafico">
+      <div class="cartao-topo">
+        <h2 id="titulo-grafico">Adesão projetada</h2>
+        <mat-button-toggle-group [value]="verMesAMes()" (change)="verMesAMes.set($event.value)" aria-label="Forma de exibição">
+          <mat-button-toggle [value]="false">Gráfico</mat-button-toggle>
+          <mat-button-toggle [value]="true">Mês a mês</mat-button-toggle>
+        </mat-button-toggle-group>
+      </div>
+      @if (!verMesAMes()) {
+        <aurora-grafico-simulacao [simulacao]="s" />
+      } @else {
+        <div class="tabela">
+          <table mat-table [dataSource]="linhas()">
+            <ng-container matColumnDef="competencia">
+              <th mat-header-cell *matHeaderCellDef>Competência</th>
+              <td mat-cell *matCellDef="let m">
+                {{ fmt.competenciaCurta(m.competencia) }}
+                @if (m.medido) { <span class="nota">· medida</span> }
+                @if (m.aferido) { <span class="nota">· aferição</span> }
+              </td>
+            </ng-container>
+            <ng-container matColumnDef="ligados">
+              <th mat-header-cell *matHeaderCellDef class="num">Ligados</th>
+              <td mat-cell *matCellDef="let m" class="num dado">{{ fmt.numero(m.ligados) }}</td>
+            </ng-container>
+            <ng-container matColumnDef="adesao">
+              <th mat-header-cell *matHeaderCellDef class="num">Adesão</th>
+              <td mat-cell *matCellDef="let m" class="num dado">{{ fmt.percentual(m.adesao) }}</td>
+            </ng-container>
+            <ng-container matColumnDef="abaixo">
+              <th mat-header-cell *matHeaderCellDef class="num">Abaixo da meta</th>
+              <td mat-cell *matCellDef="let m" class="num dado">{{ m.pontosAbaixo > 0 ? fmt.pontosPercentuais(-m.pontosAbaixo) : '—' }}</td>
+            </ng-container>
+            <ng-container matColumnDef="multa">
+              <th mat-header-cell *matHeaderCellDef class="num">Multa (cenário)</th>
+              <td mat-cell *matCellDef="let m" class="num dado" [class.perigo]="m.multa > 0">{{ m.multa > 0 ? fmt.moeda(m.multa) : '—' }}</td>
+            </ng-container>
+            <ng-container matColumnDef="multaAtual">
+              <th mat-header-cell *matHeaderCellDef class="num">Multa (ritmo atual)</th>
+              <td mat-cell *matCellDef="let m" class="num dado">{{ m.multaAtual > 0 ? fmt.moeda(m.multaAtual) : '—' }}</td>
+            </ng-container>
+            <tr mat-header-row *matHeaderRowDef="colunas; sticky: true"></tr>
+            <tr mat-row *matRowDef="let row; columns: colunas" [class.aferido]="row.aferido"></tr>
+          </table>
+        </div>
+      }
+    </section>
+
+    <section class="cartao regras" aria-labelledby="titulo-regras">
+      <h2 id="titulo-regras">Penalidades consideradas</h2>
+      @if (!s.regrasVisiveis) {
+        <p class="nota">Seu perfil não consulta contratos: a projeção aparece, mas a multa não é estimada.</p>
+      } @else if (!s.regras.length) {
+        <p class="nota">
+          Nenhuma penalidade calculável é aferida em {{ s.unidadeNome }}.
+          @if (sessao.pode('contrato:ler')) {
+            Em <a routerLink="/contratos">Contratos</a>, abra uma penalidade aprovada e defina como ela é calculada.
+          }
+        </p>
+      } @else {
+        <ul>
+          @for (r of s.regras; track r.itemId) {
+            <li>
+              <div class="regra-topo">
+                <strong>{{ r.titulo }}</strong>
+                <a class="origem" [routerLink]="['/contratos', r.contratoId]">
+                  Contrato {{ r.contratoNumero }}@if (r.clausula) {, cláusula {{ r.clausula }}}, p. {{ r.pagina }}
+                </a>
+              </div>
+              <p class="formula">{{ fmt.descreverRegra(r) }}</p>
+              <p class="totais">
+                Cenário <span class="dado">{{ fmt.moeda(r.multaCenario) }}</span> ·
+                ritmo atual <span class="dado">{{ fmt.moeda(r.multaRitmoAtual) }}</span>
+              </p>
+            </li>
+          }
+        </ul>
+      }
+    </section>
+  </div>
+
+  <p class="aviso-estimativa">
+    <span class="material-symbols-rounded" aria-hidden="true">info</span>
+    <span>
+      Estimativa com ritmo constante, a rede do tamanho atual e a meta de hoje (depois do prazo, ela continua sendo a
+      referência). Não substitui a apuração oficial do regulador.
+    </span>
+  </p>
+} @else if (sessao.usuario() && !sessao.pode('indicador:ler')) {
+  <section class="cartao aviso" role="alert">
+    <p class="rotulo">Sem acesso</p>
+    <p>Seu perfil não permite consultar indicadores.</p>
+  </section>
+} @else if (naoEncontrado()) {
+  <section class="cartao vazio">
+    <p class="rotulo">Nada para simular</p>
+    <p>Não há medição de adesão nesta unidade. Escolha outra pelo painel.</p>
+    <a matButton="outlined" routerLink="/painel">Ir para o painel</a>
+  </section>
+} @else if (dados.error()) {
+  <section class="cartao" role="alert">
+    <p>Não foi possível simular.</p>
+    <button matButton="outlined" type="button" (click)="dados.reload()">Tentar de novo</button>
+  </section>
+} @else {
+  <div class="esqueleto" aria-busy="true" aria-label="Carregando a simulação"></div>
+}

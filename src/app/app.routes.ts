@@ -14,6 +14,7 @@ const telas: Routes = [
   { path: 'alertas', title: 'Alertas · Aurora', loadComponent: () => import('./paginas/alertas/alertas').then((m) => m.Alertas) },
   { path: 'contratos', title: 'Contratos · Aurora', loadComponent: () => import('./paginas/contratos/contratos').then((m) => m.Contratos) },
   { path: 'contratos/:id', title: 'Contrato · Aurora', loadComponent: () => import('./paginas/contratos/contrato').then((m) => m.ContratoPagina) },
+  { path: 'simulador', title: 'Simulador · Aurora', loadComponent: () => import('./paginas/simulador/simulador').then((m) => m.Simulador) },
   { path: 'assistente', title: 'Assistente · Aurora', loadComponent: () => import('./paginas/assistente/assistente').then((m) => m.Assistente) },
   { path: 'admin/unidades', title: 'Unidades · Aurora', loadComponent: () => import('./paginas/unidades/unidades').then((m) => m.Unidades) },
   { path: 'admin/usuarios', title: 'Usuários · Aurora', loadComponent: () => import('./paginas/usuarios/usuarios').then((m) => m.Usuarios) },

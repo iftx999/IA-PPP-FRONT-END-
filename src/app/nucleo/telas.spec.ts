@@ -3,7 +3,7 @@ import { secoesPermitidas, telaInicial } from './telas';
 describe('Telas por permissão', () => {
   it('administrador vê tudo e entra no painel', () => {
     const todas = ['indicador:ler', 'contrato:ler', 'assistente:usar', 'unidade:ler', 'usuario:gerenciar', 'auditoria:ler', 'integracao:gerenciar'];
-    expect(secoesPermitidas(todas).flatMap((s) => s.telas)).toHaveLength(12);
+    expect(secoesPermitidas(todas).flatMap((s) => s.telas)).toHaveLength(13);
     expect(telaInicial(todas)).toBe('/painel');
   });
 

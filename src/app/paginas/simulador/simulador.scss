@@ -1,0 +1,66 @@
+.cabecalho {
+  display: flex; flex-wrap: wrap; align-items: flex-start; justify-content: space-between; gap: var(--space-4);
+  margin-bottom: var(--space-4);
+}
+.titulo { display: grid; gap: var(--space-1); }
+h1 { font: 700 var(--fs-h1) var(--font-display); }
+h2 { font: 600 var(--fs-h2) var(--font-ui); }
+.sub { margin: 0; color: var(--text-2); font-size: var(--fs-small); }
+.sub a { margin-left: var(--space-2); text-decoration: underline; text-underline-offset: 2px; }
+
+.atalhos { display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-2); margin-bottom: var(--space-4); }
+.atalhos .atual { outline: 2px solid var(--accent); }
+.contagem {
+  margin-left: 6px; padding: 0 6px; border-radius: 999px;
+  background: color-mix(in srgb, var(--accent) 18%, transparent); font-size: var(--fs-small);
+}
+
+.grade { display: grid; gap: var(--space-4); grid-template-columns: repeat(12, minmax(0, 1fr)); }
+.controles { grid-column: span 6; }
+.resultado { grid-column: span 6; background: var(--bg-3); border-left: 3px solid var(--accent); }
+.grafico, .regras { grid-column: 1 / -1; }
+@media (max-width: 960px) {
+  .controles, .resultado { grid-column: 1 / -1; }
+}
+
+.cartao { display: grid; gap: var(--space-3); align-content: start; }
+.cartao-topo { display: flex; align-items: center; justify-content: space-between; gap: var(--space-3); flex-wrap: wrap; }
+
+.ritmo { display: flex; align-items: center; gap: var(--space-4); flex-wrap: wrap; }
+.controle { flex: 1 1 260px; min-width: 200px; }
+.numero { width: 160px; }
+.referencias { display: flex; flex-wrap: wrap; gap: var(--space-2); }
+.horizonte { width: 260px; }
+
+.nota { margin: 0; color: var(--text-3); font-size: var(--fs-small); }
+.veredito { margin: 0; font-size: 1.0625rem; color: var(--text-1); }
+dl.numeros { margin: 0; display: flex; flex-wrap: wrap; gap: var(--space-6, 32px); }
+dt { font-size: var(--fs-small); color: var(--text-3); }
+dd { margin: 0; font-size: 1.25rem; font-weight: 600; }
+.numero-heroi { font-size: clamp(1.75rem, 3.2vw, 2.5rem); line-height: 1.1; letter-spacing: -.01em; color: var(--danger); overflow-wrap: anywhere; }
+.numero-heroi.zero { color: var(--ok); }
+
+.tabela { max-height: 420px; overflow: auto; }
+table { width: 100%; }
+.num { text-align: right; }
+td.perigo { color: var(--danger); }
+tr.aferido td { background: color-mix(in srgb, var(--warn) 6%, transparent); }
+
+.regras ul { list-style: none; margin: 0; padding: 0; display: grid; gap: var(--space-3); }
+.regras li { padding: var(--space-3); border: 1px solid var(--line); border-radius: var(--radius-m); display: grid; gap: var(--space-1); }
+.regra-topo { display: flex; flex-wrap: wrap; justify-content: space-between; gap: var(--space-2); }
+.origem { font-size: var(--fs-small); text-decoration: none; }
+.formula, .totais { margin: 0; color: var(--text-2); font-size: var(--fs-small); }
+
+.aviso-estimativa {
+  display: flex; gap: var(--space-2); align-items: flex-start; margin: var(--space-4) 0 0;
+  color: var(--text-3); font-size: var(--fs-small);
+}
+.aviso-estimativa .material-symbols-rounded { font-size: 18px; }
+
+.vazio { max-width: 560px; }
+.vazio p { margin: 0; color: var(--text-2); }
+.esqueleto {
+  min-height: 220px; border-radius: var(--radius-m);
+  background: linear-gradient(90deg, var(--bg-2), var(--bg-3), var(--bg-2)); background-size: 200% 100%;
+}
