@@ -143,6 +143,9 @@
                 <button mat-menu-item type="button" (click)="abrirSegundoFator(u)">
                   <span class="material-symbols-rounded" aria-hidden="true">phonelink_lock</span> Verificação em duas etapas
                 </button>
+                <button mat-menu-item type="button" (click)="encerrarSessoes(u)">
+                  <span class="material-symbols-rounded" aria-hidden="true">devices_off</span> Encerrar sessões
+                </button>
               }
             }
             @if (u.situacao === 'INATIVO') {

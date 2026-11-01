@@ -1,5 +1,5 @@
 <aside class="lateral">
-  <a class="marca" routerLink="/painel" aria-label="Aurora, ir para o painel">
+  <a class="marca" routerLink="/" aria-label="Aurora, ir para o início">
     <span class="logo" aria-hidden="true"></span>
     <span class="nome">Aurora</span>
   </a>
@@ -19,10 +19,10 @@
   </div>
 
   <nav aria-label="Menu principal">
-    @for (secao of secoes; track secao.titulo) {
+    @for (secao of secoes(); track secao.titulo) {
       <p class="rotulo secao">{{ secao.titulo }}</p>
       <ul>
-        @for (item of secao.itens; track item.rota) {
+        @for (item of secao.telas; track item.rota) {
           <li>
             <a [routerLink]="item.rota" routerLinkActive="ativo" ariaCurrentWhenActive="page">
               {{ item.rotulo }}
@@ -86,13 +86,19 @@
       <span class="material-symbols-rounded">{{ tema.tema() === 'dark' ? 'light_mode' : 'dark_mode' }}</span>
     </button>
     @if (sessao.usuario(); as eu) {
-      <div class="usuario">
+      <button type="button" class="usuario" [matMenuTriggerFor]="menuUsuario" aria-label="Menu da conta">
         <span class="avatar" aria-hidden="true">{{ sessao.iniciais() }}</span>
         <span class="usuario-texto">
           <span>{{ eu.nome }}</span>
           <span class="email">{{ eu.email }}</span>
         </span>
-      </div>
+        <span class="material-symbols-rounded seta" aria-hidden="true">expand_more</span>
+      </button>
+      <mat-menu #menuUsuario="matMenu" xPosition="before">
+        <button mat-menu-item type="button" (click)="sairDeTodosOsDispositivos()">
+          <span class="material-symbols-rounded" aria-hidden="true">devices_off</span> Sair de todos os dispositivos
+        </button>
+      </mat-menu>
     }
     <button matIconButton type="button" (click)="sessao.sair()" matTooltip="Sair" aria-label="Sair">
       <span class="material-symbols-rounded">logout</span>

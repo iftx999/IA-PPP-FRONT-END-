@@ -94,6 +94,11 @@
     <span class="rotulo">Sem dados</span>
     <p>Não há carga de imóveis para esta unidade ou competência no seu escopo.</p>
   </section>
+} @else if (sessao.usuario() && !sessao.pode('indicador:ler')) {
+  <section class="cartao aviso" role="alert">
+    <p class="rotulo">Sem acesso</p>
+    <p>Seu perfil não permite ver os imóveis sem ligação.</p>
+  </section>
 } @else if (primeiraPagina.error()) {
   <section class="cartao vazio-cartao" role="alert">
     <span class="rotulo">Erro</span>

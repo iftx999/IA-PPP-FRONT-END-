@@ -84,8 +84,8 @@ export class RetornoDoLogin implements OnInit {
     const destino = sessionStorage.getItem(CHAVE_RETORNO);
     sessionStorage.removeItem(CHAVE_RETORNO);
     const seguro = destino?.startsWith('/') && !destino.startsWith('//') && !destino.includes(`/${ROTA_RETORNO}`);
-    // A plataforma volta para a própria área; os clientes, para o Painel.
-    const padrao = this.router.url.startsWith('/plataforma') ? '/plataforma' : '/painel';
+    // A plataforma volta para a própria área; os clientes, para a tela inicial do perfil.
+    const padrao = this.router.url.startsWith('/plataforma') ? '/plataforma' : '/';
     await this.router.navigateByUrl(isAuthenticated && seguro ? destino! : padrao, { replaceUrl: true });
   }
 }

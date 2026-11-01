@@ -7,6 +7,10 @@ export interface InfoEvento {
 
 export const EVENTOS: Record<string, InfoEvento> = {
   LOGIN: { rotulo: 'Login', icone: 'login', grupo: 'Acesso e usuários' },
+  LOGIN_FALHOU: { rotulo: 'Falha de login', icone: 'gpp_maybe', grupo: 'Acesso e usuários' },
+  CONTA_BLOQUEADA: { rotulo: 'Conta bloqueada por tentativas', icone: 'lock_person', grupo: 'Acesso e usuários' },
+  LOGOUT: { rotulo: 'Logout', icone: 'logout', grupo: 'Acesso e usuários' },
+  SESSOES_ENCERRADAS: { rotulo: 'Sessões encerradas em todos os dispositivos', icone: 'devices_off', grupo: 'Acesso e usuários' },
   USUARIO_CONVIDADO: { rotulo: 'Usuário convidado', icone: 'person_add', grupo: 'Acesso e usuários' },
   CONVITE_REENVIADO: { rotulo: 'Convite reenviado', icone: 'forward_to_inbox', grupo: 'Acesso e usuários' },
   CONVITE_ACEITO: { rotulo: 'Convite aceito', icone: 'how_to_reg', grupo: 'Acesso e usuários' },

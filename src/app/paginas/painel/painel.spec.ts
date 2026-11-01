@@ -59,7 +59,13 @@ describe('Painel', () => {
         provideRouter([]),
         provideHttpClient(),
         provideHttpClientTesting(),
-        { provide: SessaoService, useValue: { pode: (permissao: string) => permissao === 'assistente:usar' } },
+        {
+          provide: SessaoService,
+          useValue: {
+            usuario: () => ({ permissoes: ['indicador:ler', 'assistente:usar'] }),
+            pode: (permissao: string) => ['indicador:ler', 'assistente:usar'].includes(permissao),
+          },
+        },
       ],
     });
   });

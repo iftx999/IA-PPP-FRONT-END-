@@ -343,6 +343,14 @@ export class Usuarios {
     );
   }
 
+  /** Doc 08, 8.6: aparelho perdido ou suspeita de acesso indevido; a conta continua ativa. */
+  protected async encerrarSessoes(u: Usuario): Promise<void> {
+    await this.acaoDireta(
+      () => this.http.delete(`/api/v1/usuarios/${u.id}/sessoes`),
+      `Sessões de ${u.nome} encerradas em todos os dispositivos.`,
+    );
+  }
+
   protected fechar(): void {
     this.dialogoAberto?.close();
   }

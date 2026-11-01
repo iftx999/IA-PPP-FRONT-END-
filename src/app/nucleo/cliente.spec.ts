@@ -46,7 +46,7 @@ describe('Escolha do cliente (ADR 0027)', () => {
   it('retorno só para caminhos internos', () => {
     expect(retornoSeguro('/metas?x=1')).toBe('/metas?x=1');
     for (const ruim of [null, '', '//evil.example', 'https://evil.example', '/acesso', 'javascript:alert(1)']) {
-      expect(retornoSeguro(ruim)).toBe('/painel');
+      expect(retornoSeguro(ruim)).toBe('/');
     }
   });
 });

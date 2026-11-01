@@ -2,10 +2,11 @@ import { Routes } from '@angular/router';
 import { Shell } from './layout/shell';
 import { ROTA_RETORNO, RetornoDoLogin, exigirLogin } from './nucleo/autenticacao';
 import { ROTA_ACESSO, ROTA_PLATAFORMA } from './nucleo/cliente';
+import { irParaTelaInicial } from './nucleo/telas';
 
 /** Telas na ordem da barra lateral (docs/01, seção 1.4). */
 const telas: Routes = [
-  { path: '', pathMatch: 'full', redirectTo: 'painel' },
+  { path: '', pathMatch: 'full', canActivate: [irParaTelaInicial], children: [] },
   { path: 'painel', title: 'Painel · Aurora', loadComponent: () => import('./paginas/painel/painel').then((m) => m.Painel) },
   { path: 'metas', title: 'Metas · Aurora', loadComponent: () => import('./paginas/metas/metas').then((m) => m.Metas) },
   { path: 'sem-ligacao', title: 'Sem ligação · Aurora', loadComponent: () => import('./paginas/sem-ligacao/sem-ligacao').then((m) => m.SemLigacao) },

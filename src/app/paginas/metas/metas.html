@@ -164,6 +164,11 @@
       </tr>
     </table>
   </section>
+} @else if (sessao.usuario() && !sessao.pode('indicador:ler')) {
+  <section class="cartao aviso" role="alert">
+    <p class="rotulo">Sem acesso</p>
+    <p>Seu perfil não permite consultar metas.</p>
+  </section>
 } @else if (dados.error()) {
   <section class="cartao" role="alert">
     <p>Não foi possível carregar as metas.</p>

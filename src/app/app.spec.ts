@@ -19,16 +19,30 @@ describe('Shell', () => {
     }).compileComponents();
   });
 
-  it('mostra o menu e o usuário retornado pela API', async () => {
+  it('mostra o menu permitido e o usuário retornado pela API', async () => {
     const fixture = TestBed.createComponent(Shell);
     fixture.detectChanges();
     TestBed.inject(HttpTestingController)
       .expectOne('/api/v1/eu')
       .flush({ usuarioId: '1', nome: 'Administração Dev', email: 'admin@exemplo.dev', tenantId: 't',
-               tenant: 'Grupo Saneamento Exemplo', permissoes: [] });
+               tenant: 'Grupo Saneamento Exemplo', permissoes: ['indicador:ler'] });
+    // Com indicador:ler, o contador de alertas consulta a API (depois que /eu é processado).
+    const http = TestBed.inject(HttpTestingController);
+    let pedidos = http.match('/api/v1/alertas/resumo');
+    for (let i = 0; i < 20 && pedidos.length === 0; i++) {
+      TestBed.tick();
+      await new Promise((r) => setTimeout(r));
+      pedidos = http.match('/api/v1/alertas/resumo');
+    }
+    expect(pedidos).toHaveLength(1);
+    pedidos[0]!.flush({ abertos: 0, criticos: 0 });
     await fixture.whenStable();
     const texto = (fixture.nativeElement as HTMLElement).textContent ?? '';
     expect(texto).toContain('Adesão');
+    expect(texto).toContain('Painel');
+    // Doc 08, 8.4: telas sem permissão não aparecem no menu.
+    expect(texto).not.toContain('Integrações');
+    expect(texto).not.toContain('Contratos');
     expect(texto).toContain('Grupo Saneamento Exemplo');
     expect(texto).toContain('Administração Dev');
     expect(texto).toContain('AD');

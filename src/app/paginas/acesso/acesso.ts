@@ -9,7 +9,7 @@ import { buscarCliente, clienteEscolhido, lembrarCliente, normalizarCodigo } fro
 
 /** Só caminhos internos (nada de //outro-site ou javascript:). */
 export function retornoSeguro(retorno: string | null | undefined): string {
-  return retorno && retorno.startsWith('/') && !retorno.startsWith('//') && !retorno.startsWith('/acesso') ? retorno : '/painel';
+  return retorno && retorno.startsWith('/') && !retorno.startsWith('//') && !retorno.startsWith('/acesso') ? retorno : '/';
 }
 
 /**

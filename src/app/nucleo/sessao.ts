@@ -1,6 +1,8 @@
-import { httpResource } from '@angular/common/http';
+import { HttpClient, httpResource } from '@angular/common/http';
 import { Injectable, computed, inject } from '@angular/core';
+import { toObservable } from '@angular/core/rxjs-interop';
 import { Router } from '@angular/router';
+import { filter, firstValueFrom, map } from 'rxjs';
 import { OidcSecurityService } from 'angular-auth-oidc-client';
 import type { Eu } from '../api/tipos';
 import { entrarDeNovo } from './autenticacao';
@@ -14,6 +16,7 @@ export class SessaoService {
   private readonly oidc = inject(OidcSecurityService);
   private readonly router = inject(Router);
   private readonly segundoFator = inject(SegundoFatorEstado);
+  private readonly http = inject(HttpClient);
 
   readonly eu = httpResource<Eu>(() => '/api/v1/eu');
 
@@ -38,6 +41,21 @@ export class SessaoService {
       .join(''),
   );
 
+  /** Emite quando /eu termina de carregar (usuário, ou undefined em erro). */
+  private readonly carregado = toObservable(
+    computed(() => (this.eu.isLoading() || this.eu.status() === 'idle' ? null : { usuario: this.usuario() })),
+  );
+
+  /** Para guards: espera o /eu e devolve o usuário (undefined se a API recusou). */
+  aguardarUsuario(): Promise<Eu | undefined> {
+    return firstValueFrom(
+      this.carregado.pipe(
+        filter((c) => c !== null),
+        map((c) => c.usuario),
+      ),
+    );
+  }
+
   pode(permissao: string): boolean {
     return this.usuario()?.permissoes.includes(permissao) ?? false;
   }
@@ -48,6 +66,20 @@ export class SessaoService {
 
   sair(): void {
     this.oidc.logoff().subscribe();
+  }
+
+  /**
+   * Doc 08, 8.6: encerra as sessões da pessoa em todos os dispositivos (no provedor de identidade) e sai deste.
+   * @returns false se a API não conseguiu encerrar (a pessoa continua conectada aqui para tentar de novo)
+   */
+  async sairDeTodosOsDispositivos(): Promise<boolean> {
+    try {
+      await firstValueFrom(this.http.delete('/api/v1/eu/sessoes'));
+    } catch {
+      return false;
+    }
+    this.sair();
+    return true;
   }
 
   /**

@@ -1188,6 +1188,22 @@ export interface paths {
     patch?: never;
     trace?: never;
   };
+  '/api/v1/usuarios/{id}/sessoes': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    post?: never;
+    delete: operations['encerrarSessoes'];
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
   '/api/v1/mapa/marcacoes/{id}': {
     parameters: {
       query?: never;
@@ -1199,6 +1215,22 @@ export interface paths {
     put?: never;
     post?: never;
     delete: operations['remover_1'];
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/api/v1/eu/sessoes': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    post?: never;
+    delete: operations['encerrarSessoes_1'];
     options?: never;
     head?: never;
     patch?: never;
@@ -4419,6 +4451,26 @@ export interface operations {
       };
     };
   };
+  encerrarSessoes: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        id: string;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description OK */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
+      };
+    };
+  };
   remover_1: {
     parameters: {
       query?: never;
@@ -4426,6 +4478,24 @@ export interface operations {
       path: {
         id: string;
       };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description OK */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
+      };
+    };
+  };
+  encerrarSessoes_1: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
       cookie?: never;
     };
     requestBody?: never;

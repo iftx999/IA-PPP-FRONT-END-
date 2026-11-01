@@ -203,6 +203,11 @@
     <span class="rotulo">Sem dados</span>
     <p>Não há medições de adesão para esta unidade ou competência no seu escopo.</p>
   </section>
+} @else if (sessao.usuario() && !sessao.pode('indicador:ler')) {
+  <section class="cartao aviso" role="alert">
+    <p class="rotulo">Sem acesso</p>
+    <p>Seu perfil não permite ver o painel de adesão.</p>
+  </section>
 } @else if (dados.error()) {
   <section class="cartao vazio" role="alert">
     <span class="rotulo">Erro</span>
