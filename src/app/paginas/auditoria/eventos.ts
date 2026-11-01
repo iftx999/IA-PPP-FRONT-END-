@@ -40,6 +40,7 @@ export const EVENTOS: Record<string, InfoEvento> = {
   META_DEFINIDA: { rotulo: 'Meta definida', icone: 'flag', grupo: 'Metas' },
   META_ENCERRADA: { rotulo: 'Meta encerrada', icone: 'event_busy', grupo: 'Metas' },
   META_REMOVIDA: { rotulo: 'Meta removida', icone: 'flag', grupo: 'Metas' },
+  ARQUIVO_RECUSADO_PELO_ANTIVIRUS: { rotulo: 'Arquivo recusado pelo antivírus', icone: 'coronavirus', grupo: 'Contratos' },
   RELATORIO_EXPORTADO: { rotulo: 'Exportação', icone: 'download', grupo: 'Exportações e dados pessoais' },
   ACESSO_DADO_PESSOAL: { rotulo: 'Dado pessoal exibido', icone: 'visibility', grupo: 'Exportações e dados pessoais' },
   DOCUMENTO_CONTRATO_ENVIADO: { rotulo: 'Documento de contrato enviado', icone: 'upload_file', grupo: 'Contratos' },
