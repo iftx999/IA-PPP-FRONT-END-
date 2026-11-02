@@ -180,6 +180,22 @@ export interface paths {
     patch?: never;
     trace?: never;
   };
+  '/api/v1/minhas-ordens/{id}/resultado': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put: operations['registrar'];
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
   '/api/v1/integracoes/fontes/{id}': {
     parameters: {
       query?: never;
@@ -189,6 +205,22 @@ export interface paths {
     };
     get?: never;
     put: operations['alterar_3'];
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/api/v1/equipes/{id}': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put: operations['alterar_4'];
     post?: never;
     delete?: never;
     options?: never;
@@ -237,6 +269,22 @@ export interface paths {
     };
     get?: never;
     put: operations['definirAgenda'];
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/api/v1/campanhas/ordens/{ordem}/resultado': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put: operations['registrar_1'];
     post?: never;
     delete?: never;
     options?: never;
@@ -532,7 +580,7 @@ export interface paths {
     patch?: never;
     trace?: never;
   };
-  '/api/v1/contratos': {
+  '/api/v1/equipes': {
     parameters: {
       query?: never;
       header?: never;
@@ -540,6 +588,22 @@ export interface paths {
       cookie?: never;
     };
     get: operations['listar_6'];
+    put?: never;
+    post: operations['cadastrar'];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/api/v1/contratos': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get: operations['listar_7'];
     put?: never;
     post: operations['criar_6'];
     delete?: never;
@@ -638,6 +702,86 @@ export interface paths {
     get?: never;
     put?: never;
     post: operations['reprocessar'];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/api/v1/campanhas': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get: operations['listar_8'];
+    put?: never;
+    post: operations['criar_7'];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/api/v1/campanhas/{id}/encerrar': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    post: operations['encerrar_1'];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/api/v1/campanhas/{id}/distribuir': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    post: operations['distribuir'];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/api/v1/campanhas/{id}/cancelar': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    post: operations['cancelar'];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/api/v1/campanhas/previa': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    post: operations['previa'];
     delete?: never;
     options?: never;
     head?: never;
@@ -884,6 +1028,22 @@ export interface paths {
     patch?: never;
     trace?: never;
   };
+  '/api/v1/minhas-ordens': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get: operations['listar_9'];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
   '/api/v1/metas/unidades/{unidade}/historico': {
     parameters: {
       query?: never;
@@ -971,7 +1131,7 @@ export interface paths {
       path?: never;
       cookie?: never;
     };
-    get: operations['listar_7'];
+    get: operations['listar_10'];
     put?: never;
     post?: never;
     delete?: never;
@@ -1012,6 +1172,22 @@ export interface paths {
     patch?: never;
     trace?: never;
   };
+  '/api/v1/equipes/pessoas': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get: operations['pessoas'];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
   '/api/v1/contratos/{id}': {
     parameters: {
       query?: never;
@@ -1035,7 +1211,7 @@ export interface paths {
       path?: never;
       cookie?: never;
     };
-    get: operations['listar_8'];
+    get: operations['listar_11'];
     put?: never;
     post?: never;
     delete?: never;
@@ -1068,6 +1244,38 @@ export interface paths {
       cookie?: never;
     };
     get: operations['arquivo'];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/api/v1/campanhas/{id}': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get: operations['painel_1'];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/api/v1/campanhas/{id}/ordens': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get: operations['ordens'];
     put?: never;
     post?: never;
     delete?: never;
@@ -1227,7 +1435,7 @@ export interface paths {
       path?: never;
       cookie?: never;
     };
-    get: operations['listar_9'];
+    get: operations['listar_12'];
     put?: never;
     post?: never;
     delete?: never;
@@ -1432,6 +1640,83 @@ export interface components {
       descricao: string | null;
       permissoes: string[];
     };
+    ResultadoRequest: {
+      /** @enum {string} */
+      resultado: 'EXECUTADA' | 'RECUSADA' | 'REAGENDADA' | 'INVIAVEL';
+      /** @enum {string|null} */
+      motivo:
+        | 'SEM_INTERESSE'
+        | 'CUSTO_DA_LIGACAO'
+        | 'SOLUCAO_PROPRIA'
+        | 'DEBITO_PENDENTE'
+        | 'SEM_REDE_NA_RUA'
+        | 'IMOVEL_ABAIXO_DA_REDE'
+        | 'IMOVEL_DESOCUPADO'
+        | 'OUTRO'
+        | null;
+      observacao: string | null;
+      /** Format: date */
+      reagendadaPara: string | null;
+    };
+    OrdemServicoResponse: {
+      /** Format: uuid */
+      id: string;
+      /** Format: uuid */
+      campanhaId: string;
+      campanhaNome: string;
+      /** Format: int32 */
+      numero: number;
+      matricula: string;
+      /** Format: uuid */
+      unidadeId: string;
+      unidadeNome: string;
+      /** @enum {string} */
+      tipo: 'VISTORIA' | 'LIGACAO_NOVA' | 'RELIGACAO' | 'NOTIFICACAO';
+      situacaoNaCriacao: string;
+      /** @enum {string} */
+      prioridade: 'ALTA' | 'MEDIA' | 'BAIXA';
+      /** Format: date */
+      prazo: string;
+      /** Format: uuid */
+      equipeId: string | null;
+      equipeNome: string | null;
+      /** Format: date-time */
+      enviadaEm: string | null;
+      /** @enum {string} */
+      status:
+        | 'PLANEJADA'
+        | 'EM_CAMPO'
+        | 'REAGENDADA'
+        | 'EXECUTADA'
+        | 'RECUSADA'
+        | 'INVIAVEL'
+        | 'CANCELADA';
+      /** @enum {string|null} */
+      motivo:
+        | 'SEM_INTERESSE'
+        | 'CUSTO_DA_LIGACAO'
+        | 'SOLUCAO_PROPRIA'
+        | 'DEBITO_PENDENTE'
+        | 'SEM_REDE_NA_RUA'
+        | 'IMOVEL_ABAIXO_DA_REDE'
+        | 'IMOVEL_DESOCUPADO'
+        | 'OUTRO'
+        | null;
+      observacao: string | null;
+      /** Format: date */
+      reagendadaPara: string | null;
+      /** Format: date-time */
+      resultadoEm: string | null;
+      resultadoPor: string | null;
+      /** @enum {string} */
+      conferencia: 'NAO_SE_APLICA' | 'PENDENTE' | 'CONFIRMADA' | 'DIVERGENTE';
+      confirmadaEm: string | null;
+      atrasada: boolean;
+      /** Format: double */
+      latitude: number | null;
+      /** Format: double */
+      longitude: number | null;
+    };
     FonteRequest: {
       nome: string;
       /** @enum {string} */
@@ -1440,6 +1725,38 @@ export interface components {
       frequencia: string | null;
       /** Format: int64 */
       atrasoMaximoHoras: number;
+      ativo: boolean;
+    };
+    EquipeRequest: {
+      /** Format: uuid */
+      unidadeId: string;
+      nome: string;
+      /** @enum {string} */
+      tipo: 'PROPRIA' | 'TERCEIRIZADA';
+      empresa: string | null;
+      ativa: boolean;
+      membros: string[];
+    };
+    EquipeResponse: {
+      /** Format: uuid */
+      id: string;
+      /** Format: uuid */
+      unidadeId: string;
+      unidadeNome: string;
+      nome: string;
+      /** @enum {string} */
+      tipo: 'PROPRIA' | 'TERCEIRIZADA';
+      empresa: string | null;
+      ativa: boolean;
+      membros: components['schemas']['MembroResponse'][];
+      /** Format: int64 */
+      ordensEmCampo: number;
+    };
+    MembroResponse: {
+      /** Format: uuid */
+      usuarioId: string;
+      nome: string;
+      email: string;
       ativo: boolean;
     };
     ItemRequest: {
@@ -1723,6 +2040,137 @@ export interface components {
     };
     RejeicaoRequest: {
       motivo: string;
+    };
+    AreaDaCampanha: {
+      /** Format: double */
+      oeste: number;
+      /** Format: double */
+      sul: number;
+      /** Format: double */
+      leste: number;
+      /** Format: double */
+      norte: number;
+    };
+    CampanhaRequest: {
+      nome: string;
+      recorte: components['schemas']['RecorteDaCampanha'];
+      /** @enum {string} */
+      acao: 'LIGACAO' | 'VISTORIA' | 'NOTIFICACAO';
+      /** Format: date */
+      prazo: string;
+    };
+    RecorteDaCampanha: {
+      /** @enum {string} */
+      origem: 'SEM_LIGACAO' | 'AREA_DO_MAPA' | 'SETOR';
+      /** Format: uuid */
+      unidadeId: string;
+      situacao: string | null;
+      motivoCorte: string | null;
+      area: components['schemas']['AreaDaCampanha'] | null;
+    };
+    CampanhaResponse: {
+      /** Format: uuid */
+      id: string;
+      /** Format: uuid */
+      unidadeId: string;
+      unidadeNome: string;
+      nome: string;
+      recorte: components['schemas']['RecorteDaCampanha'];
+      /** @enum {string} */
+      acao: 'LIGACAO' | 'VISTORIA' | 'NOTIFICACAO';
+      competencia: string;
+      /** Format: date */
+      prazo: string;
+      /** @enum {string} */
+      status: 'ATIVA' | 'ENCERRADA' | 'CANCELADA';
+      /** Format: int64 */
+      ligadosNaCriacao: number;
+      /** Format: int64 */
+      comRedeNaCriacao: number;
+      criadaPor: string;
+      /** Format: date-time */
+      criadaEm: string;
+      /** Format: date-time */
+      finalizadaEm: string | null;
+      funil: components['schemas']['FunilResponse'];
+    };
+    FunilResponse: {
+      /** Format: int64 */
+      total: number;
+      /** Format: int64 */
+      planejadas: number;
+      /** Format: int64 */
+      emCampo: number;
+      /** Format: int64 */
+      executadas: number;
+      /** Format: int64 */
+      confirmadas: number;
+      /** Format: int64 */
+      divergentes: number;
+      /** Format: int64 */
+      pendentesDeConferencia: number;
+      /** Format: int64 */
+      recusadas: number;
+      /** Format: int64 */
+      inviaveis: number;
+      /** Format: int64 */
+      reagendadas: number;
+      /** Format: int64 */
+      canceladas: number;
+      /** Format: int64 */
+      semEquipe: number;
+      /** Format: int64 */
+      atrasadas: number;
+    };
+    DistribuicaoRequest: {
+      /** Format: uuid */
+      equipeId: string;
+      ordens: string[];
+      /** @enum {string|null} */
+      prioridade: 'ALTA' | 'MEDIA' | 'BAIXA' | null;
+      /** Format: int32 */
+      quantidade: number | null;
+    };
+    DistribuicaoResponse: {
+      /** Format: int32 */
+      enviadas: number;
+      /** Format: int32 */
+      foraDaArea: number;
+    };
+    ImpactoNaMetaResponse: {
+      /** Format: uuid */
+      unidadeId: string;
+      unidadeNome: string;
+      competencia: string | null;
+      /** Format: int64 */
+      ligados: number;
+      /** Format: int64 */
+      comRede: number;
+      adesao: number | null;
+      adesaoSeTodasLigarem: number | null;
+      meta: number | null;
+      /** Format: int64 */
+      faltamParaMeta: number | null;
+    };
+    PreviaResponse: {
+      competencia: string;
+      /** Format: int64 */
+      imoveis: number;
+      /** Format: int64 */
+      factiveis: number;
+      /** Format: int64 */
+      cortados: number;
+      /** Format: int64 */
+      comOsAberta: number;
+      /** Format: int64 */
+      alta: number;
+      /** Format: int64 */
+      media: number;
+      /** Format: int64 */
+      baixa: number;
+      /** Format: int64 */
+      limite: number;
+      impacto: components['schemas']['ImpactoNaMetaResponse'];
     };
     PerguntaRequest: {
       /** Format: uuid */
@@ -2325,6 +2773,12 @@ export interface components {
       tenantTemLogo: boolean;
       permissoes: string[];
     };
+    PessoaResponse: {
+      /** Format: uuid */
+      id: string;
+      nome: string;
+      email: string;
+    };
     ContratoResponse: {
       /** Format: uuid */
       id: string;
@@ -2442,6 +2896,63 @@ export interface components {
         | 'QUINQUENAL'
         | null;
     };
+    MotivoResponse: {
+      /** @enum {string} */
+      status:
+        | 'PLANEJADA'
+        | 'EM_CAMPO'
+        | 'REAGENDADA'
+        | 'EXECUTADA'
+        | 'RECUSADA'
+        | 'INVIAVEL'
+        | 'CANCELADA';
+      /** @enum {string} */
+      motivo:
+        | 'SEM_INTERESSE'
+        | 'CUSTO_DA_LIGACAO'
+        | 'SOLUCAO_PROPRIA'
+        | 'DEBITO_PENDENTE'
+        | 'SEM_REDE_NA_RUA'
+        | 'IMOVEL_ABAIXO_DA_REDE'
+        | 'IMOVEL_DESOCUPADO'
+        | 'OUTRO';
+      /** Format: int64 */
+      quantidade: number;
+    };
+    PainelCampanhaResponse: {
+      campanha: components['schemas']['CampanhaResponse'];
+      equipes: components['schemas']['ProdutividadeResponse'][];
+      motivos: components['schemas']['MotivoResponse'][];
+      agora: components['schemas']['ImpactoNaMetaResponse'];
+    };
+    ProdutividadeResponse: {
+      /** Format: uuid */
+      equipeId: string;
+      equipeNome: string;
+      /** @enum {string} */
+      tipo: 'PROPRIA' | 'TERCEIRIZADA';
+      /** Format: int64 */
+      emCampo: number;
+      /** Format: int64 */
+      executadas: number;
+      /** Format: int64 */
+      confirmadas: number;
+      /** Format: int64 */
+      recusadas: number;
+      /** Format: int64 */
+      inviaveis: number;
+      /** Format: int64 */
+      atrasadas: number;
+    };
+    PaginaOrdensResponse: {
+      itens: components['schemas']['OrdemServicoResponse'][];
+      /** Format: int64 */
+      total: number;
+      /** Format: int32 */
+      pagina: number;
+      /** Format: int32 */
+      tamanho: number;
+    };
     VerificacaoResponse: {
       /** Format: int64 */
       eventos: number;
@@ -2502,7 +3013,8 @@ export interface components {
         | 'META_FORA_DO_RITMO'
         | 'FONTE_ATRASADA'
         | 'PRAZO_CONTRATUAL'
-        | 'TRILHA_ALTERADA';
+        | 'TRILHA_ALTERADA'
+        | 'ORDEM_DIVERGENTE';
       /** @enum {string} */
       severidade: 'ATENCAO' | 'CRITICO';
       /** Format: uuid */
@@ -2994,6 +3506,32 @@ export interface operations {
       };
     };
   };
+  registrar: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        id: string;
+      };
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        'application/json': components['schemas']['ResultadoRequest'];
+      };
+    };
+    responses: {
+      /** @description OK */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          '*/*': components['schemas']['OrdemServicoResponse'];
+        };
+      };
+    };
+  };
   alterar_3: {
     parameters: {
       query?: never;
@@ -3015,6 +3553,32 @@ export interface operations {
           [name: string]: unknown;
         };
         content?: never;
+      };
+    };
+  };
+  alterar_4: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        id: string;
+      };
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        'application/json': components['schemas']['EquipeRequest'];
+      };
+    };
+    responses: {
+      /** @description OK */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          '*/*': components['schemas']['EquipeResponse'];
+        };
       };
     };
   };
@@ -3110,6 +3674,32 @@ export interface operations {
         };
         content: {
           '*/*': components['schemas']['AgendaResponse'];
+        };
+      };
+    };
+  };
+  registrar_1: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        ordem: string;
+      };
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        'application/json': components['schemas']['ResultadoRequest'];
+      };
+    };
+    responses: {
+      /** @description OK */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          '*/*': components['schemas']['OrdemServicoResponse'];
         };
       };
     };
@@ -3735,6 +4325,50 @@ export interface operations {
           [name: string]: unknown;
         };
         content: {
+          '*/*': components['schemas']['EquipeResponse'][];
+        };
+      };
+    };
+  };
+  cadastrar: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        'application/json': components['schemas']['EquipeRequest'];
+      };
+    };
+    responses: {
+      /** @description Created */
+      201: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          '*/*': components['schemas']['EquipeResponse'];
+        };
+      };
+    };
+  };
+  listar_7: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description OK */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
           '*/*': components['schemas']['ContratoResponse'][];
         };
       };
@@ -3951,6 +4585,146 @@ export interface operations {
           [name: string]: unknown;
         };
         content?: never;
+      };
+    };
+  };
+  listar_8: {
+    parameters: {
+      query?: {
+        status?: 'ATIVA' | 'ENCERRADA' | 'CANCELADA';
+      };
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description OK */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          '*/*': components['schemas']['CampanhaResponse'][];
+        };
+      };
+    };
+  };
+  criar_7: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        'application/json': components['schemas']['CampanhaRequest'];
+      };
+    };
+    responses: {
+      /** @description Created */
+      201: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          '*/*': components['schemas']['CampanhaResponse'];
+        };
+      };
+    };
+  };
+  encerrar_1: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        id: string;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description OK */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          '*/*': components['schemas']['CampanhaResponse'];
+        };
+      };
+    };
+  };
+  distribuir: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        id: string;
+      };
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        'application/json': components['schemas']['DistribuicaoRequest'];
+      };
+    };
+    responses: {
+      /** @description OK */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          '*/*': components['schemas']['DistribuicaoResponse'];
+        };
+      };
+    };
+  };
+  cancelar: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        id: string;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description OK */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          '*/*': components['schemas']['CampanhaResponse'];
+        };
+      };
+    };
+  };
+  previa: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        'application/json': components['schemas']['RecorteDaCampanha'];
+      };
+    };
+    responses: {
+      /** @description OK */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          '*/*': components['schemas']['PreviaResponse'];
+        };
       };
     };
   };
@@ -4306,6 +5080,26 @@ export interface operations {
       };
     };
   };
+  listar_9: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description OK */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          '*/*': components['schemas']['OrdemServicoResponse'][];
+        };
+      };
+    };
+  };
   historico: {
     parameters: {
       query?: never;
@@ -4430,7 +5224,7 @@ export interface operations {
       };
     };
   };
-  listar_7: {
+  listar_10: {
     parameters: {
       query?: {
         unidade?: string;
@@ -4501,6 +5295,28 @@ export interface operations {
       };
     };
   };
+  pessoas: {
+    parameters: {
+      query: {
+        busca: string;
+      };
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description OK */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          '*/*': components['schemas']['PessoaResponse'][];
+        };
+      };
+    };
+  };
   detalhar_2: {
     parameters: {
       query?: never;
@@ -4523,7 +5339,7 @@ export interface operations {
       };
     };
   };
-  listar_8: {
+  listar_11: {
     parameters: {
       query?: never;
       header?: never;
@@ -4585,6 +5401,65 @@ export interface operations {
         };
         content: {
           '*/*': string;
+        };
+      };
+    };
+  };
+  painel_1: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        id: string;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description OK */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          '*/*': components['schemas']['PainelCampanhaResponse'];
+        };
+      };
+    };
+  };
+  ordens: {
+    parameters: {
+      query?: {
+        status?:
+          | 'PLANEJADA'
+          | 'EM_CAMPO'
+          | 'REAGENDADA'
+          | 'EXECUTADA'
+          | 'RECUSADA'
+          | 'INVIAVEL'
+          | 'CANCELADA';
+        equipe?: string;
+        conferencia?: 'NAO_SE_APLICA' | 'PENDENTE' | 'CONFIRMADA' | 'DIVERGENTE';
+        prioridade?: 'ALTA' | 'MEDIA' | 'BAIXA';
+        atrasadas?: boolean;
+        pagina?: number;
+        tamanho?: number;
+      };
+      header?: never;
+      path: {
+        id: string;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description OK */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          '*/*': components['schemas']['PaginaOrdensResponse'];
         };
       };
     };
@@ -4787,7 +5662,7 @@ export interface operations {
       };
     };
   };
-  listar_9: {
+  listar_12: {
     parameters: {
       query?: {
         estado?: 'ABERTOS' | 'RECONHECIDOS' | 'RESOLVIDOS';

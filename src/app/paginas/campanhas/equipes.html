@@ -1,0 +1,175 @@
+<nav class="trilha"><a routerLink="/campanhas">← Campanhas</a></nav>
+<header class="cabecalho">
+  <div class="titulo">
+    <span class="rotulo">Da meta à ação</span>
+    <h1>Equipes de campo</h1>
+    <p class="orientacao">
+      Cada equipe recebe só as OS de imóveis dentro da unidade onde atua. As pessoas da equipe
+      precisam do perfil "Equipe de campo" para ver e registrar as OS em "Minhas OS".
+    </p>
+  </div>
+  @if (podeGerir()) {
+    <button matButton="filled" type="button" (click)="abrir(null)">
+      <span class="material-symbols-rounded" aria-hidden="true">group_add</span> Nova equipe
+    </button>
+  }
+</header>
+
+@if (!sessao.usuario()) {
+  <div class="esqueleto" aria-busy="true" aria-label="Carregando"></div>
+} @else if (!podeGerir()) {
+  <section class="cartao aviso" role="alert">
+    <p class="rotulo">Sem acesso</p>
+    <p>Seu perfil não permite gerenciar equipes de campo.</p>
+  </section>
+} @else if (dados.hasValue()) {
+  @if (dados.value(); as lista) {
+    @if (lista.length) {
+      <ul class="lista">
+        @for (e of lista; track e.id) {
+          <li>
+            <button
+              type="button"
+              class="cartao campanha equipe"
+              (click)="abrir(e)"
+            >
+              <div class="topo">
+                <div class="identificacao">
+                  <span class="nome">{{ e.nome }}</span>
+                  <span class="sub"
+                    >{{ e.unidadeNome }} ·
+                    {{ e.tipo === 'PROPRIA' ? 'Própria' : 'Terceirizada · ' + e.empresa }}</span
+                  >
+                </div>
+                <aurora-selo [tom]="e.ativa ? 'ok' : 'neutro'">{{
+                  e.ativa ? 'Ativa' : 'Desativada'
+                }}</aurora-selo>
+              </div>
+              <div class="metricas">
+                <span
+                  ><b>{{ fmt.numero(e.membros.length) }}</b>
+                  {{ e.membros.length === 1 ? 'pessoa' : 'pessoas' }}</span
+                >
+                <span
+                  ><b>{{ fmt.numero(e.ordensEmCampo) }}</b> OS em campo</span
+                >
+              </div>
+              @if (e.membros.length) {
+                <span class="sub">{{ nomes(e) }}</span>
+              }
+            </button>
+          </li>
+        }
+      </ul>
+    } @else {
+      <section class="cartao vazio">
+        <span class="material-symbols-rounded" aria-hidden="true">groups</span>
+        <p>Nenhuma equipe cadastrada.</p>
+        <p class="nota">Cadastre as equipes próprias e as empreiteiras antes de enviar as OS.</p>
+      </section>
+    }
+  }
+} @else {
+  <div class="esqueleto" aria-busy="true" aria-label="Carregando"></div>
+}
+
+<ng-template #modeloEquipe>
+  <h2 mat-dialog-title>{{ editando() ? 'Editar equipe' : 'Nova equipe' }}</h2>
+  <mat-dialog-content>
+    <form id="form-equipe" [formGroup]="form" (ngSubmit)="salvar()" class="formulario">
+      <mat-form-field>
+        <mat-label>Nome</mat-label>
+        <input matInput formControlName="nome" maxlength="80" placeholder="Equipe Norte 1" />
+        <mat-error>Informe o nome (2 a 80 letras).</mat-error>
+      </mat-form-field>
+      <mat-button-toggle-group formControlName="tipo" aria-label="Tipo de equipe">
+        <mat-button-toggle value="PROPRIA">Própria</mat-button-toggle>
+        <mat-button-toggle value="TERCEIRIZADA">Terceirizada</mat-button-toggle>
+      </mat-button-toggle-group>
+      @if (terceirizada()) {
+        <mat-form-field>
+          <mat-label>Empresa</mat-label>
+          <input
+            matInput
+            formControlName="empresa"
+            maxlength="120"
+            placeholder="Empreiteira contratada"
+          />
+        </mat-form-field>
+      }
+      <mat-form-field>
+        <mat-label>Onde atua</mat-label>
+        <input
+          matInput
+          formControlName="unidade"
+          [matAutocomplete]="listaUnidades"
+          placeholder="Município ou setor"
+        />
+        <mat-autocomplete
+          #listaUnidades="matAutocomplete"
+          [displayWith]="exibirUnidade"
+          autoActiveFirstOption
+        >
+          @for (o of opcoesUnidade(); track o.id) {
+            <mat-option [value]="o" [style.padding-left.px]="16 + o.profundidade * 16">{{
+              o.nome
+            }}</mat-option>
+          }
+        </mat-autocomplete>
+        <mat-hint>A equipe recebe OS desta unidade e das de baixo.</mat-hint>
+        <mat-error>Escolha uma unidade da lista.</mat-error>
+      </mat-form-field>
+
+      <span class="rotulo">Pessoas</span>
+      @if (membros().length) {
+        <mat-chip-set aria-label="Pessoas da equipe">
+          @for (m of membros(); track m.id) {
+            <mat-chip (removed)="remover(m.id)">
+              {{ m.nome }}
+              <button matChipRemove [attr.aria-label]="'Tirar ' + m.nome + ' da equipe'">
+                <span class="material-symbols-rounded" aria-hidden="true">close</span>
+              </button>
+            </mat-chip>
+          }
+        </mat-chip-set>
+      }
+      <mat-form-field>
+        <mat-label>Adicionar pessoa</mat-label>
+        <input
+          matInput
+          [formControl]="busca"
+          [matAutocomplete]="listaPessoas"
+          placeholder="Nome ou e-mail"
+        />
+        <mat-autocomplete #listaPessoas="matAutocomplete" (optionSelected)="adicionar($event)">
+          @for (p of pessoas(); track p.id) {
+            <mat-option [value]="p"
+              >{{ p.nome }} <span class="nota">· {{ p.email }}</span></mat-option
+            >
+          }
+        </mat-autocomplete>
+        <mat-hint
+          >Pessoas com acesso ativo à Aurora. Empreiteira sem acesso? O gestor registra o resultado
+          na campanha.</mat-hint
+        >
+      </mat-form-field>
+      @if (editando()) {
+        <mat-slide-toggle formControlName="ativa">Equipe ativa</mat-slide-toggle>
+      }
+      @if (erro()) {
+        <p class="erro" role="alert">
+          <span class="material-symbols-rounded" aria-hidden="true">error</span>{{ erro() }}
+        </p>
+      }
+    </form>
+  </mat-dialog-content>
+  <mat-dialog-actions align="end">
+    <button matButton type="button" (click)="fechar()">Cancelar</button>
+    <button matButton="filled" type="submit" form="form-equipe" [disabled]="salvando()">
+      @if (salvando()) {
+        <mat-spinner diameter="18" />
+      }
+      Salvar
+    </button>
+  </mat-dialog-actions>
+</ng-template>

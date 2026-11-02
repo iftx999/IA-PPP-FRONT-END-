@@ -21,6 +21,7 @@ export const ICONES_ALERTA: Record<AlertaApi['tipo'], string> = {
   FONTE_ATRASADA: 'cloud_off',
   PRAZO_CONTRATUAL: 'event_busy',
   TRILHA_ALTERADA: 'gpp_bad',
+  ORDEM_DIVERGENTE: 'sync_problem',
 };
 
 export const MENSAGENS_PREFERENCIA: Record<PreferenciaEmail, string> = {

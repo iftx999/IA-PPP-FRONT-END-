@@ -32,6 +32,14 @@ export const SECOES: { titulo: string; telas: Tela[] }[] = [
     ],
   },
   {
+    titulo: 'Campo',
+    telas: [
+      { rota: '/campanhas', rotulo: 'Campanhas', permissao: 'campanha:gerenciar' },
+      { rota: '/equipes', rotulo: 'Equipes', permissao: 'campanha:gerenciar' },
+      { rota: '/minhas-ordens', rotulo: 'Minhas OS', permissao: 'os:executar' },
+    ],
+  },
+  {
     titulo: 'Administração',
     telas: [
       { rota: '/admin/unidades', rotulo: 'Unidades', permissao: 'unidade:ler' },

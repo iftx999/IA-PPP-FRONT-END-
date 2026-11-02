@@ -8,6 +8,12 @@
         não guarda nome do cliente nem endereço.
       </p>
     </div>
+    @if (sessao.pode('campanha:gerenciar')) {
+      <a matButton="outlined" routerLink="/campanhas"
+         [queryParams]="{ origem: 'SEM_LIGACAO', unidade: p.unidadeId, situacao: situacao() ?? null }">
+        <span class="material-symbols-rounded" aria-hidden="true">campaign</span> Criar campanha
+      </a>
+    }
     @if (sessao.pode('relatorio:exportar')) {
       <div class="exportar">
         <button matButton="filled" type="button" (click)="exportar(p)" [disabled]="exportando()">

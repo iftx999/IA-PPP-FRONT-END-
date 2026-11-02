@@ -61,6 +61,12 @@
         }
         Exportar área
       </button>
+      @if (podeCriarCampanha()) {
+        <button matButton type="button" class="controle" (click)="campanhaNaArea()"
+                matTooltip="Criar ordens de serviço para os imóveis sem ligação desta área">
+          <span class="material-symbols-rounded" aria-hidden="true">campaign</span>Campanha nesta área
+        </button>
+      }
       <button matButton type="button" class="controle" (click)="enquadrar()" matTooltip="Enquadrar o escopo"
               aria-label="Enquadrar o escopo">
         <span class="material-symbols-rounded" aria-hidden="true">fit_screen</span>

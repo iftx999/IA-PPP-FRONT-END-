@@ -1,0 +1,100 @@
+<header class="cabecalho">
+  <span class="rotulo">Equipe de campo</span>
+  <h1>Minhas OS</h1>
+  @if (dados.hasValue()) {
+    <p class="resumo">
+      <b>{{ emCampo().length }}</b> em campo
+      @if (atrasadas()) {
+        · <b class="alerta">{{ atrasadas() }}</b> atrasadas
+      }
+    </p>
+  }
+</header>
+
+@if (!sessao.usuario()) {
+  <div class="esqueleto" aria-busy="true" aria-label="Carregando"></div>
+} @else if (!podeExecutar()) {
+  <section class="cartao aviso" role="alert">
+    <p class="rotulo">Sem acesso</p>
+    <p>Seu perfil não inclui ordens de serviço de campo.</p>
+  </section>
+} @else if (dados.hasValue()) {
+  @if (!dados.value().length) {
+    <section class="cartao vazio">
+      <span class="material-symbols-rounded" aria-hidden="true">assignment_turned_in</span>
+      <p>Nenhuma OS para a sua equipe agora.</p>
+      <p class="nota">Quando o gestor enviar OS à sua equipe, elas aparecem aqui.</p>
+    </section>
+  }
+  @if (emCampo().length) {
+    <h2>Em campo</h2>
+    <ul class="ordens">
+      @for (o of emCampo(); track o.id) {
+        <li class="cartao ordem" [class.atrasada]="o.atrasada">
+          <div class="topo">
+            <span class="tipo">{{ rotulos.tipo[o.tipo] }}</span>
+            <aurora-selo [tom]="rotulos.prioridade[o.prioridade].tom">{{
+              rotulos.prioridade[o.prioridade].texto
+            }}</aurora-selo>
+          </div>
+          <p class="matricula">
+            Matrícula <b class="dado">{{ o.matricula }}</b>
+          </p>
+          <p class="nota">{{ o.unidadeNome }} · {{ o.campanhaNome }} · OS {{ o.numero }}</p>
+          <p class="prazo" [class.alerta]="o.atrasada">
+            <span class="material-symbols-rounded" aria-hidden="true">event</span>
+            @if (o.status === 'REAGENDADA') {
+              Reagendada para {{ fmt.data(o.reagendadaPara) }}
+            } @else {
+              Prazo {{ fmt.data(o.prazo) }}
+            }
+            @if (o.atrasada) {
+              · atrasada
+            }
+          </p>
+          <div class="acoes">
+            <button matButton="filled" type="button" (click)="registrar(o)">
+              Registrar resultado
+            </button>
+            @if (ponto(o); as link) {
+              <a matButton="outlined" [href]="link">
+                <span class="material-symbols-rounded" aria-hidden="true">near_me</span> Abrir no
+                mapa
+              </a>
+            }
+          </div>
+        </li>
+      }
+    </ul>
+  }
+  @if (concluidas().length) {
+    <h2>Últimos 30 dias</h2>
+    <ul class="ordens">
+      @for (o of concluidas(); track o.id) {
+        <li class="cartao ordem concluida">
+          <div class="topo">
+            <span class="tipo"
+              >{{ rotulos.tipo[o.tipo] }} · <span class="dado">{{ o.matricula }}</span></span
+            >
+            <aurora-selo [tom]="rotulos.status[o.status].tom">{{
+              rotulos.status[o.status].texto
+            }}</aurora-selo>
+          </div>
+          <p class="nota">
+            {{ fmt.dataEHora(o.resultadoEm) }}
+            @if (o.motivo) {
+              · {{ rotulos.motivo[o.motivo] }}
+            }
+            @if (o.conferencia !== 'NAO_SE_APLICA') {
+              · {{ rotulos.conferencia[o.conferencia].texto }}
+            }
+          </p>
+        </li>
+      }
+    </ul>
+  }
+} @else if (dados.error()) {
+  <section class="cartao aviso" role="alert"><p>Não foi possível carregar as OS.</p></section>
+} @else {
+  <div class="esqueleto" aria-busy="true" aria-label="Carregando"></div>
+}

@@ -112,6 +112,7 @@ export class Mapa {
   protected readonly fmt = { competenciaLonga, percentual, data };
   protected readonly podeMarcar = computed(() => this.sessao.pode('mapa:marcar'));
   protected readonly podeExportar = computed(() => this.sessao.pode('relatorio:exportar'));
+  protected readonly podeCriarCampanha = computed(() => this.sessao.pode('campanha:gerenciar'));
   protected readonly aproximeParaVer = computed(() => {
     const dados = this.camadasMapa();
     return !!dados && this.camadas().imoveis && this.zoomAtual() < dados.zoomImoveis;
@@ -225,6 +226,18 @@ export class Mapa {
   protected fecharSelecao(): void {
     this.selecao.set(null);
     this.mostrarSelecao(null);
+  }
+
+  /** ADR 0036: leva a área visível para uma nova campanha (a unidade é escolhida no diálogo). */
+  protected campanhaNaArea(): void {
+    const mapa = this.mapa;
+    if (!mapa) {
+      return;
+    }
+    const area = areaVisivel(mapa.getBounds());
+    void this.router.navigate(['/campanhas'], {
+      queryParams: { origem: 'AREA_DO_MAPA', oeste: area.oeste, sul: area.sul, leste: area.leste, norte: area.norte },
+    });
   }
 
   /** E5: exporta o que está visível (área atual e camadas ligadas); a emissão fica na auditoria. */

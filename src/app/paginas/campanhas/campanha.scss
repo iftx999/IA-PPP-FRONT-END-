@@ -1,0 +1,265 @@
+.trilha {
+  margin-bottom: var(--space-2);
+  font-size: var(--fs-small);
+  a {
+    color: var(--text-2);
+    text-decoration: none;
+  }
+}
+.cabecalho {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: var(--space-4);
+  margin-bottom: var(--space-4);
+}
+.titulo {
+  display: grid;
+  gap: var(--space-1);
+  max-width: 760px;
+}
+h1 {
+  font: 700 var(--fs-h1) var(--font-display);
+}
+h2 {
+  margin: 0 0 var(--space-3);
+  font: 600 var(--fs-h3, 18px) var(--font-display);
+}
+.sub {
+  margin: 0;
+  color: var(--text-2);
+  font-size: var(--fs-small);
+  b {
+    color: var(--text-1);
+  }
+}
+.estado {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2);
+}
+.confirmacao {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-2) var(--space-3);
+  border: 1px solid color-mix(in srgb, var(--warn) 45%, transparent);
+  border-radius: var(--radius-m);
+  background: color-mix(in srgb, var(--warn) 8%, var(--bg-2));
+  font-size: var(--fs-small);
+}
+.perigo {
+  --mat-button-tonal-label-text-color: var(--danger);
+  color: var(--danger);
+}
+.aviso {
+  display: grid;
+  gap: var(--space-2);
+  max-width: 560px;
+  p {
+    margin: 0;
+  }
+}
+
+.grade {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(380px, 1fr));
+  gap: var(--space-3);
+  margin-bottom: var(--space-3);
+}
+.etapas {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: var(--space-3);
+}
+.etapas li {
+  display: grid;
+  gap: 6px;
+}
+.valor {
+  font-size: 24px;
+  font-weight: 700;
+}
+.barra {
+  display: block;
+  height: 8px;
+  border-radius: 999px;
+  background: var(--bg-3);
+  overflow: hidden;
+}
+.preenchido {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: var(--accent);
+}
+.rotulo-etapa {
+  font-size: var(--fs-label);
+  color: var(--text-3);
+}
+.sinais {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2);
+  margin-top: var(--space-3);
+}
+
+.comparacao {
+  display: flex;
+  align-items: center;
+  gap: var(--space-4);
+  > div {
+    display: grid;
+  }
+}
+.grande {
+  font-size: 28px;
+  font-weight: 700;
+}
+.seta {
+  color: var(--text-3);
+}
+.variacao {
+  margin: var(--space-2) 0;
+  font-weight: 600;
+  color: var(--text-2);
+  &.positiva {
+    color: var(--ok);
+  }
+}
+
+.nota {
+  margin: 0;
+  color: var(--text-3);
+  font-size: var(--fs-small);
+}
+.bloco {
+  display: block;
+  margin-top: 2px;
+}
+.alerta {
+  color: var(--danger);
+}
+
+table.simples {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: var(--fs-small);
+  th {
+    text-align: left;
+    font-weight: 500;
+    color: var(--text-3);
+    padding: 4px 8px;
+    border-bottom: var(--border);
+  }
+  td {
+    padding: 6px 8px;
+    border-bottom: var(--border);
+  }
+  td .nota {
+    margin-left: 4px;
+  }
+}
+.link {
+  padding: 0;
+  min-width: 0;
+  height: auto;
+}
+
+.motivos ul {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: grid;
+  gap: 6px;
+}
+.motivos li {
+  display: flex;
+  justify-content: space-between;
+  gap: var(--space-3);
+  font-size: var(--fs-small);
+}
+
+.ordens {
+  padding: 0;
+  overflow: hidden;
+}
+.barra-ordens {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  padding: var(--space-3) var(--space-4);
+  border-bottom: var(--border);
+  h2 {
+    margin: 0;
+  }
+}
+.filtros {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2);
+  mat-form-field {
+    width: 170px;
+  }
+}
+.rolagem {
+  max-height: calc(100vh - 260px);
+  min-height: 240px;
+  overflow: auto;
+}
+table[mat-table] {
+  width: 100%;
+}
+.vazio {
+  padding: var(--space-5);
+  color: var(--text-2);
+  text-align: center;
+}
+
+.formulario {
+  display: grid;
+  gap: var(--space-2);
+}
+.linha {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-3);
+  mat-form-field {
+    flex: 1;
+    min-width: 160px;
+  }
+}
+.erro {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin: 0;
+  color: var(--danger);
+  font-size: var(--fs-small);
+}
+
+.esqueleto {
+  min-height: 420px;
+  border-radius: var(--radius-m);
+  background: linear-gradient(90deg, var(--bg-2), var(--bg-3), var(--bg-2));
+  background-size: 200% 100%;
+  animation: brilho 1.2s ease-in-out infinite;
+}
+@keyframes brilho {
+  from {
+    background-position: 100% 0;
+  }
+  to {
+    background-position: -100% 0;
+  }
+}

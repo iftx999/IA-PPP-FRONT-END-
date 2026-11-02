@@ -1,0 +1,126 @@
+:host {
+  display: block;
+  max-width: 760px;
+}
+.cabecalho {
+  display: grid;
+  gap: var(--space-1);
+  margin-bottom: var(--space-4);
+}
+h1 {
+  font: 700 var(--fs-h1) var(--font-display);
+}
+h2 {
+  margin: var(--space-4) 0 var(--space-2);
+  font: 600 var(--fs-body) var(--font-ui);
+  color: var(--text-2);
+}
+.resumo {
+  margin: 0;
+  color: var(--text-2);
+  b {
+    color: var(--text-1);
+  }
+}
+.alerta {
+  color: var(--danger) !important;
+}
+.aviso {
+  display: grid;
+  gap: var(--space-2);
+  p {
+    margin: 0;
+  }
+}
+.vazio {
+  display: grid;
+  justify-items: center;
+  gap: var(--space-2);
+  padding: 48px var(--space-4);
+  text-align: center;
+  color: var(--text-2);
+  .material-symbols-rounded {
+    font-size: 36px;
+    color: var(--text-3);
+  }
+  p {
+    margin: 0;
+  }
+}
+.nota {
+  margin: 0;
+  color: var(--text-3);
+  font-size: var(--fs-small);
+}
+
+.ordens {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: grid;
+  gap: var(--space-3);
+}
+.ordem {
+  display: grid;
+  gap: var(--space-1);
+}
+.ordem.atrasada {
+  border-color: color-mix(in srgb, var(--danger) 45%, transparent);
+}
+.ordem.concluida {
+  gap: 2px;
+  padding-block: var(--space-2);
+}
+.topo {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-2);
+}
+.tipo {
+  font-weight: 600;
+}
+.matricula {
+  margin: 0;
+  font-size: 18px;
+  b {
+    letter-spacing: 0.02em;
+  }
+}
+.prazo {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  margin: 0;
+  font-size: var(--fs-small);
+  color: var(--text-2);
+  .material-symbols-rounded {
+    font-size: 16px;
+  }
+}
+.acoes {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  margin-top: var(--space-2);
+  > * {
+    flex: 1 1 180px;
+    min-height: 44px;
+  }
+}
+
+.esqueleto {
+  min-height: 320px;
+  border-radius: var(--radius-m);
+  background: linear-gradient(90deg, var(--bg-2), var(--bg-3), var(--bg-2));
+  background-size: 200% 100%;
+  animation: brilho 1.2s ease-in-out infinite;
+}
+@keyframes brilho {
+  from {
+    background-position: 100% 0;
+  }
+  to {
+    background-position: -100% 0;
+  }
+}

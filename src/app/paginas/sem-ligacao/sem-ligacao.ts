@@ -9,7 +9,7 @@ import { MatInputModule } from '@angular/material/input';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatTableModule } from '@angular/material/table';
 import { MatTooltipModule } from '@angular/material/tooltip';
-import { Router } from '@angular/router';
+import { Router, RouterLink } from '@angular/router';
 import { debounceTime, distinctUntilChanged, firstValueFrom } from 'rxjs';
 import type { ImovelSemLigacao, SemLigacao as DadosSemLigacao, SituacaoImovel } from '../../api/tipos';
 import { DownloadService } from '../../nucleo/download';
@@ -28,7 +28,7 @@ const LIMITE = 50;
 @Component({
   selector: 'aurora-sem-ligacao',
   imports: [
-    ReactiveFormsModule, MatButtonModule, MatButtonToggleModule, MatFormFieldModule, MatInputModule,
+    ReactiveFormsModule, RouterLink, MatButtonModule, MatButtonToggleModule, MatFormFieldModule, MatInputModule,
     MatTableModule, MatTooltipModule, MatProgressSpinnerModule, Selo,
   ],
   templateUrl: './sem-ligacao.html',

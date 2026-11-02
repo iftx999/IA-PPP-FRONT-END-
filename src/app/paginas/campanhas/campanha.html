@@ -1,0 +1,478 @@
+@if (!sessao.usuario()) {
+  <div class="esqueleto" aria-busy="true" aria-label="Carregando"></div>
+} @else if (!podeGerir()) {
+  <section class="cartao aviso" role="alert">
+    <p class="rotulo">Sem acesso</p>
+    <p>Seu perfil não permite gerenciar campanhas de ligação.</p>
+  </section>
+} @else if (naoEncontrada()) {
+  <section class="cartao aviso" role="alert">
+    <p class="rotulo">Campanha não encontrada</p>
+    <p>
+      Ela não existe ou fica fora da sua área. <a routerLink="/campanhas">Voltar às campanhas</a>
+    </p>
+  </section>
+} @else if (dadosPainel(); as p) {
+  @let c = p.campanha;
+  <nav class="trilha"><a routerLink="/campanhas">← Campanhas</a></nav>
+  <header class="cabecalho">
+    <div class="titulo">
+      <span class="rotulo"
+        >{{ rotulos.acao[c.acao].titulo }} · {{ rotulos.origem[c.recorte.origem] }} ·
+        {{ fmt.competenciaLonga(c.competencia) }}</span
+      >
+      <h1>{{ c.nome }}</h1>
+      <p class="sub">
+        {{ c.unidadeNome }} · prazo <b>{{ fmt.data(c.prazo) }}</b> · criada por {{ c.criadaPor }} em
+        {{ fmt.dataEHora(c.criadaEm) }}
+      </p>
+    </div>
+    <div class="estado">
+      <aurora-selo [tom]="rotulos.statusCampanha[c.status].tom">{{
+        rotulos.statusCampanha[c.status].texto
+      }}</aurora-selo>
+      @if (ativa()) {
+        @if (confirmando(); as acao) {
+          <div class="confirmacao" role="alertdialog" aria-labelledby="texto-confirmacao">
+            <span id="texto-confirmacao">
+              {{ acao === 'encerrar' ? 'Encerrar' : 'Cancelar' }} a campanha?
+              @if (abertas(c) > 0) {
+                As {{ fmt.numero(abertas(c)) }} OS em aberto serão canceladas.
+              }
+            </span>
+            <button
+              matButton="tonal"
+              type="button"
+              [class.perigo]="acao === 'cancelar'"
+              [disabled]="finalizando()"
+              (click)="finalizar(acao)"
+            >
+              Confirmar
+            </button>
+            <button matButton type="button" (click)="confirmando.set(null)">Voltar</button>
+          </div>
+        } @else {
+          <button matButton="outlined" type="button" (click)="confirmando.set('encerrar')">
+            <span class="material-symbols-rounded" aria-hidden="true">task_alt</span> Encerrar
+          </button>
+          <button matButton type="button" (click)="confirmando.set('cancelar')">
+            Cancelar campanha
+          </button>
+        }
+      }
+    </div>
+  </header>
+
+  <div class="grade">
+    <section class="cartao funil" aria-labelledby="titulo-funil">
+      <h2 id="titulo-funil">Funil</h2>
+      <ol class="etapas">
+        @for (e of etapas(c.funil); track e.rotulo) {
+          <li>
+            <span class="valor dado">{{ fmt.numero(e.valor) }}</span>
+            <span class="barra"
+              ><span class="preenchido" [style.width.%]="e.fracao * 100"></span
+            ></span>
+            <span class="rotulo-etapa">{{ e.rotulo }}</span>
+          </li>
+        }
+      </ol>
+      <div class="sinais">
+        @if (c.funil.semEquipe) {
+          <button
+            matButton="tonal"
+            type="button"
+            (click)="filtrar({ status: 'PLANEJADA', conferencia: null, atrasadas: null })"
+          >
+            {{ fmt.numero(c.funil.semEquipe) }} sem equipe
+          </button>
+        }
+        @if (c.funil.atrasadas) {
+          <button
+            matButton="tonal"
+            type="button"
+            class="perigo"
+            (click)="filtrar({ atrasadas: 'true', status: null })"
+          >
+            <span class="material-symbols-rounded" aria-hidden="true">schedule</span>
+            {{ fmt.numero(c.funil.atrasadas) }} atrasadas
+          </button>
+        }
+        @if (c.funil.divergentes) {
+          <button
+            matButton="tonal"
+            type="button"
+            class="perigo"
+            (click)="filtrar({ conferencia: 'DIVERGENTE', status: null })"
+            [matTooltip]="rotulos.conferencia.DIVERGENTE.dica"
+          >
+            <span class="material-symbols-rounded" aria-hidden="true">sync_problem</span>
+            {{ fmt.numero(c.funil.divergentes) }} divergentes
+          </button>
+        }
+        @if (c.funil.pendentesDeConferencia) {
+          <span class="nota"
+            >{{ fmt.numero(c.funil.pendentesDeConferencia) }} executadas aguardam a carga.</span
+          >
+        }
+        @if (c.funil.recusadas || c.funil.inviaveis) {
+          <span class="nota"
+            >{{ fmt.numero(c.funil.recusadas) }} recusadas ·
+            {{ fmt.numero(c.funil.inviaveis) }} inviáveis</span
+          >
+        }
+      </div>
+    </section>
+
+    <section class="cartao efeito" aria-labelledby="titulo-efeito">
+      <h2 id="titulo-efeito">Efeito na adesão</h2>
+      @if (p.agora.adesao != null) {
+        <div class="comparacao">
+          <div>
+            <span class="rotulo">Na criação</span>
+            <span class="dado grande">{{
+              fmt.percentual(
+                c.comRedeNaCriacao ? (c.ligadosNaCriacao * 100) / c.comRedeNaCriacao : null
+              )
+            }}</span>
+            <span class="nota"
+              >{{ fmt.numero(c.ligadosNaCriacao) }} de {{ fmt.numero(c.comRedeNaCriacao) }}</span
+            >
+          </div>
+          <span class="material-symbols-rounded seta" aria-hidden="true">arrow_forward</span>
+          <div>
+            <span class="rotulo">{{ fmt.competenciaLonga(p.agora.competencia!) }}</span>
+            <span class="dado grande">{{ fmt.percentual(p.agora.adesao) }}</span>
+            <span class="nota"
+              >{{ fmt.numero(p.agora.ligados) }} de {{ fmt.numero(p.agora.comRede) }}</span
+            >
+          </div>
+        </div>
+        @if (efeito() != null) {
+          <p class="variacao" [class.positiva]="efeito()! > 0">
+            {{ fmt.pontosPercentuais(efeito()) }} desde a criação
+          </p>
+        }
+        <p class="nota">
+          {{ fmt.numero(c.funil.confirmadas) }} ligações confirmadas pela carga.
+          @if (p.agora.meta != null) {
+            Meta {{ fmt.percentual(p.agora.meta)
+            }}{{
+              p.agora.faltamParaMeta
+                ? ': faltam ' + fmt.numero(p.agora.faltamParaMeta) + ' ligações'
+                : ' atingida'
+            }}.
+          }
+        </p>
+        <p class="nota">
+          A adesão também muda por ligações fora da campanha e por novos imóveis com rede.
+        </p>
+      } @else {
+        <p class="nota">{{ p.agora.unidadeNome }} ainda não tem adesão medida.</p>
+      }
+    </section>
+
+    @if (p.equipes.length) {
+      <section class="cartao equipes" aria-labelledby="titulo-equipes">
+        <h2 id="titulo-equipes">Produtividade por equipe</h2>
+        <table class="simples">
+          <thead>
+            <tr>
+              <th>Equipe</th>
+              <th>Em campo</th>
+              <th>Executadas</th>
+              <th>Confirmadas</th>
+              <th>Recusadas</th>
+              <th>Inviáveis</th>
+              <th>Atrasadas</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (e of p.equipes; track e.equipeId) {
+              <tr>
+                <td>
+                  <button
+                    matButton
+                    type="button"
+                    class="link"
+                    (click)="filtrar({ equipe: e.equipeId })"
+                  >
+                    {{ e.equipeNome }}
+                  </button>
+                  <span class="nota">{{ e.tipo === 'PROPRIA' ? 'Própria' : 'Terceirizada' }}</span>
+                </td>
+                <td class="dado">{{ fmt.numero(e.emCampo) }}</td>
+                <td class="dado">{{ fmt.numero(e.executadas) }}</td>
+                <td class="dado">{{ fmt.numero(e.confirmadas) }}</td>
+                <td class="dado">{{ fmt.numero(e.recusadas) }}</td>
+                <td class="dado">{{ fmt.numero(e.inviaveis) }}</td>
+                <td class="dado" [class.alerta]="e.atrasadas > 0">{{ fmt.numero(e.atrasadas) }}</td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </section>
+    }
+
+    @if (p.motivos.length) {
+      <section class="cartao motivos" aria-labelledby="titulo-motivos">
+        <h2 id="titulo-motivos">Motivos de recusa e inviabilidade</h2>
+        <ul>
+          @for (m of p.motivos; track m.status + m.motivo) {
+            <li>
+              <span
+                >{{ rotulos.motivo[m.motivo] }}
+                <span class="nota"
+                  >· {{ m.status === 'RECUSADA' ? 'recusa' : 'inviável' }}</span
+                ></span
+              >
+              <b class="dado">{{ fmt.numero(m.quantidade) }}</b>
+            </li>
+          }
+        </ul>
+      </section>
+    }
+  </div>
+
+  <section class="cartao ordens" aria-labelledby="titulo-ordens">
+    <div class="barra-ordens">
+      <h2 id="titulo-ordens">Ordens de serviço</h2>
+      <div class="filtros">
+        <mat-form-field subscriptSizing="dynamic">
+          <mat-label>Situação</mat-label>
+          <mat-select
+            [value]="status() ?? ''"
+            (selectionChange)="filtrar({ status: $event.value || null })"
+          >
+            <mat-option value="">Todas</mat-option>
+            @for (s of statusFiltro; track s) {
+              <mat-option [value]="s">{{ rotulos.status[s].texto }}</mat-option>
+            }
+          </mat-select>
+        </mat-form-field>
+        <mat-form-field subscriptSizing="dynamic">
+          <mat-label>Equipe</mat-label>
+          <mat-select
+            [value]="equipe() ?? ''"
+            (selectionChange)="filtrar({ equipe: $event.value || null })"
+          >
+            <mat-option value="">Todas</mat-option>
+            @for (e of equipes.value() ?? []; track e.id) {
+              <mat-option [value]="e.id">{{ e.nome }}</mat-option>
+            }
+          </mat-select>
+        </mat-form-field>
+        <mat-form-field subscriptSizing="dynamic">
+          <mat-label>Conferência</mat-label>
+          <mat-select
+            [value]="conferencia() ?? ''"
+            (selectionChange)="filtrar({ conferencia: $event.value || null })"
+          >
+            <mat-option value="">Todas</mat-option>
+            <mat-option value="PENDENTE">Aguardando carga</mat-option>
+            <mat-option value="CONFIRMADA">Confirmadas</mat-option>
+            <mat-option value="DIVERGENTE">Divergentes</mat-option>
+          </mat-select>
+        </mat-form-field>
+        @if (temFiltro()) {
+          <button matButton type="button" (click)="limparFiltros()">Limpar filtros</button>
+        }
+      </div>
+      @if (ativa()) {
+        <button
+          matButton="filled"
+          type="button"
+          (click)="abrirEnvio()"
+          [disabled]="!equipesAtivas().length"
+          [matTooltip]="equipesAtivas().length ? '' : 'Cadastre uma equipe antes de enviar OS'"
+        >
+          <span class="material-symbols-rounded" aria-hidden="true">send</span>
+          {{ selecionadas() ? 'Enviar ' + selecionadas() + ' selecionadas' : 'Enviar à equipe' }}
+        </button>
+      }
+    </div>
+
+    <div class="rolagem" tabindex="0" role="region" aria-label="Lista de ordens de serviço">
+      <table mat-table [dataSource]="itens()">
+        <ng-container matColumnDef="selecao">
+          <th mat-header-cell *matHeaderCellDef>
+            <mat-checkbox
+              [checked]="todasSelecionadas()"
+              [indeterminate]="selecionadas() > 0 && !todasSelecionadas()"
+              (change)="alternarTodas()"
+              aria-label="Selecionar as OS em aberto da página"
+            />
+          </th>
+          <td mat-cell *matCellDef="let o">
+            @if (selecionavel(o)) {
+              <mat-checkbox
+                [checked]="selecao.isSelected(o.id)"
+                (change)="selecao.toggle(o.id)"
+                [attr.aria-label]="'Selecionar OS ' + o.numero"
+              />
+            }
+          </td>
+        </ng-container>
+        <ng-container matColumnDef="numero">
+          <th mat-header-cell *matHeaderCellDef>OS</th>
+          <td mat-cell *matCellDef="let o" class="dado">{{ o.numero }}</td>
+        </ng-container>
+        <ng-container matColumnDef="matricula">
+          <th mat-header-cell *matHeaderCellDef>Matrícula</th>
+          <td mat-cell *matCellDef="let o">
+            <span class="dado">{{ o.matricula }}</span>
+            <span class="nota bloco">{{ o.unidadeNome }}</span>
+          </td>
+        </ng-container>
+        <ng-container matColumnDef="tipo">
+          <th mat-header-cell *matHeaderCellDef>Tipo</th>
+          <td mat-cell *matCellDef="let o">{{ rotulos.tipo[os(o).tipo] }}</td>
+        </ng-container>
+        <ng-container matColumnDef="prioridade">
+          <th mat-header-cell *matHeaderCellDef>Prioridade</th>
+          <td mat-cell *matCellDef="let o">
+            <aurora-selo [tom]="rotulos.prioridade[os(o).prioridade].tom">{{
+              rotulos.prioridade[os(o).prioridade].texto
+            }}</aurora-selo>
+          </td>
+        </ng-container>
+        <ng-container matColumnDef="equipe">
+          <th mat-header-cell *matHeaderCellDef>Equipe</th>
+          <td mat-cell *matCellDef="let o">{{ o.equipeNome ?? '—' }}</td>
+        </ng-container>
+        <ng-container matColumnDef="status">
+          <th mat-header-cell *matHeaderCellDef>Situação</th>
+          <td mat-cell *matCellDef="let o">
+            <aurora-selo [tom]="rotulos.status[os(o).status].tom">{{
+              rotulos.status[os(o).status].texto
+            }}</aurora-selo>
+            @if (o.atrasada) {
+              <span class="nota bloco alerta">Atrasada</span>
+            }
+            @if (os(o).motivo; as m) {
+              <span class="nota bloco">{{ rotulos.motivo[m] }}</span>
+            }
+            @if (o.reagendadaPara) {
+              <span class="nota bloco">para {{ fmt.data(o.reagendadaPara) }}</span>
+            }
+          </td>
+        </ng-container>
+        <ng-container matColumnDef="conferencia">
+          <th mat-header-cell *matHeaderCellDef>Conferência</th>
+          <td
+            mat-cell
+            *matCellDef="let o"
+            [matTooltip]="rotulos.conferencia[os(o).conferencia].dica"
+          >
+            @if (o.conferencia === 'NAO_SE_APLICA') {
+              <span class="nota">—</span>
+            } @else {
+              <aurora-selo [tom]="rotulos.conferencia[os(o).conferencia].tom">{{
+                rotulos.conferencia[os(o).conferencia].texto
+              }}</aurora-selo>
+              @if (o.confirmadaEm) {
+                <span class="nota bloco">{{ fmt.competenciaLonga(o.confirmadaEm) }}</span>
+              }
+            }
+          </td>
+        </ng-container>
+        <ng-container matColumnDef="acoes">
+          <th mat-header-cell *matHeaderCellDef><span class="cdk-visually-hidden">Ações</span></th>
+          <td mat-cell *matCellDef="let o">
+            @if (ativa() && (o.status === 'EM_CAMPO' || o.status === 'REAGENDADA')) {
+              <button matButton type="button" (click)="registrar(o)">Resultado</button>
+            }
+          </td>
+        </ng-container>
+        <tr mat-header-row *matHeaderRowDef="colunas(); sticky: true"></tr>
+        <tr mat-row *matRowDef="let o; columns: colunas()"></tr>
+        <tr class="mat-mdc-no-data-row" *matNoDataRow>
+          <td class="vazio" [attr.colspan]="colunas().length">
+            {{ ordens.isLoading() ? 'Carregando…' : 'Nenhuma OS com estes filtros.' }}
+          </td>
+        </tr>
+      </table>
+    </div>
+    @if (ordens.value(); as o) {
+      <mat-paginator
+        [length]="o.total"
+        [pageSize]="tamanho"
+        [pageIndex]="pagina()"
+        [hidePageSize]="true"
+        (page)="mudarPagina($event)"
+        aria-label="Páginas de OS"
+      />
+    }
+  </section>
+} @else if (painel.error()) {
+  <section class="cartao aviso" role="alert"><p>Não foi possível carregar a campanha.</p></section>
+} @else {
+  <div class="esqueleto" aria-busy="true" aria-label="Carregando"></div>
+}
+
+<ng-template #modeloEnvio>
+  <h2 mat-dialog-title>Enviar à equipe</h2>
+  <mat-dialog-content>
+    <form id="form-envio" [formGroup]="formEnvio" (ngSubmit)="enviar()" class="formulario">
+      <p class="nota">
+        @if (selecionadas()) {
+          {{ fmt.numero(selecionadas()) }} OS selecionadas (as já em campo trocam de equipe).
+        } @else {
+          OS sem equipe, na ordem de prioridade e prazo.
+        }
+        Só seguem as de imóveis dentro da área da equipe.
+      </p>
+      <mat-form-field>
+        <mat-label>Equipe</mat-label>
+        <mat-select formControlName="equipe">
+          @for (e of equipesAtivas(); track e.id) {
+            <mat-option [value]="e.id"
+              >{{ e.nome }} · {{ e.unidadeNome
+              }}{{ e.empresa ? ' · ' + e.empresa : '' }}</mat-option
+            >
+          }
+        </mat-select>
+        <mat-error>Escolha a equipe.</mat-error>
+      </mat-form-field>
+      @if (!selecionadas()) {
+        <div class="linha">
+          <mat-form-field>
+            <mat-label>Prioridade</mat-label>
+            <mat-select formControlName="prioridade">
+              <mat-option value="">Todas</mat-option>
+              <mat-option value="ALTA">Só alta</mat-option>
+              <mat-option value="MEDIA">Só média</mat-option>
+              <mat-option value="BAIXA">Só baixa</mat-option>
+            </mat-select>
+          </mat-form-field>
+          <mat-form-field>
+            <mat-label>Quantas (opcional)</mat-label>
+            <input
+              matInput
+              type="number"
+              min="1"
+              max="5000"
+              formControlName="quantidade"
+              placeholder="Todas"
+            />
+            <mat-error>De 1 a 5.000.</mat-error>
+          </mat-form-field>
+        </div>
+      }
+      @if (erroEnvio()) {
+        <p class="erro" role="alert">
+          <span class="material-symbols-rounded" aria-hidden="true">error</span>{{ erroEnvio() }}
+        </p>
+      }
+    </form>
+  </mat-dialog-content>
+  <mat-dialog-actions align="end">
+    <button matButton type="button" (click)="fecharEnvio()">Cancelar</button>
+    <button matButton="filled" type="submit" form="form-envio" [disabled]="enviando()">
+      @if (enviando()) {
+        <mat-spinner diameter="18" />
+      }
+      Enviar
+    </button>
+  </mat-dialog-actions>
+</ng-template>

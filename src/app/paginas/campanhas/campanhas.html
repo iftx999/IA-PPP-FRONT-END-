@@ -1,0 +1,311 @@
+<header class="cabecalho">
+  <div class="titulo">
+    <span class="rotulo">Da meta à ação</span>
+    <h1>Campanhas de ligação</h1>
+    <p class="orientacao">
+      Transforme os imóveis sem ligação em ordens de serviço para as equipes de campo. A carga
+      mensal confere se cada ligação executada apareceu no sistema comercial.
+    </p>
+  </div>
+  @if (podeGerir()) {
+    <div class="acoes-topo">
+      <a matButton="outlined" routerLink="/equipes">
+        <span class="material-symbols-rounded" aria-hidden="true">groups</span> Equipes
+      </a>
+      <button matButton="filled" type="button" (click)="abrirNova()">
+        <span class="material-symbols-rounded" aria-hidden="true">add</span> Nova campanha
+      </button>
+    </div>
+  }
+</header>
+
+@if (!sessao.usuario()) {
+  <div class="esqueleto" aria-busy="true" aria-label="Carregando"></div>
+} @else if (!podeGerir()) {
+  <section class="cartao aviso" role="alert">
+    <p class="rotulo">Sem acesso</p>
+    <p>Seu perfil não permite gerenciar campanhas de ligação.</p>
+  </section>
+} @else {
+  <mat-button-toggle-group
+    class="filtro"
+    [value]="filtroStatus()"
+    (change)="filtroStatus.set($event.value)"
+    aria-label="Situação das campanhas"
+    hideSingleSelectionIndicator
+  >
+    <mat-button-toggle value="ATIVA">Ativas</mat-button-toggle>
+    <mat-button-toggle value="ENCERRADA">Encerradas</mat-button-toggle>
+    <mat-button-toggle value="CANCELADA">Canceladas</mat-button-toggle>
+    <mat-button-toggle value="TODAS">Todas</mat-button-toggle>
+  </mat-button-toggle-group>
+
+  @if (dados.hasValue()) {
+    @if (dados.value(); as lista) {
+      @if (lista.length) {
+        <ul class="lista">
+          @for (c of lista; track c.id) {
+            <li>
+              <a class="cartao campanha" [routerLink]="['/campanhas', c.id]">
+                <div class="topo">
+                  <div class="identificacao">
+                    <span class="nome">{{ c.nome }}</span>
+                    <span class="sub"
+                      >{{ c.unidadeNome }} · {{ rotuloAcao[c.acao].titulo }} ·
+                      {{ rotuloOrigem[c.recorte.origem] }}</span
+                    >
+                  </div>
+                  <aurora-selo [tom]="rotuloStatus[c.status].tom">{{
+                    rotuloStatus[c.status].texto
+                  }}</aurora-selo>
+                </div>
+                <div
+                  class="funil"
+                  role="img"
+                  [attr.aria-label]="
+                    'Funil: ' +
+                    c.funil.planejadas +
+                    ' planejadas, ' +
+                    c.funil.emCampo +
+                    ' em campo, ' +
+                    c.funil.executadas +
+                    ' executadas, ' +
+                    c.funil.confirmadas +
+                    ' confirmadas'
+                  "
+                >
+                  @for (e of etapas(c.funil); track e.rotulo) {
+                    <div class="etapa">
+                      <span class="valor dado">{{ fmt.numero(e.valor) }}</span>
+                      <span class="barra"
+                        ><span class="preenchido" [style.width.%]="e.fracao * 100"></span
+                      ></span>
+                      <span class="rotulo-etapa">{{ e.rotulo }}</span>
+                    </div>
+                  }
+                </div>
+                <div class="metricas">
+                  <span
+                    >Prazo <b>{{ fmt.data(c.prazo) }}</b></span
+                  >
+                  @if (c.funil.atrasadas) {
+                    <span class="alerta"
+                      ><b>{{ fmt.numero(c.funil.atrasadas) }}</b> atrasadas</span
+                    >
+                  }
+                  @if (c.funil.divergentes) {
+                    <span class="alerta"
+                      ><b>{{ fmt.numero(c.funil.divergentes) }}</b> divergentes</span
+                    >
+                  }
+                  @if (c.funil.semEquipe && c.status === 'ATIVA') {
+                    <span
+                      ><b>{{ fmt.numero(c.funil.semEquipe) }}</b> sem equipe</span
+                    >
+                  }
+                </div>
+              </a>
+            </li>
+          }
+        </ul>
+      } @else {
+        <section class="cartao vazio">
+          <span class="material-symbols-rounded" aria-hidden="true">campaign</span>
+          <p>Nenhuma campanha {{ filtroStatus() === 'TODAS' ? '' : 'nesta situação' }}.</p>
+          <p class="nota">
+            Comece pela lista de sem ligação, por um setor ou por uma área do mapa.
+          </p>
+        </section>
+      }
+    }
+  } @else if (dados.error()) {
+    <section class="cartao aviso" role="alert">
+      <p>Não foi possível carregar as campanhas.</p>
+    </section>
+  } @else {
+    <div class="esqueleto" aria-busy="true" aria-label="Carregando"></div>
+  }
+}
+
+<ng-template #modeloNova>
+  <h2 mat-dialog-title>Nova campanha</h2>
+  <mat-dialog-content>
+    <form id="form-campanha" [formGroup]="form" (ngSubmit)="criar()" class="formulario">
+      <span class="rotulo">De onde vêm os imóveis</span>
+      <mat-button-toggle-group
+        formControlName="origem"
+        aria-label="Origem dos imóveis"
+        class="origens"
+      >
+        <mat-button-toggle value="SEM_LIGACAO">{{ rotuloOrigem.SEM_LIGACAO }}</mat-button-toggle>
+        <mat-button-toggle value="SETOR">{{ rotuloOrigem.SETOR }}</mat-button-toggle>
+        <mat-button-toggle value="AREA_DO_MAPA" [disabled]="!area()">{{
+          rotuloOrigem.AREA_DO_MAPA
+        }}</mat-button-toggle>
+      </mat-button-toggle-group>
+      @if (!area()) {
+        <p class="nota">
+          Para usar uma área, abra o Mapa, enquadre a região e escolha "Campanha nesta área".
+        </p>
+      } @else if (form.controls.origem.value === 'AREA_DO_MAPA') {
+        <p class="nota">
+          <span class="material-symbols-rounded" aria-hidden="true">crop_free</span>
+          Área do mapa: imóveis com localização dentro do retângulo visível.
+        </p>
+      }
+
+      <div class="linha">
+        <mat-form-field class="largo">
+          <mat-label>{{
+            form.controls.origem.value === 'SETOR' ? 'Setor comercial' : 'Unidade'
+          }}</mat-label>
+          <input
+            matInput
+            formControlName="unidade"
+            [matAutocomplete]="listaUnidades"
+            [placeholder]="
+              form.controls.origem.value === 'SETOR'
+                ? 'Busque o setor'
+                : 'Concessão, município ou setor'
+            "
+          />
+          <mat-autocomplete
+            #listaUnidades="matAutocomplete"
+            [displayWith]="exibirUnidade"
+            autoActiveFirstOption
+          >
+            @for (o of opcoesUnidade(); track o.id) {
+              <mat-option [value]="o" [style.padding-left.px]="16 + o.profundidade * 16">{{
+                o.nome
+              }}</mat-option>
+            }
+          </mat-autocomplete>
+          <mat-hint>Inclui as unidades abaixo dela.</mat-hint>
+          <mat-error>Escolha uma unidade da lista.</mat-error>
+        </mat-form-field>
+      </div>
+      <div class="linha">
+        <mat-button-toggle-group
+          formControlName="situacao"
+          aria-label="Situação dos imóveis"
+          hideSingleSelectionIndicator
+        >
+          <mat-button-toggle value="TODOS">Factíveis e cortados</mat-button-toggle>
+          <mat-button-toggle value="FACTIVEL">Só factíveis</mat-button-toggle>
+          <mat-button-toggle value="CORTADO">Só cortados</mat-button-toggle>
+        </mat-button-toggle-group>
+        @if (form.controls.situacao.value !== 'FACTIVEL') {
+          <mat-form-field class="motivo" subscriptSizing="dynamic">
+            <mat-label>Motivo do corte</mat-label>
+            <mat-select formControlName="motivoCorte">
+              <mat-option value="">Qualquer</mat-option>
+              <mat-option value="INADIMPLENCIA">Falta de pagamento</mat-option>
+              <mat-option value="A_PEDIDO">A pedido do cliente</mat-option>
+            </mat-select>
+          </mat-form-field>
+        }
+      </div>
+
+      <section class="previa" aria-live="polite" aria-label="Prévia da campanha">
+        @if (calculando()) {
+          <p class="nota"><mat-spinner diameter="16" /> Calculando a prévia…</p>
+        } @else if (erroPrevia()) {
+          <p class="erro" role="alert">
+            <span class="material-symbols-rounded" aria-hidden="true">error</span>{{ erroPrevia() }}
+          </p>
+        } @else if (previa(); as p) {
+          <div class="numeros">
+            <div class="numero-grande">
+              <span class="valor dado">{{ fmt.numero(p.imoveis) }}</span>
+              <span class="rotulo">OS a criar</span>
+            </div>
+            <div class="composicao">
+              <span
+                >{{ fmt.numero(p.factiveis) }} factíveis ·
+                {{ fmt.numero(p.cortados) }} cortados</span
+              >
+              <span class="prioridades">
+                Prioridade <aurora-selo tom="perigo">{{ fmt.numero(p.alta) }} alta</aurora-selo>
+                <aurora-selo tom="atencao">{{ fmt.numero(p.media) }} média</aurora-selo>
+                <aurora-selo>{{ fmt.numero(p.baixa) }} baixa</aurora-selo>
+              </span>
+              @if (p.comOsAberta) {
+                <span class="nota"
+                  >{{ fmt.numero(p.comOsAberta) }} já têm OS em aberto e ficam de fora.</span
+                >
+              }
+              <span class="nota">Situação de {{ fmt.competenciaLonga(p.competencia) }}.</span>
+            </div>
+          </div>
+          @if (p.imoveis > p.limite) {
+            <p class="erro" role="alert">
+              <span class="material-symbols-rounded" aria-hidden="true">error</span>
+              Passa do limite de {{ fmt.numero(p.limite) }} OS por campanha. Divida por setor ou por
+              área.
+            </p>
+          }
+          <ul class="impacto">
+            @for (f of frasesImpacto(); track f) {
+              <li>{{ f }}</li>
+            }
+          </ul>
+        } @else {
+          <p class="nota">Escolha a unidade para ver quantos imóveis entram e o impacto na meta.</p>
+        }
+      </section>
+
+      <mat-form-field>
+        <mat-label>Nome da campanha</mat-label>
+        <input
+          matInput
+          formControlName="nome"
+          maxlength="120"
+          placeholder="Mutirão do Jardim Europa"
+        />
+        <mat-error>Dê um nome com ao menos 3 letras.</mat-error>
+      </mat-form-field>
+      <span class="rotulo">O que fazer em cada imóvel</span>
+      <mat-button-toggle-group formControlName="acao" aria-label="Ação" class="acoes-campanha">
+        @for (a of acoes; track a) {
+          <mat-button-toggle [value]="a">{{ rotuloAcao[a].titulo }}</mat-button-toggle>
+        }
+      </mat-button-toggle-group>
+      <p class="nota">{{ rotuloAcao[form.controls.acao.value].descricao }}</p>
+      <mat-form-field class="prazo">
+        <mat-label>Prazo</mat-label>
+        <input
+          matInput
+          [matDatepicker]="calPrazo"
+          formControlName="prazo"
+          [min]="hoje"
+          [max]="limitePrazo"
+          placeholder="dd/mm/aaaa"
+        />
+        <mat-datepicker-toggle matIconSuffix [for]="calPrazo" />
+        <mat-datepicker #calPrazo />
+        <mat-error>Informe um prazo entre hoje e daqui a um ano.</mat-error>
+      </mat-form-field>
+      @if (erro()) {
+        <p class="erro" role="alert">
+          <span class="material-symbols-rounded" aria-hidden="true">error</span>{{ erro() }}
+        </p>
+      }
+    </form>
+  </mat-dialog-content>
+  <mat-dialog-actions align="end">
+    <button matButton type="button" (click)="fechar()">Cancelar</button>
+    <button
+      matButton="filled"
+      type="submit"
+      form="form-campanha"
+      [disabled]="
+        salvando() || !previa() || previa()!.imoveis === 0 || previa()!.imoveis > previa()!.limite
+      "
+    >
+      @if (salvando()) {
+        <mat-spinner diameter="18" />
+      }
+      Criar {{ previa() ? fmt.numero(previa()!.imoveis) : '' }} OS
+    </button>
+  </mat-dialog-actions>
+</ng-template>

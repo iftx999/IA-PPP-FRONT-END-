@@ -7,7 +7,7 @@ import { entrar } from './login';
  * crítica reprova; as demais aparecem no relatório do teste.
  */
 const TELAS = [
-  '/painel', '/metas', '/sem-ligacao', '/mapa', '/alertas', '/contratos', '/simulador', '/assistente',
+  '/painel', '/metas', '/sem-ligacao', '/mapa', '/alertas', '/contratos', '/simulador', '/campanhas', '/equipes', '/minhas-ordens', '/assistente',
   '/admin/unidades', '/admin/usuarios', '/admin/perfis', '/admin/integracoes',
 ];
 

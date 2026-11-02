@@ -15,6 +15,12 @@ describe('Telas por permissão', () => {
     expect(telaInicial(auditor)).toBe('/admin/unidades');
   });
 
+  it('equipe de campo entra em Minhas OS', () => {
+    const campo = ['os:executar', 'dados_pessoais:ler', 'unidade:ler'];
+    expect(secoesPermitidas(campo).map((s) => s.titulo)).toEqual(['Campo', 'Administração']);
+    expect(telaInicial(campo)).toBe('/minhas-ordens');
+  });
+
   it('sem permissão de tela, entra no painel (que explica a falta de acesso)', () => {
     expect(secoesPermitidas([])).toEqual([]);
     expect(telaInicial(['relatorio:exportar'])).toBe('/painel');
