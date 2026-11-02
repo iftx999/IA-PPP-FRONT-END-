@@ -1,6 +1,6 @@
 import type { FonteApi } from '../../api/tipos';
 import { destino } from '../alertas/alertas';
-import { atraso, situacaoFonte, ultimasCompetencias } from './integracoes';
+import { atraso, filtrarFontes, situacaoFonte, ultimasCompetencias } from './integracoes';
 
 const fonte = (mudancas: Partial<FonteApi>): FonteApi => ({
   id: 'f', nome: 'Comercial', tipo: 'AGENTE', sistemaOrigem: null, frequencia: null, atrasoMaximoHoras: 48, ativo: true,
@@ -9,6 +9,23 @@ const fonte = (mudancas: Partial<FonteApi>): FonteApi => ({
 });
 
 describe('Integrações e alertas', () => {
+  it('filtra fontes por texto, tipo e situação', () => {
+    const lista = [
+      fonte({ id: '1', nome: 'Comercial', sistemaOrigem: 'SAP' }),
+      fonte({ id: '2', nome: 'Planilha de medições', tipo: 'ARQUIVO', atrasada: true }),
+      fonte({ id: '3', nome: 'Antiga', ativo: false, atrasada: true }),
+    ];
+    const ids = (r: FonteApi[]) => r.map((f) => f.id);
+    const sem = { termo: '', tipo: null, situacao: null } as const;
+    expect(ids(filtrarFontes(lista, { ...sem, termo: 'sap' }))).toEqual(['1']);
+    expect(ids(filtrarFontes(lista, { ...sem, termo: 'MEDICOES' }))).toEqual(['2']);
+    expect(ids(filtrarFontes(lista, { ...sem, tipo: 'ARQUIVO' }))).toEqual(['2']);
+    expect(ids(filtrarFontes(lista, { ...sem, situacao: 'EM_DIA' }))).toEqual(['1']);
+    // Inativa não conta como atrasada (não se espera carga dela).
+    expect(ids(filtrarFontes(lista, { ...sem, situacao: 'ATRASADA' }))).toEqual(['2']);
+    expect(ids(filtrarFontes(lista, { ...sem, situacao: 'INATIVA' }))).toEqual(['3']);
+  });
+
   it('descreve o atraso em dias ou horas', () => {
     expect(atraso(48)).toBe('2 dias');
     expect(atraso(24)).toBe('1 dia');

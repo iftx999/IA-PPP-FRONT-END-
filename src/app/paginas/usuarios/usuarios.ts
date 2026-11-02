@@ -1,7 +1,7 @@
 import { NgTemplateOutlet } from '@angular/common';
 import { HttpClient, httpResource } from '@angular/common/http';
 import { Component, TemplateRef, computed, effect, inject, signal, viewChild } from '@angular/core';
-import { toSignal } from '@angular/core/rxjs-interop';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormArray, FormControl, FormGroup, ReactiveFormsModule, Validators, type ValidatorFn } from '@angular/forms';
 import { MatAutocompleteModule } from '@angular/material/autocomplete';
 import { MatButtonModule } from '@angular/material/button';
@@ -23,13 +23,22 @@ import type {
   PedidoConcessoes, PedidoConvite, Perfil, PoliticaSegundoFator, SegundoFatorUsuario, SituacaoUsuario, Unidade, Usuario,
 } from '../../api/tipos';
 import { mensagemDeErro } from '../../nucleo/erro-api';
+import { filtrosNaUrl } from '../../nucleo/filtros';
 import { data, dataEHora, haQuantoTempo, numero } from '../../nucleo/formato';
 import { SessaoService } from '../../nucleo/sessao';
+import { FiltroUnidade } from '../../ui/filtro-unidade';
 import { Selo, type Tom } from '../../ui/selo';
 import { GERIR_USUARIOS } from '../perfis/perfis';
 import { RetencaoAuditoriaPolitica } from './retencao-auditoria';
 import { SsoCorporativo } from './sso-corporativo';
-import { arvoreDeUnidades, filtrarUnidades, semAcento, type OpcaoUnidade } from '../../nucleo/unidades-arvore';
+import {
+  ancestrais,
+  arvoreDeUnidades,
+  filtrarUnidades,
+  semAcento,
+  subarvore,
+  type OpcaoUnidade,
+} from '../../nucleo/unidades-arvore';
 
 type Filtro = 'TODOS' | SituacaoUsuario;
 
@@ -40,12 +49,25 @@ export const SITUACOES: Record<SituacaoUsuario, { rotulo: string; tom: Tom }> = 
 };
 
 /** Filtra por situação e por nome ou e-mail (sem diferenciar acentos). */
-export function filtrarUsuarios(usuarios: Usuario[], situacao: Filtro, termo: string): Usuario[] {
+/**
+ * Perfil e unidade olham as concessões: {@code unidades} são os ids aceitos (a escolhida, as de
+ * baixo e as de cima, que também alcançam a escolhida). Com os dois, a mesma concessão atende.
+ */
+export function filtrarUsuarios(
+  usuarios: Usuario[],
+  situacao: Filtro,
+  termo: string,
+  acesso: { perfilId?: string | null; unidades?: ReadonlySet<string> | null } = {},
+): Usuario[] {
   const t = semAcento(termo.trim());
+  const { perfilId, unidades } = acesso;
   return usuarios.filter(
     (u) =>
       (situacao === 'TODOS' || u.situacao === situacao) &&
-      (!t || semAcento(u.nome).includes(t) || semAcento(u.email).includes(t)),
+      (!t || semAcento(u.nome).includes(t) || semAcento(u.email).includes(t)) &&
+      (!perfilId && !unidades
+        ? true
+        : u.concessoes.some((c) => (!perfilId || c.perfilId === perfilId) && (!unidades || unidades.has(c.unidadeId)))),
   );
 }
 
@@ -91,7 +113,7 @@ class PaginadorPtBr extends MatPaginatorIntl {
   imports: [
     NgTemplateOutlet, ReactiveFormsModule, MatTableModule, MatPaginatorModule, MatButtonModule, MatButtonToggleModule,
     MatFormFieldModule, MatInputModule, MatSelectModule, MatAutocompleteModule, MatDatepickerModule, MatDialogModule,
-    MatMenuModule, MatTooltipModule, MatProgressSpinnerModule, MatSnackBarModule, MatSlideToggleModule, Selo, RetencaoAuditoriaPolitica, SsoCorporativo,
+    MatMenuModule, MatTooltipModule, MatProgressSpinnerModule, MatSnackBarModule, MatSlideToggleModule, Selo, RetencaoAuditoriaPolitica, SsoCorporativo, FiltroUnidade,
   ],
   providers: [{ provide: MatPaginatorIntl, useClass: PaginadorPtBr }],
   templateUrl: './usuarios.html',
@@ -129,16 +151,27 @@ export class Usuarios {
     return { total: lista.length, ativos: conta('ATIVO'), pendentes: conta('CONVITE_PENDENTE'), inativos: conta('INATIVO') };
   });
 
-  // ----- Filtros e paginação (no cliente: a lista vem inteira, ver ADR 0011) -----
-  protected readonly busca = new FormControl('', { nonNullable: true });
-  private readonly termo = toSignal(this.busca.valueChanges.pipe(debounceTime(150)), { initialValue: '' });
-  protected readonly filtroSituacao = signal<Filtro>('TODOS');
+  // ----- Filtros (na URL) e paginação (no cliente: a lista vem inteira, ver ADR 0011) -----
+  protected readonly filtros = filtrosNaUrl(['busca', 'situacao', 'perfil', 'unidade']);
+  protected readonly busca = new FormControl(this.filtros.inicial('busca'), { nonNullable: true });
+  private readonly termo = computed(() => this.filtros.valor('busca') ?? '');
+  protected readonly filtroSituacao = computed(() => (this.filtros.valor('situacao') as Filtro | null) ?? 'TODOS');
+  protected readonly filtroPerfil = computed(() => this.filtros.valor('perfil'));
+  protected readonly filtroUnidade = computed(() => this.filtros.valor('unidade'));
+  protected readonly unidadesDoFiltro = computed(() => (this.dadosUnidades.hasValue() ? this.dadosUnidades.value() : []));
+  protected readonly filtrando = computed(() => this.filtros.ativos() > 0);
   protected readonly pagina = signal({ indice: 0, tamanho: 25 });
   private readonly paginador = viewChild(MatPaginator);
 
-  protected readonly filtrados = computed(() =>
-    filtrarUsuarios(this.usuarios() ?? [], this.filtroSituacao(), this.termo()),
-  );
+  protected readonly filtrados = computed(() => {
+    const id = this.filtroUnidade();
+    const todas = this.unidadesDoFiltro();
+    const unidades = id ? new Set([id, ...[...subarvore(todas, id), ...ancestrais(todas, id)].map((u) => u.id)]) : null;
+    return filtrarUsuarios(this.usuarios() ?? [], this.filtroSituacao(), this.termo(), {
+      perfilId: this.filtroPerfil(),
+      unidades,
+    });
+  });
   protected readonly visiveis = computed(() => {
     const { indice, tamanho } = this.pagina();
     return this.filtrados().slice(indice * tamanho, (indice + 1) * tamanho);
@@ -151,12 +184,26 @@ export class Usuarios {
 
   constructor() {
     // Novo filtro: volta para a primeira página.
+    this.busca.valueChanges
+      .pipe(debounceTime(200), takeUntilDestroyed())
+      .subscribe((v) => this.filtros.aplicar({ busca: v.trim() }));
     effect(() => {
       this.filtroSituacao();
       this.termo();
+      this.filtroPerfil();
+      this.filtroUnidade();
       this.pagina.update((p) => ({ ...p, indice: 0 }));
       this.paginador()?.firstPage();
     });
+  }
+
+  protected escolherSituacao(situacao: Filtro): void {
+    this.filtros.aplicar({ situacao: situacao === 'TODOS' ? null : situacao });
+  }
+
+  protected limparFiltros(): void {
+    this.busca.setValue('', { emitEvent: false });
+    this.filtros.limpar();
   }
 
   protected mudarPagina(evento: PageEvent): void {

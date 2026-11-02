@@ -47,18 +47,37 @@
   <aurora-retencao-auditoria />
   <aurora-sso-corporativo />
 
-  <div class="filtros">
+  <div class="barra-filtros" role="search" aria-label="Filtros dos usuários">
     <mat-form-field class="busca" subscriptSizing="dynamic">
       <span matPrefix class="material-symbols-rounded prefixo" aria-hidden="true">search</span>
-      <input matInput [formControl]="busca" placeholder="Buscar por nome ou e-mail" aria-label="Buscar por nome ou e-mail" />
+      <input matInput type="search" [formControl]="busca" placeholder="Buscar por nome ou e-mail" aria-label="Buscar por nome ou e-mail" />
     </mat-form-field>
-    <mat-button-toggle-group [value]="filtroSituacao()" (change)="filtroSituacao.set($event.value)"
+    <mat-button-toggle-group [value]="filtroSituacao()" (change)="escolherSituacao($event.value)"
                              aria-label="Situação" hideSingleSelectionIndicator>
       <mat-button-toggle value="TODOS">Todos</mat-button-toggle>
       <mat-button-toggle value="ATIVO">Ativos</mat-button-toggle>
       <mat-button-toggle value="CONVITE_PENDENTE">Convite pendente</mat-button-toggle>
       <mat-button-toggle value="INATIVO">Inativos</mat-button-toggle>
     </mat-button-toggle-group>
+    <mat-form-field class="filtro" subscriptSizing="dynamic">
+      <mat-label>Perfil</mat-label>
+      <mat-select [value]="filtroPerfil() ?? ''" (selectionChange)="filtros.aplicar({ perfil: $event.value })">
+        <mat-option value="">Todos</mat-option>
+        @for (p of perfis(); track p.id) {
+          <mat-option [value]="p.id">{{ p.nome }}</mat-option>
+        }
+      </mat-select>
+    </mat-form-field>
+    @if (unidadesDoFiltro().length) {
+      <aurora-filtro-unidade [unidades]="unidadesDoFiltro()" [valor]="filtroUnidade()"
+                             (escolha)="filtros.aplicar({ unidade: $event })" />
+    }
+    @if (filtrando()) {
+      <button matButton type="button" (click)="limparFiltros()">
+        <span class="material-symbols-rounded" aria-hidden="true">filter_alt_off</span> Limpar filtros
+      </button>
+      <span class="contagem-filtro">{{ fmt.numero(filtrados().length) }} de {{ fmt.numero(resumo().total) }}</span>
+    }
   </div>
 
   <section class="cartao tabela" aria-label="Lista de usuários">

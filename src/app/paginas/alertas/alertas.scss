@@ -8,7 +8,7 @@ h1 { font: 700 var(--fs-h1) var(--font-display); margin: 0; }
   > .material-symbols-rounded { color: var(--accent); } }
 .rotulo-preferencia { font: 600 var(--fs-small) var(--font-ui); color: var(--text-1); }
 .ajuda-preferencia { font-size: var(--fs-label); color: var(--text-3); }
-.filtro { margin-bottom: var(--space-3); }
+.opcao-icone { display: inline-flex; align-items: center; gap: 8px; .material-symbols-rounded { font-size: 18px; color: var(--text-3); } }
 .contagem { margin-left: 6px; padding: 0 6px; border-radius: 999px; background: color-mix(in srgb, var(--warn) 20%, transparent); color: var(--warn); font-size: var(--fs-label); }
 
 .lista { margin: 0; padding: 0; list-style: none; display: grid; gap: var(--space-2); }

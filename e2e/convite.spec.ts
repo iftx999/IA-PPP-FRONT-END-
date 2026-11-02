@@ -36,7 +36,7 @@ test('convite completo: e-mail, criação de senha, primeiro acesso e desativaç
   await convite.getByRole('button', { name: 'Enviar convite' }).click();
   await expect(convite).toBeHidden();
   // Filtra pela busca: execuções anteriores deixam convites desativados e a lista é paginada.
-  const filtrar = () => page.getByRole('textbox', { name: 'Buscar por nome ou e-mail' }).fill(email);
+  const filtrar = () => page.getByRole('searchbox', { name: 'Buscar por nome ou e-mail' }).fill(email);
   await filtrar();
   const linha = page.getByRole('row', { name: new RegExp(email.replaceAll('.', '\\.')) });
   await expect(linha).toContainText('Convite pendente');

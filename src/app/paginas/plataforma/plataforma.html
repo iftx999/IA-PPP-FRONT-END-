@@ -48,8 +48,29 @@
   } @else if (!clientes.hasValue()) {
     <div class="esqueleto" aria-busy="true" aria-label="Carregando"></div>
   } @else {
+    <div class="barra-filtros" role="search" aria-label="Filtros dos clientes">
+      <mat-form-field class="busca" subscriptSizing="dynamic">
+        <span matPrefix class="material-symbols-rounded prefixo" aria-hidden="true">search</span>
+        <input matInput type="search" [formControl]="busca" placeholder="Buscar por nome, código ou contato" aria-label="Buscar cliente" />
+      </mat-form-field>
+      <mat-form-field class="filtro" subscriptSizing="dynamic">
+        <mat-label>Situação</mat-label>
+        <mat-select [value]="filtroSituacao() ?? ''" (selectionChange)="filtros.aplicar({ situacao: $event.value })">
+          <mat-option value="">Todas</mat-option>
+          <mat-option value="ATIVO">Ativos</mat-option>
+          <mat-option value="PENDENTE">Provisionamento pendente</mat-option>
+          <mat-option value="INATIVO">Inativos</mat-option>
+        </mat-select>
+      </mat-form-field>
+      @if (filtrando()) {
+        <button matButton type="button" (click)="limparFiltros()">
+          <span class="material-symbols-rounded" aria-hidden="true">filter_alt_off</span> Limpar filtros
+        </button>
+        <span class="contagem-filtro">{{ fmt.numero(visiveis().length) }} de {{ fmt.numero(lista().length) }}</span>
+      }
+    </div>
     <section class="cartao tabela">
-      <table mat-table [dataSource]="lista()" aria-label="Clientes">
+      <table mat-table [dataSource]="visiveis()" aria-label="Clientes">
         <ng-container matColumnDef="cliente">
           <th mat-header-cell *matHeaderCellDef>Cliente</th>
           <td mat-cell *matCellDef="let c">
@@ -108,6 +129,8 @@
       </table>
       @if (lista().length === 0) {
         <p class="sem-resultado">Nenhum cliente ainda. Crie o primeiro.</p>
+      } @else if (visiveis().length === 0) {
+        <p class="sem-resultado">Nenhum cliente com esses filtros.</p>
       }
     </section>
   }

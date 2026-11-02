@@ -66,3 +66,13 @@ export function subarvore<T extends NoUnidade>(unidades: T[], raizId: string): T
   }
   return resultado;
 }
+
+/** A unidade e as acima dela, até a raiz (para achar o que a cobre, como um contrato da concessão). */
+export function ancestrais<T extends NoUnidade>(unidades: readonly T[], id: string): T[] {
+  const porId = new Map(unidades.map((u) => [u.id, u]));
+  const resultado: T[] = [];
+  for (let u = porId.get(id); u && !resultado.includes(u); u = u.unidadePaiId ? porId.get(u.unidadePaiId) : undefined) {
+    resultado.push(u);
+  }
+  return resultado;
+}

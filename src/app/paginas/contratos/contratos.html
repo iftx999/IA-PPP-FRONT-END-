@@ -24,14 +24,43 @@
     <p>Seu perfil não permite consultar contratos.</p>
   </section>
 } @else if (contratos(); as lista) {
-  <mat-form-field class="busca" subscriptSizing="dynamic">
-    <span matPrefix class="material-symbols-rounded prefixo" aria-hidden="true">search</span>
-    <input matInput [formControl]="busca" placeholder="Buscar por número, unidade ou objeto" aria-label="Buscar contrato" />
-  </mat-form-field>
+  <div class="barra-filtros" role="search" aria-label="Filtros dos contratos">
+    <mat-form-field class="busca" subscriptSizing="dynamic">
+      <span matPrefix class="material-symbols-rounded prefixo" aria-hidden="true">search</span>
+      <input matInput type="search" [formControl]="busca" placeholder="Buscar por número, unidade, objeto ou poder concedente"
+             aria-label="Buscar contrato" />
+    </mat-form-field>
+    @if (dadosUnidades.hasValue()) {
+      <aurora-filtro-unidade [unidades]="dadosUnidades.value()" [valor]="unidade()"
+                             (escolha)="filtros.aplicar({ unidade: $event })" />
+    }
+    <mat-form-field class="filtro" subscriptSizing="dynamic">
+      <mat-label>Vigência</mat-label>
+      <mat-select [value]="vigencia() ?? ''" (selectionChange)="filtros.aplicar({ vigencia: $event.value })">
+        <mat-option value="">Todas</mat-option>
+        @for (v of opcoesVigencia; track v.valor) {
+          <mat-option [value]="v.valor">{{ v.rotulo }}</mat-option>
+        }
+      </mat-select>
+    </mat-form-field>
+    <mat-form-field class="filtro" subscriptSizing="dynamic">
+      <mat-label>Revisão</mat-label>
+      <mat-select [value]="soPendentes() ? 'PENDENTE' : ''" (selectionChange)="filtros.aplicar({ revisao: $event.value })">
+        <mat-option value="">Todos</mat-option>
+        <mat-option value="PENDENTE">Com itens para revisar</mat-option>
+      </mat-select>
+    </mat-form-field>
+    @if (filtrando()) {
+      <button matButton type="button" (click)="limparFiltros()">
+        <span class="material-symbols-rounded" aria-hidden="true">filter_alt_off</span> Limpar filtros
+      </button>
+      <span class="contagem-filtro">{{ fmt.numero(lista.length) }} de {{ fmt.numero(dados.value()?.length ?? 0) }}</span>
+    }
+  </div>
   @if (lista.length === 0) {
     <section class="cartao vazio">
       <span class="material-symbols-rounded" aria-hidden="true">description</span>
-      <p>{{ busca.value ? 'Nenhum contrato com essa busca.' : 'Nenhum contrato cadastrado ainda.' }}</p>
+      <p>{{ filtrando() ? 'Nenhum contrato com esses filtros.' : 'Nenhum contrato cadastrado ainda.' }}</p>
     </section>
   } @else {
     <ul class="lista" aria-label="Contratos">

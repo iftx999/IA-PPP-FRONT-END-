@@ -5666,6 +5666,16 @@ export interface operations {
     parameters: {
       query?: {
         estado?: 'ABERTOS' | 'RECONHECIDOS' | 'RESOLVIDOS';
+        tipo?: (
+          | 'INDICADOR_ABAIXO_DA_META'
+          | 'META_FORA_DO_RITMO'
+          | 'FONTE_ATRASADA'
+          | 'PRAZO_CONTRATUAL'
+          | 'TRILHA_ALTERADA'
+          | 'ORDEM_DIVERGENTE'
+        )[];
+        severidade?: 'ATENCAO' | 'CRITICO';
+        unidade?: string;
         limite?: number;
       };
       header?: never;

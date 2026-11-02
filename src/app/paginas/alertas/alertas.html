@@ -41,21 +41,57 @@
     <p>Seu perfil não permite ver os alertas.</p>
   </section>
 } @else {
-  <mat-button-toggle-group [value]="estado()" (change)="estado.set($event.value)" aria-label="Situação dos alertas"
-                           hideSingleSelectionIndicator class="filtro">
-    <mat-button-toggle value="ABERTOS">
-      Abertos
-      @if (resumo.pendentes()) { <span class="contagem">{{ resumo.pendentes() }}</span> }
-    </mat-button-toggle>
-    <mat-button-toggle value="RECONHECIDOS">Reconhecidos</mat-button-toggle>
-    <mat-button-toggle value="RESOLVIDOS">Resolvidos</mat-button-toggle>
-  </mat-button-toggle-group>
+  <div class="barra-filtros" role="search" aria-label="Filtros dos alertas">
+    <mat-button-toggle-group [value]="estado()" (change)="escolherEstado($event.value)" aria-label="Situação dos alertas"
+                             hideSingleSelectionIndicator>
+      <mat-button-toggle value="ABERTOS">
+        Abertos
+        @if (resumo.pendentes()) { <span class="contagem">{{ resumo.pendentes() }}</span> }
+      </mat-button-toggle>
+      <mat-button-toggle value="RECONHECIDOS">Reconhecidos</mat-button-toggle>
+      <mat-button-toggle value="RESOLVIDOS">Resolvidos</mat-button-toggle>
+    </mat-button-toggle-group>
+    <mat-form-field class="filtro" subscriptSizing="dynamic">
+      <mat-label>Tipo</mat-label>
+      <mat-select multiple placeholder="Todos" [value]="tipos()"
+                  (selectionChange)="filtros.aplicar({ tipo: $event.value.join(',') })">
+        @for (t of opcoesTipo; track t.valor) {
+          <mat-option [value]="t.valor">
+            <span class="opcao-icone"><span class="material-symbols-rounded" aria-hidden="true">{{ icone({ tipo: t.valor }) }}</span>{{ t.rotulo }}</span>
+          </mat-option>
+        }
+      </mat-select>
+    </mat-form-field>
+    <mat-form-field class="filtro" subscriptSizing="dynamic">
+      <mat-label>Severidade</mat-label>
+      <mat-select [value]="severidade() ?? ''" (selectionChange)="filtros.aplicar({ severidade: $event.value })">
+        <mat-option value="">Todas</mat-option>
+        <mat-option value="CRITICO">Crítico</mat-option>
+        <mat-option value="ATENCAO">Atenção</mat-option>
+      </mat-select>
+    </mat-form-field>
+    @if (unidades.hasValue()) {
+      <aurora-filtro-unidade [unidades]="unidades.value()" [valor]="unidade()"
+                             (escolha)="filtros.aplicar({ unidade: $event })" />
+    }
+    @if (filtrando()) {
+      <button matButton type="button" (click)="limparFiltros()">
+        <span class="material-symbols-rounded" aria-hidden="true">filter_alt_off</span> Limpar filtros
+      </button>
+    }
+  </div>
 
   @if (alertas(); as lista) {
     @if (lista.length === 0) {
       <section class="cartao vazio">
         <span class="material-symbols-rounded" aria-hidden="true">{{ estado() === 'RESOLVIDOS' ? 'history' : 'task_alt' }}</span>
-        <p>{{ estado() === 'ABERTOS' ? 'Nenhum alerta aberto. Tudo dentro das metas.' : 'Nenhum alerta nesta situação.' }}</p>
+        <p>
+          @if (filtrando()) {
+            Nenhum alerta com esses filtros.
+          } @else {
+            {{ estado() === 'ABERTOS' ? 'Nenhum alerta aberto. Tudo dentro das metas.' : 'Nenhum alerta nesta situação.' }}
+          }
+        </p>
       </section>
     } @else {
       <ul class="lista" aria-label="Alertas">

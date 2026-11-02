@@ -1,6 +1,6 @@
 import type { Unidade, Usuario } from '../../api/tipos';
 import { haQuantoTempo } from '../../nucleo/formato';
-import { arvoreDeUnidades, filtrarUnidades } from '../../nucleo/unidades-arvore';
+import { ancestrais, arvoreDeUnidades, filtrarUnidades } from '../../nucleo/unidades-arvore';
 import { filtrarUsuarios, fimDoDia, iniciais } from './usuarios';
 
 const unidade = (id: string, nome: string, tipo: string, unidadePaiId: string | null): Unidade => ({
@@ -37,6 +37,32 @@ describe('Usuários', () => {
     expect(filtrarUsuarios(lista, 'TODOS', 'joao').map((u) => u.nome)).toEqual(['João Gestor']);
     expect(filtrarUsuarios(lista, 'CONVITE_PENDENTE', '').map((u) => u.nome)).toEqual(['Ana']);
     expect(filtrarUsuarios(lista, 'ATIVO', 'bia')).toEqual([]);
+  });
+
+  it('filtra por perfil e unidade nas concessões, com os dois valendo na mesma concessão', () => {
+    const concessao = (perfilId: string, unidadeId: string) => ({
+      id: perfilId + unidadeId, perfilId, perfil: perfilId, unidadeId, unidade: unidadeId, validoAte: null,
+    });
+    const lista = [
+      { ...usuario('Gestor', 'g@x.dev', 'ATIVO'), concessoes: [concessao('gestor', 'a')] },
+      { ...usuario('Leitor', 'l@x.dev', 'ATIVO'), concessoes: [concessao('leitura', 'b'), concessao('gestor', 'c')] },
+      usuario('Sem acesso', 's@x.dev', 'ATIVO'),
+    ];
+    const nomes = (r: Usuario[]) => r.map((u) => u.nome);
+    expect(nomes(filtrarUsuarios(lista, 'TODOS', '', { perfilId: 'gestor' }))).toEqual(['Gestor', 'Leitor']);
+    expect(nomes(filtrarUsuarios(lista, 'TODOS', '', { unidades: new Set(['b']) }))).toEqual(['Leitor']);
+    // Gestor só na "c" e leitura na "b": não é gestor na "b".
+    expect(filtrarUsuarios(lista, 'TODOS', '', { perfilId: 'gestor', unidades: new Set(['b']) })).toEqual([]);
+  });
+
+  it('acha a unidade e as de cima até a raiz', () => {
+    const unidades = [
+      unidade('g', 'Grupo', 'GRUPO', null),
+      unidade('c', 'Concessão', 'CONCESSAO', 'g'),
+      unidade('a', 'Cidade A', 'MUNICIPIO', 'c'),
+    ];
+    expect(ancestrais(unidades, 'a').map((u) => u.id)).toEqual(['a', 'c', 'g']);
+    expect(ancestrais(unidades, 'nao-existe')).toEqual([]);
   });
 
   it('iniciais, fim do dia local e tempo relativo', () => {

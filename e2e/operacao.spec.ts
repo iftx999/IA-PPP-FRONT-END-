@@ -17,6 +17,15 @@ test.describe('Operação', () => {
 
     await page.getByRole('radio', { name: 'Resolvidos' }).click();
     await page.getByRole('radio', { name: /Abertos/ }).click();
+
+    // Filtros ficam na URL e a API filtra (a lista tem limite).
+    await page.getByRole('combobox', { name: 'Severidade' }).click();
+    await page.getByRole('option', { name: 'Crítico' }).click();
+    await expect(page).toHaveURL(/severidade=CRITICO/);
+    await expect(lista.locator('.severidade', { hasText: 'Atenção' })).toHaveCount(0);
+    await page.screenshot({ path: 'e2e/capturas/alertas-filtros.png' });
+    await page.getByRole('button', { name: 'Limpar filtros' }).click();
+    await expect(page).not.toHaveURL(/severidade=/);
     const adesao = lista.getByRole('listitem').filter({ hasText: 'Adesão abaixo' }).first();
     await adesao.getByRole('link', { name: 'Ver' }).click();
     await expect(page).toHaveURL(/\/painel\?unidade=/);

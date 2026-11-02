@@ -27,21 +27,44 @@
     <p>Seu perfil não permite gerenciar campanhas de ligação.</p>
   </section>
 } @else {
-  <mat-button-toggle-group
-    class="filtro"
-    [value]="filtroStatus()"
-    (change)="filtroStatus.set($event.value)"
-    aria-label="Situação das campanhas"
-    hideSingleSelectionIndicator
-  >
-    <mat-button-toggle value="ATIVA">Ativas</mat-button-toggle>
-    <mat-button-toggle value="ENCERRADA">Encerradas</mat-button-toggle>
-    <mat-button-toggle value="CANCELADA">Canceladas</mat-button-toggle>
-    <mat-button-toggle value="TODAS">Todas</mat-button-toggle>
-  </mat-button-toggle-group>
+  <div class="barra-filtros" role="search" aria-label="Filtros das campanhas">
+    <mat-button-toggle-group
+      [value]="filtroStatus()"
+      (change)="escolherStatus($event.value)"
+      aria-label="Situação das campanhas"
+      hideSingleSelectionIndicator
+    >
+      <mat-button-toggle value="ATIVA">Ativas</mat-button-toggle>
+      <mat-button-toggle value="ENCERRADA">Encerradas</mat-button-toggle>
+      <mat-button-toggle value="CANCELADA">Canceladas</mat-button-toggle>
+      <mat-button-toggle value="TODAS">Todas</mat-button-toggle>
+    </mat-button-toggle-group>
+    <mat-form-field class="busca" subscriptSizing="dynamic">
+      <span matPrefix class="material-symbols-rounded prefixo" aria-hidden="true">search</span>
+      <input matInput type="search" [formControl]="busca" placeholder="Buscar por nome ou unidade" aria-label="Buscar campanha" />
+    </mat-form-field>
+    <mat-form-field class="filtro" subscriptSizing="dynamic">
+      <mat-label>Ação</mat-label>
+      <mat-select [value]="filtroAcao() ?? ''" (selectionChange)="filtros.aplicar({ acao: $event.value })">
+        <mat-option value="">Todas</mat-option>
+        @for (a of acoes; track a) {
+          <mat-option [value]="a">{{ rotuloAcao[a].titulo }}</mat-option>
+        }
+      </mat-select>
+    </mat-form-field>
+    @if (dadosUnidades.hasValue()) {
+      <aurora-filtro-unidade [unidades]="dadosUnidades.value()" [valor]="filtroUnidade()"
+                             (escolha)="filtros.aplicar({ filtroUnidade: $event })" />
+    }
+    @if (filtrando()) {
+      <button matButton type="button" (click)="limparFiltros()">
+        <span class="material-symbols-rounded" aria-hidden="true">filter_alt_off</span> Limpar filtros
+      </button>
+    }
+  </div>
 
   @if (dados.hasValue()) {
-    @if (dados.value(); as lista) {
+    @if (visiveis(); as lista) {
       @if (lista.length) {
         <ul class="lista">
           @for (c of lista; track c.id) {
@@ -111,7 +134,7 @@
       } @else {
         <section class="cartao vazio">
           <span class="material-symbols-rounded" aria-hidden="true">campaign</span>
-          <p>Nenhuma campanha {{ filtroStatus() === 'TODAS' ? '' : 'nesta situação' }}.</p>
+          <p>{{ filtrando() ? 'Nenhuma campanha com esses filtros.' : 'Nenhuma campanha' + (filtroStatus() === 'TODAS' ? '' : ' nesta situação') + '.' }}</p>
           <p class="nota">
             Comece pela lista de sem ligação, por um setor ou por uma área do mapa.
           </p>

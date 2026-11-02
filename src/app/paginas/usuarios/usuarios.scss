@@ -29,9 +29,6 @@ h1 { font: 700 var(--fs-h1) var(--font-display); }
   .nota { margin: 0; }
 }
 
-.filtros { display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-3); margin-bottom: var(--space-3); }
-.busca { flex: 1 1 320px; max-width: 420px; }
-.prefixo { margin: 0 4px 0 10px; color: var(--text-3); }
 
 .tabela { padding: 0; overflow: auto; }
 .tabela table { width: 100%; }

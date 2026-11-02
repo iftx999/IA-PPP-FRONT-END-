@@ -1,6 +1,7 @@
 import { Clipboard } from '@angular/cdk/clipboard';
 import { HttpClient, httpResource } from '@angular/common/http';
 import { Component, TemplateRef, computed, inject, signal, viewChild } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
 import { MatDialog, MatDialogModule, MatDialogRef } from '@angular/material/dialog';
@@ -12,13 +13,31 @@ import { MatSelectModule } from '@angular/material/select';
 import { MatSlideToggleModule } from '@angular/material/slide-toggle';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { MatTooltipModule } from '@angular/material/tooltip';
-import { firstValueFrom } from 'rxjs';
+import { debounceTime, firstValueFrom } from 'rxjs';
 import type { CredencialApi, CredencialGerada, ExecucaoApi, FonteApi, PedidoFonte, ResultadoCarga } from '../../api/tipos';
 import { AlertasService } from '../../nucleo/alertas';
 import { mensagemDeErro } from '../../nucleo/erro-api';
+import { filtrosNaUrl } from '../../nucleo/filtros';
 import { competenciaCurta, data, dataEHora, haQuantoTempo, numero } from '../../nucleo/formato';
 import { SessaoService } from '../../nucleo/sessao';
+import { semAcento } from '../../nucleo/unidades-arvore';
 import { Selo, type Tom } from '../../ui/selo';
+
+export type SituacaoFiltroFonte = 'EM_DIA' | 'ATRASADA' | 'INATIVA';
+
+export function filtrarFontes(
+  fontes: readonly FonteApi[],
+  f: { termo: string; tipo: FonteApi['tipo'] | null; situacao: SituacaoFiltroFonte | null },
+): FonteApi[] {
+  const t = semAcento(f.termo.trim());
+  return fontes.filter(
+    (x) =>
+      (!t || semAcento(`${x.nome} ${x.sistemaOrigem ?? ''}`).includes(t)) &&
+      (!f.tipo || x.tipo === f.tipo) &&
+      (!f.situacao ||
+        (f.situacao === 'INATIVA' ? !x.ativo : f.situacao === 'ATRASADA' ? x.ativo && x.atrasada : x.ativo && !x.atrasada)),
+  );
+}
 
 export const TIPOS_FONTE: Record<FonteApi['tipo'], string> = {
   AGENTE: 'Agente Aurora',
@@ -92,6 +111,32 @@ export class Integracoes {
   protected readonly fmt = { competenciaCurta, data, dataEHora, haQuantoTempo, numero, atraso };
   protected readonly situacao = situacaoFonte;
   protected readonly rotuloTipo = (t: FonteApi['tipo']) => TIPOS_FONTE[t];
+
+  // ----- Filtros (na URL) -----
+  protected readonly filtros = filtrosNaUrl(['busca', 'tipo', 'situacao']);
+  protected readonly busca = new FormControl(this.filtros.inicial('busca'), { nonNullable: true });
+  protected readonly filtroTipo = computed(() => this.filtros.valor('tipo') as FonteApi['tipo'] | null);
+  protected readonly filtroSituacao = computed(() => this.filtros.valor('situacao') as SituacaoFiltroFonte | null);
+  protected readonly filtrando = computed(() => this.filtros.ativos() > 0);
+  protected readonly tiposFonte = Object.entries(TIPOS_FONTE).map(([valor, rotulo]) => ({ valor, rotulo }));
+  protected readonly visiveis = computed(() =>
+    filtrarFontes(this.fontes() ?? [], {
+      termo: this.filtros.valor('busca') ?? '',
+      tipo: this.filtroTipo(),
+      situacao: this.filtroSituacao(),
+    }),
+  );
+
+  constructor() {
+    this.busca.valueChanges
+      .pipe(debounceTime(250), takeUntilDestroyed())
+      .subscribe((v) => this.filtros.aplicar({ busca: v.trim() }));
+  }
+
+  protected limparFiltros(): void {
+    this.busca.setValue('', { emitEvent: false });
+    this.filtros.limpar();
+  }
 
   // ----- Diálogos -----
   private readonly modeloFonte = viewChild.required<TemplateRef<unknown>>('modeloFonte');

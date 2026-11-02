@@ -1,7 +1,7 @@
 import { NgTemplateOutlet } from '@angular/common';
 import { HttpClient, httpResource } from '@angular/common/http';
 import { Component, TemplateRef, computed, inject, signal, viewChild } from '@angular/core';
-import { toSignal } from '@angular/core/rxjs-interop';
+import { takeUntilDestroyed, toSignal } from '@angular/core/rxjs-interop';
 import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
 import { MatDialog, MatDialogModule, MatDialogRef } from '@angular/material/dialog';
@@ -9,17 +9,20 @@ import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatMenuModule } from '@angular/material/menu';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
+import { MatSelectModule } from '@angular/material/select';
 import { MatSlideToggleModule } from '@angular/material/slide-toggle';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { MatTableModule } from '@angular/material/table';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { OidcSecurityService } from 'angular-auth-oidc-client';
-import { firstValueFrom, map, type Observable } from 'rxjs';
+import { debounceTime, firstValueFrom, map, type Observable } from 'rxjs';
 import type { ClientePlataforma, LimitesCliente, PedidoAlteracaoCliente, PedidoNovoCliente } from '../../api/tipos';
 import { entrarDeNovo } from '../../nucleo/autenticacao';
 import { mensagemDeErro } from '../../nucleo/erro-api';
+import { filtrosNaUrl } from '../../nucleo/filtros';
 import { data, numero } from '../../nucleo/formato';
 import { exigeSegundoFator } from '../../nucleo/segundo-fator';
+import { semAcento } from '../../nucleo/unidades-arvore';
 import { Selo, type Tom } from '../../ui/selo';
 
 /** Código sugerido a partir do nome: minúsculas sem acento, palavras ligadas por hífen (até 40). */
@@ -32,6 +35,22 @@ export function sugerirCodigo(nome: string): string {
     .replace(/^-+|-+$/g, '')
     .slice(0, 40)
     .replace(/-+$/g, '');
+}
+
+export type SituacaoFiltroCliente = 'ATIVO' | 'PENDENTE' | 'INATIVO';
+
+export function filtrarClientes(
+  clientes: readonly ClientePlataforma[],
+  termo: string,
+  situacao: SituacaoFiltroCliente | null,
+): ClientePlataforma[] {
+  const t = semAcento(termo.trim());
+  return clientes.filter(
+    (c) =>
+      (!t || semAcento(`${c.nome} ${c.codigo} ${c.contatoNome ?? ''} ${c.contatoEmail ?? ''}`).includes(t)) &&
+      (!situacao ||
+        (situacao === 'PENDENTE' ? !c.provisionado : c.provisionado && c.ativo === (situacao === 'ATIVO'))),
+  );
 }
 
 export function situacaoCliente(c: Pick<ClientePlataforma, 'ativo' | 'provisionado'>): { rotulo: string; tom: Tom } {
@@ -59,7 +78,7 @@ const CODIGO = /^[a-z0-9](-?[a-z0-9])+$/;
   selector: 'aurora-plataforma',
   imports: [
     NgTemplateOutlet, ReactiveFormsModule, MatButtonModule, MatDialogModule, MatFormFieldModule, MatInputModule, MatMenuModule,
-    MatProgressSpinnerModule, MatSlideToggleModule, MatSnackBarModule, MatTableModule, MatTooltipModule, Selo,
+    MatProgressSpinnerModule, MatSelectModule, MatSlideToggleModule, MatSnackBarModule, MatTableModule, MatTooltipModule, Selo,
   ],
   templateUrl: './plataforma.html',
   styleUrl: './plataforma.scss',
@@ -80,6 +99,13 @@ export class Plataforma {
     const l = this.lista();
     return { total: l.length, ativos: l.filter((c) => c.ativo && c.provisionado).length, pendentes: l.filter((c) => !c.provisionado).length };
   });
+  protected readonly filtros = filtrosNaUrl(['busca', 'situacao']);
+  protected readonly busca = new FormControl(this.filtros.inicial('busca'), { nonNullable: true });
+  protected readonly filtroSituacao = computed(() => this.filtros.valor('situacao') as SituacaoFiltroCliente | null);
+  protected readonly filtrando = computed(() => this.filtros.ativos() > 0);
+  protected readonly visiveis = computed(() =>
+    filtrarClientes(this.lista(), this.filtros.valor('busca') ?? '', this.filtroSituacao()),
+  );
   protected readonly colunas = ['cliente', 'situacao', 'usuarios', 'criado', 'acoes'];
   protected readonly fmt = { data, numero };
   protected readonly situacao = situacaoCliente;
@@ -119,7 +145,15 @@ export class Plataforma {
     limites: this.limites(),
   });
 
+  protected limparFiltros(): void {
+    this.busca.setValue('', { emitEvent: false });
+    this.filtros.limpar();
+  }
+
   constructor() {
+    this.busca.valueChanges
+      .pipe(debounceTime(250), takeUntilDestroyed())
+      .subscribe((v) => this.filtros.aplicar({ busca: v.trim() }));
     this.novo.controls.nome.valueChanges.subscribe((nome) => {
       if (!this.codigoEditado) {
         this.novo.controls.codigo.setValue(sugerirCodigo(nome), { emitEvent: false });

@@ -9,7 +9,7 @@ import {
   signal,
   viewChild,
 } from '@angular/core';
-import { toSignal } from '@angular/core/rxjs-interop';
+import { takeUntilDestroyed, toSignal } from '@angular/core/rxjs-interop';
 import {
   FormControl,
   FormGroup,
@@ -40,9 +40,11 @@ import type {
 } from '../../api/tipos';
 import { paraIso } from '../../nucleo/datas';
 import { mensagemDeErro } from '../../nucleo/erro-api';
+import { filtrosNaUrl } from '../../nucleo/filtros';
 import { competenciaLonga, data, numero, percentual } from '../../nucleo/formato';
 import { SessaoService } from '../../nucleo/sessao';
-import { arvoreDeUnidades, filtrarUnidades, type OpcaoUnidade } from '../../nucleo/unidades-arvore';
+import { arvoreDeUnidades, filtrarUnidades, semAcento, subarvore, type OpcaoUnidade } from '../../nucleo/unidades-arvore';
+import { FiltroUnidade } from '../../ui/filtro-unidade';
 import { Selo } from '../../ui/selo';
 import {
   ROTULO_ACAO,
@@ -82,6 +84,7 @@ interface AreaDaUrl {
     MatInputModule,
     MatProgressSpinnerModule,
     MatSelectModule,
+    FiltroUnidade,
     Selo,
   ],
   templateUrl: './campanhas.html',
@@ -103,7 +106,36 @@ export class Campanhas {
   protected readonly sessao = inject(SessaoService);
 
   protected readonly podeGerir = computed(() => this.sessao.pode('campanha:gerenciar'));
-  protected readonly filtroStatus = signal<StatusCampanha | 'TODAS'>('ATIVA');
+  // ----- Filtros da lista (na URL; "unidade" já é do recorte da nova campanha) -----
+  protected readonly filtros = filtrosNaUrl(['busca', 'status', 'acao', 'filtroUnidade']);
+  protected readonly busca = new FormControl(this.filtros.inicial('busca'), { nonNullable: true });
+  protected readonly filtroStatus = computed(
+    () => (this.filtros.valor('status') as StatusCampanha | 'TODAS' | null) ?? 'ATIVA',
+  );
+  protected readonly filtroAcao = computed(() => this.filtros.valor('acao') as AcaoCampanha | null);
+  protected readonly filtroUnidade = computed(() => this.filtros.valor('filtroUnidade'));
+  /** Filtros além da situação (que tem as abas próprias). */
+  protected readonly filtrando = computed(
+    () => !!this.filtros.valor('busca') || !!this.filtroAcao() || !!this.filtroUnidade(),
+  );
+  protected readonly visiveis = computed(() => {
+    if (!this.dados.hasValue()) {
+      return undefined;
+    }
+    const t = semAcento((this.filtros.valor('busca') ?? '').trim());
+    const acao = this.filtroAcao();
+    const id = this.filtroUnidade();
+    const unidades =
+      id && this.dadosUnidades.hasValue() ? new Set(subarvore(this.dadosUnidades.value(), id).map((u) => u.id)) : null;
+    return this.dados
+      .value()
+      .filter(
+        (c) =>
+          (!t || semAcento(`${c.nome} ${c.unidadeNome}`).includes(t)) &&
+          (!acao || c.acao === acao) &&
+          (!id || (unidades ? unidades.has(c.unidadeId) : c.unidadeId === id)),
+      );
+  });
   protected readonly dados = httpResource<Campanha[]>(() =>
     this.podeGerir()
       ? {
@@ -114,7 +146,7 @@ export class Campanhas {
         }
       : undefined,
   );
-  private readonly dadosUnidades = httpResource<Unidade[]>(() =>
+  protected readonly dadosUnidades = httpResource<Unidade[]>(() =>
     this.podeGerir() && this.sessao.pode('unidade:ler') ? '/api/v1/unidades' : undefined,
   );
 
@@ -185,12 +217,24 @@ export class Campanhas {
         this.form.controls.motivoCorte.setValue('', { emitEvent: false });
       }
     });
+    this.busca.valueChanges
+      .pipe(debounceTime(250), takeUntilDestroyed())
+      .subscribe((v) => this.filtros.aplicar({ busca: v.trim() }));
     // Recorte vindo da URL: abre o diálogo quando as unidades chegarem.
     afterNextRender(() => {
       if (this.origem()) {
         this.abrirNova();
       }
     });
+  }
+
+  protected escolherStatus(status: StatusCampanha | 'TODAS'): void {
+    this.filtros.aplicar({ status: status === 'ATIVA' ? null : status });
+  }
+
+  protected limparFiltros(): void {
+    this.busca.setValue('', { emitEvent: false });
+    this.filtros.aplicar({ busca: null, acao: null, filtroUnidade: null });
   }
 
   protected abrirNova(): void {

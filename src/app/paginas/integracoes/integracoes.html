@@ -29,11 +29,45 @@
     Cada fonte tem um atraso máximo: passou dele sem carga concluída, a fonte fica atrasada, os indicadores ganham aviso
     e um alerta é aberto.
   </p>
+  @if (lista.length) {
+    <div class="barra-filtros" role="search" aria-label="Filtros das fontes">
+      <mat-form-field class="busca" subscriptSizing="dynamic">
+        <span matPrefix class="material-symbols-rounded prefixo" aria-hidden="true">search</span>
+        <input matInput type="search" [formControl]="busca" placeholder="Buscar por nome ou sistema de origem" aria-label="Buscar fonte" />
+      </mat-form-field>
+      <mat-form-field class="filtro" subscriptSizing="dynamic">
+        <mat-label>Tipo</mat-label>
+        <mat-select [value]="filtroTipo() ?? ''" (selectionChange)="filtros.aplicar({ tipo: $event.value })">
+          <mat-option value="">Todos</mat-option>
+          @for (t of tiposFonte; track t.valor) {
+            <mat-option [value]="t.valor">{{ t.rotulo }}</mat-option>
+          }
+        </mat-select>
+      </mat-form-field>
+      <mat-form-field class="filtro" subscriptSizing="dynamic">
+        <mat-label>Situação</mat-label>
+        <mat-select [value]="filtroSituacao() ?? ''" (selectionChange)="filtros.aplicar({ situacao: $event.value })">
+          <mat-option value="">Todas</mat-option>
+          <mat-option value="EM_DIA">Em dia</mat-option>
+          <mat-option value="ATRASADA">Atrasadas</mat-option>
+          <mat-option value="INATIVA">Inativas</mat-option>
+        </mat-select>
+      </mat-form-field>
+      @if (filtrando()) {
+        <button matButton type="button" (click)="limparFiltros()">
+          <span class="material-symbols-rounded" aria-hidden="true">filter_alt_off</span> Limpar filtros
+        </button>
+        <span class="contagem-filtro">{{ fmt.numero(visiveis().length) }} de {{ fmt.numero(lista.length) }}</span>
+      }
+    </div>
+  }
   @if (lista.length === 0) {
     <section class="cartao vazio"><p>Nenhuma fonte cadastrada.</p></section>
+  } @else if (visiveis().length === 0) {
+    <section class="cartao vazio"><p>Nenhuma fonte com esses filtros.</p></section>
   } @else {
     <ul class="lista" aria-label="Fontes de dados">
-      @for (f of lista; track f.id) {
+      @for (f of visiveis(); track f.id) {
         <li class="cartao fonte" [class.atrasada]="f.atrasada">
           <span class="material-symbols-rounded icone" aria-hidden="true">{{ f.tipo === 'AGENTE' ? 'hub' : f.tipo === 'ARQUIVO' ? 'upload_file' : 'database' }}</span>
           <div class="corpo">
