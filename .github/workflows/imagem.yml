@@ -1,9 +1,9 @@
 name: Imagem
 
-# Constrói, varre e publica a imagem do front no GHCR a cada push no main (e sob demanda). ADR 0022 do back-end.
+# Constrói, varre e publica a imagem do front no GHCR. Chamado pelo CI no push no main, só depois de o CI passar (e sob
+# demanda, para republicar). ADR 0022 do back-end.
 on:
-  push:
-    branches: [main]
+  workflow_call:
   workflow_dispatch:
 
 permissions:

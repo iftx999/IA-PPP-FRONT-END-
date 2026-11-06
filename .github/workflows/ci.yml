@@ -21,3 +21,13 @@ jobs:
       - run: npx ng test --watch=false
       - run: npx ng build
 # E2E (npm run e2e) roda contra o ambiente completo (Keycloak, API e banco); ver README.
+
+  # Imagem só é publicada com o CI verde (ADR 0022 do back-end).
+  imagem:
+    needs: [frontend]
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    permissions:
+      contents: read
+      packages: write
+      security-events: write
+    uses: ./.github/workflows/imagem.yml
