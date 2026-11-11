@@ -31,3 +31,36 @@ jobs:
       packages: write
       security-events: write
     uses: ./.github/workflows/imagem.yml
+
+  # Homologação acompanha o main (ADR 0040 do back-end): só o front, com a imagem recém-publicada. Mesmo script do
+  # host e mesmos segredos de ambiente do repositório do back-end. Produção é pelo workflow "Implantar" de lá.
+  # Liga com a variável do repositório IMPLANTAR_HOMOLOGACAO = true.
+  homologacao:
+    needs: [imagem]
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main' && vars.IMPLANTAR_HOMOLOGACAO == 'true'
+    runs-on: ubuntu-latest
+    environment:
+      name: homologacao
+    concurrency:
+      group: implantar-homologacao
+      cancel-in-progress: false
+    timeout-minutes: 20
+    steps:
+      - name: Implantar pelo SSH
+        env:
+          HOST: ${{ secrets.IMPLANTACAO_SSH_HOST }}
+          USUARIO: ${{ secrets.IMPLANTACAO_SSH_USUARIO }}
+          CHAVE: ${{ secrets.IMPLANTACAO_SSH_CHAVE }}
+          CONHECIDOS: ${{ secrets.IMPLANTACAO_SSH_HOSTS_CONHECIDOS }}
+          ARGUMENTOS: manter manter sha-${{ github.sha }}
+        run: |
+          [ -n "$HOST" ] && [ -n "$CHAVE" ] && [ -n "$CONHECIDOS" ] || { echo "segredos de implantação ausentes no ambiente"; exit 1; }
+          install -d -m 700 ~/.ssh
+          printf '%s\n' "$CHAVE" > ~/.ssh/implantacao && chmod 600 ~/.ssh/implantacao
+          printf '%s\n' "$CONHECIDOS" > ~/.ssh/known_hosts
+          # A chave só roda o implantar.sh no host (command= no authorized_keys): o texto abaixo vira os argumentos.
+          ssh -i ~/.ssh/implantacao -o StrictHostKeyChecking=yes -o BatchMode=yes -o ServerAliveInterval=30 \
+            "${USUARIO:-aurora}@${HOST}" "$ARGUMENTOS"
+      - name: Apagar a chave
+        if: always()
+        run: rm -f ~/.ssh/implantacao
