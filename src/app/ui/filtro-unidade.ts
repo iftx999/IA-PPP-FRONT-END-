@@ -1,38 +1,76 @@
-import { Component, computed, effect, input, output } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, effect, input, output } from '@angular/core';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { FormControl, ReactiveFormsModule } from '@angular/forms';
-import { MatAutocompleteModule, type MatAutocompleteSelectedEvent } from '@angular/material/autocomplete';
+import {
+  MatAutocompleteModule,
+  type MatAutocompleteSelectedEvent,
+} from '@angular/material/autocomplete';
 import { MatButtonModule } from '@angular/material/button';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
-import { arvoreDeUnidades, filtrarUnidades, type NoUnidade, type OpcaoUnidade } from '../nucleo/unidades-arvore';
+import {
+  arvoreDeUnidades,
+  filtrarUnidades,
+  type NoUnidade,
+  type OpcaoUnidade,
+} from '../nucleo/unidades-arvore';
 
 /**
  * Filtro por unidade para barras de filtro: busca na árvore (nome ou caminho) e devolve o id
  * escolhido, ou null em "Todas". Quem usa decide se a unidade inclui as de baixo.
  */
 @Component({
+  changeDetection: ChangeDetectionStrategy.OnPush,
   selector: 'aurora-filtro-unidade',
-  imports: [ReactiveFormsModule, MatAutocompleteModule, MatButtonModule, MatFormFieldModule, MatInputModule],
+  imports: [
+    ReactiveFormsModule,
+    MatAutocompleteModule,
+    MatButtonModule,
+    MatFormFieldModule,
+    MatInputModule,
+  ],
   template: `
     <mat-form-field subscriptSizing="dynamic" class="campo">
       <mat-label>{{ rotulo() }}</mat-label>
-      <input matInput [formControl]="campo" [matAutocomplete]="lista" placeholder="Todas" (blur)="aoSair()" />
+      <input
+        matInput
+        [formControl]="campo"
+        [matAutocomplete]="lista"
+        placeholder="Todas"
+        (blur)="aoSair()"
+      />
       @if (valor()) {
-        <button matIconButton matSuffix type="button" (click)="escolher(null)" [attr.aria-label]="'Limpar ' + rotulo()">
+        <button
+          matIconButton
+          matSuffix
+          type="button"
+          (click)="escolher(null)"
+          [attr.aria-label]="'Limpar ' + rotulo()"
+        >
           <span class="material-symbols-rounded" aria-hidden="true">close</span>
         </button>
       }
-      <mat-autocomplete #lista="matAutocomplete" [displayWith]="exibir" (optionSelected)="selecionada($event)">
+      <mat-autocomplete
+        #lista="matAutocomplete"
+        [displayWith]="exibir"
+        (optionSelected)="selecionada($event)"
+      >
         @for (o of opcoes(); track o.id) {
-          <mat-option [value]="o" [style.padding-left.px]="16 + o.profundidade * 16">{{ o.nome }}</mat-option>
+          <mat-option [value]="o" [style.padding-left.px]="16 + o.profundidade * 16">{{
+            o.nome
+          }}</mat-option>
         }
       </mat-autocomplete>
     </mat-form-field>
   `,
   styles: `
-    :host { display: block; width: 240px; }
-    .campo { width: 100%; }
+    :host {
+      display: block;
+      width: 240px;
+    }
+    .campo {
+      width: 100%;
+    }
   `,
 })
 export class FiltroUnidade {
@@ -49,7 +87,8 @@ export class FiltroUnidade {
     const t = this.texto();
     return typeof t === 'string' ? filtrarUnidades(this.arvore(), t) : this.arvore();
   });
-  protected readonly exibir = (o: OpcaoUnidade | string | null) => (o && typeof o === 'object' ? o.caminho : (o ?? ''));
+  protected readonly exibir = (o: OpcaoUnidade | string | null) =>
+    o && typeof o === 'object' ? o.caminho : (o ?? '');
 
   constructor() {
     // A URL manda: escolha vinda de fora (link, voltar, limpar) aparece no campo.

@@ -1,5 +1,5 @@
 import { HttpClient, httpResource } from '@angular/common/http';
-import { Component, computed, inject, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
 import { MatButtonModule } from '@angular/material/button';
 import { MatButtonToggleModule } from '@angular/material/button-toggle';
 import { MatFormFieldModule } from '@angular/material/form-field';
@@ -45,7 +45,9 @@ export const MENSAGENS_PREFERENCIA: Record<PreferenciaEmail, string> = {
 };
 
 /** "/painel?unidade=x" → rota e parâmetros para o routerLink. */
-export function destino(link: string | null): { rota: string; params: Record<string, string> } | null {
+export function destino(
+  link: string | null,
+): { rota: string; params: Record<string, string> } | null {
   if (!link) {
     return null;
   }
@@ -55,10 +57,18 @@ export function destino(link: string | null): { rota: string; params: Record<str
 
 /** Alertas (épico F): lista por situação, ver a tela relacionada, reconhecer. */
 @Component({
+  changeDetection: ChangeDetectionStrategy.OnPush,
   selector: 'aurora-alertas',
   imports: [
-    RouterLink, MatButtonModule, MatButtonToggleModule, MatFormFieldModule, MatSelectModule, MatProgressSpinnerModule,
-    MatSnackBarModule, MatTooltipModule, FiltroUnidade,
+    RouterLink,
+    MatButtonModule,
+    MatButtonToggleModule,
+    MatFormFieldModule,
+    MatSelectModule,
+    MatProgressSpinnerModule,
+    MatSnackBarModule,
+    MatTooltipModule,
+    FiltroUnidade,
   ],
   templateUrl: './alertas.html',
   styleUrl: './alertas.scss',
@@ -71,12 +81,20 @@ export class Alertas {
 
   /** Situação, tipos, severidade e unidade ficam na URL; a API filtra (a lista tem limite). */
   protected readonly filtros = filtrosNaUrl(['estado', 'tipo', 'severidade', 'unidade']);
-  protected readonly estado = computed(() => (this.filtros.valor('estado') as Estado | null) ?? 'ABERTOS');
-  protected readonly tipos = computed(() => (this.filtros.valor('tipo')?.split(',') ?? []) as TipoAlerta[]);
-  protected readonly severidade = computed(() => this.filtros.valor('severidade') as AlertaApi['severidade'] | null);
+  protected readonly estado = computed(
+    () => (this.filtros.valor('estado') as Estado | null) ?? 'ABERTOS',
+  );
+  protected readonly tipos = computed(
+    () => (this.filtros.valor('tipo')?.split(',') ?? []) as TipoAlerta[],
+  );
+  protected readonly severidade = computed(
+    () => this.filtros.valor('severidade') as AlertaApi['severidade'] | null,
+  );
   protected readonly unidade = computed(() => this.filtros.valor('unidade'));
   /** Filtros além da situação (que tem as abas próprias). */
-  protected readonly filtrando = computed(() => this.tipos().length > 0 || !!this.severidade() || !!this.unidade());
+  protected readonly filtrando = computed(
+    () => this.tipos().length > 0 || !!this.severidade() || !!this.unidade(),
+  );
   protected readonly opcoesTipo = Object.entries(ROTULOS_TIPO_ALERTA).map(([valor, rotulo]) => ({
     valor: valor as TipoAlerta,
     rotulo,
@@ -100,7 +118,9 @@ export class Alertas {
   protected readonly unidades = httpResource<Unidade[]>(() =>
     this.sessao.pode('unidade:ler') ? '/api/v1/unidades' : undefined,
   );
-  protected readonly alertas = computed(() => (this.dados.hasValue() ? this.dados.value() : undefined));
+  protected readonly alertas = computed(() =>
+    this.dados.hasValue() ? this.dados.value() : undefined,
+  );
   /** ADR 0024: cada pessoa escolhe quais alertas novos recebe por e-mail. */
   protected readonly preferencias = httpResource<PreferenciasAlertas>(() =>
     this.sessao.usuario() ? '/api/v1/alertas/preferencias' : undefined,
@@ -117,7 +137,11 @@ export class Alertas {
     this.reconhecendo.set(a.id);
     try {
       await firstValueFrom(this.http.post(`/api/v1/alertas/${a.id}/reconhecimento`, null));
-      this.avisos.open('Alerta reconhecido. Ele se resolve sozinho quando a condição passar.', undefined, { duration: 4000 });
+      this.avisos.open(
+        'Alerta reconhecido. Ele se resolve sozinho quando a condição passar.',
+        undefined,
+        { duration: 4000 },
+      );
       this.recarregar();
     } catch (falha) {
       this.avisos.open(mensagemDeErro(falha), 'Fechar', { duration: 8000 });
@@ -130,9 +154,16 @@ export class Alertas {
     this.avaliando.set(true);
     try {
       const r = await firstValueFrom(
-        this.http.post<{ abertos: number; atualizados: number; resolvidos: number }>('/api/v1/alertas/avaliacao', null),
+        this.http.post<{ abertos: number; atualizados: number; resolvidos: number }>(
+          '/api/v1/alertas/avaliacao',
+          null,
+        ),
       );
-      this.avisos.open(`Avaliação concluída: ${r.abertos} novos, ${r.resolvidos} resolvidos.`, undefined, { duration: 4000 });
+      this.avisos.open(
+        `Avaliação concluída: ${r.abertos} novos, ${r.resolvidos} resolvidos.`,
+        undefined,
+        { duration: 4000 },
+      );
       this.recarregar();
     } catch (falha) {
       this.avisos.open(mensagemDeErro(falha), 'Fechar', { duration: 8000 });
@@ -144,7 +175,9 @@ export class Alertas {
   protected async definirPreferencia(email: PreferenciaEmail): Promise<void> {
     this.salvandoPreferencia.set(true);
     try {
-      const salvas = await firstValueFrom(this.http.put<PreferenciasAlertas>('/api/v1/alertas/preferencias', { email }));
+      const salvas = await firstValueFrom(
+        this.http.put<PreferenciasAlertas>('/api/v1/alertas/preferencias', { email }),
+      );
       this.preferencias.set(salvas);
       this.avisos.open(MENSAGENS_PREFERENCIA[email], undefined, { duration: 4000 });
     } catch (falha) {

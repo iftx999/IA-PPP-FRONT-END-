@@ -1,5 +1,13 @@
 import { HttpClient, httpResource } from '@angular/common/http';
-import { Component, TemplateRef, computed, inject, signal, viewChild } from '@angular/core';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  computed,
+  inject,
+  signal,
+  TemplateRef,
+  viewChild,
+} from '@angular/core';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
@@ -28,9 +36,15 @@ export function descreverPrazo(meses: number | undefined): string {
  * Reduzir apaga, no expurgo diário, o que ficar fora do prazo; a tela avisa para exportar antes.
  */
 @Component({
+  changeDetection: ChangeDetectionStrategy.OnPush,
   selector: 'aurora-retencao-auditoria',
   imports: [
-    ReactiveFormsModule, MatButtonModule, MatDialogModule, MatFormFieldModule, MatInputModule, MatProgressSpinnerModule,
+    ReactiveFormsModule,
+    MatButtonModule,
+    MatDialogModule,
+    MatFormFieldModule,
+    MatInputModule,
+    MatProgressSpinnerModule,
   ],
   templateUrl: './retencao-auditoria.html',
   styleUrl: './usuarios.scss',
@@ -40,7 +54,9 @@ export class RetencaoAuditoriaPolitica {
   private readonly dialogos = inject(MatDialog);
   private readonly avisos = inject(MatSnackBar);
 
-  protected readonly dados = httpResource<RetencaoAuditoria>(() => '/api/v1/seguranca/retencao-auditoria');
+  protected readonly dados = httpResource<RetencaoAuditoria>(
+    () => '/api/v1/seguranca/retencao-auditoria',
+  );
   protected readonly form = new FormGroup({
     // Texto só com dígitos (sem as setas do campo numérico do navegador).
     meses: new FormControl<string | null>(null, [
@@ -50,7 +66,9 @@ export class RetencaoAuditoriaPolitica {
       Validators.max(240),
     ]),
   });
-  private readonly valorMeses = toSignal(this.form.controls.meses.valueChanges, { initialValue: null });
+  private readonly valorMeses = toSignal(this.form.controls.meses.valueChanges, {
+    initialValue: null,
+  });
   /** Prazo digitado, para o aviso de redução (não numérico conta como sem redução). */
   protected readonly mesesInformados = computed(() => {
     const valor = Number(this.valorMeses());
@@ -63,7 +81,9 @@ export class RetencaoAuditoriaPolitica {
   private dialogo: MatDialogRef<unknown> | null = null;
 
   protected abrir(): void {
-    this.form.reset({ meses: this.dados.hasValue() ? String(this.dados.value().meses ?? '') : null });
+    this.form.reset({
+      meses: this.dados.hasValue() ? String(this.dados.value().meses ?? '') : null,
+    });
     this.erro.set(null);
     this.dialogo = this.dialogos.open(this.modelo(), { width: '520px' });
   }
@@ -81,13 +101,19 @@ export class RetencaoAuditoriaPolitica {
     this.erro.set(null);
     try {
       const novo = await firstValueFrom(
-        this.http.put<RetencaoAuditoria>('/api/v1/seguranca/retencao-auditoria', { meses: Number(this.form.value.meses) }),
+        this.http.put<RetencaoAuditoria>('/api/v1/seguranca/retencao-auditoria', {
+          meses: Number(this.form.value.meses),
+        }),
       );
       this.dados.set(novo);
       this.fechar();
-      this.avisos.open(`A trilha de auditoria passa a guardar os eventos por ${descreverPrazo(novo.meses)}.`, undefined, {
-        duration: 6000,
-      });
+      this.avisos.open(
+        `A trilha de auditoria passa a guardar os eventos por ${descreverPrazo(novo.meses)}.`,
+        undefined,
+        {
+          duration: 6000,
+        },
+      );
     } catch (falha) {
       this.erro.set(mensagemDeErro(falha));
     } finally {

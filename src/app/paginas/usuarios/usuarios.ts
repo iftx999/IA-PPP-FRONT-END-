@@ -1,8 +1,24 @@
 import { NgTemplateOutlet } from '@angular/common';
 import { HttpClient, httpResource } from '@angular/common/http';
-import { Component, TemplateRef, computed, effect, inject, signal, viewChild } from '@angular/core';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  computed,
+  effect,
+  inject,
+  signal,
+  TemplateRef,
+  viewChild,
+} from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { FormArray, FormControl, FormGroup, ReactiveFormsModule, Validators, type ValidatorFn } from '@angular/forms';
+import {
+  FormArray,
+  FormControl,
+  FormGroup,
+  ReactiveFormsModule,
+  Validators,
+  type ValidatorFn,
+} from '@angular/forms';
 import { MatAutocompleteModule } from '@angular/material/autocomplete';
 import { MatButtonModule } from '@angular/material/button';
 import { MatButtonToggleModule } from '@angular/material/button-toggle';
@@ -11,7 +27,12 @@ import { MatDialog, MatDialogModule, MatDialogRef } from '@angular/material/dial
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatMenuModule } from '@angular/material/menu';
-import { MatPaginator, MatPaginatorIntl, MatPaginatorModule, type PageEvent } from '@angular/material/paginator';
+import {
+  MatPaginator,
+  MatPaginatorIntl,
+  MatPaginatorModule,
+  type PageEvent,
+} from '@angular/material/paginator';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatSelectModule } from '@angular/material/select';
 import { MatSlideToggleModule } from '@angular/material/slide-toggle';
@@ -20,7 +41,14 @@ import { MatTableModule } from '@angular/material/table';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { debounceTime, firstValueFrom, map, type Observable } from 'rxjs';
 import type {
-  PedidoConcessoes, PedidoConvite, Perfil, PoliticaSegundoFator, SegundoFatorUsuario, SituacaoUsuario, Unidade, Usuario,
+  PedidoConcessoes,
+  PedidoConvite,
+  Perfil,
+  PoliticaSegundoFator,
+  SegundoFatorUsuario,
+  SituacaoUsuario,
+  Unidade,
+  Usuario,
 } from '../../api/tipos';
 import { mensagemDeErro } from '../../nucleo/erro-api';
 import { filtrosNaUrl } from '../../nucleo/filtros';
@@ -67,7 +95,10 @@ export function filtrarUsuarios(
       (!t || semAcento(u.nome).includes(t) || semAcento(u.email).includes(t)) &&
       (!perfilId && !unidades
         ? true
-        : u.concessoes.some((c) => (!perfilId || c.perfilId === perfilId) && (!unidades || unidades.has(c.unidadeId)))),
+        : u.concessoes.some(
+            (c) =>
+              (!perfilId || c.perfilId === perfilId) && (!unidades || unidades.has(c.unidadeId)),
+          )),
   );
 }
 
@@ -91,7 +122,8 @@ type LinhaConcessao = FormGroup<{
   validoAte: FormControl<Date | null>;
 }>;
 
-const unidadeDaLista: ValidatorFn = (c) => (c.value && typeof c.value === 'object' ? null : { escolha: true });
+const unidadeDaLista: ValidatorFn = (c) =>
+  c.value && typeof c.value === 'object' ? null : { escolha: true };
 
 /** Rótulos do paginador em português. */
 class PaginadorPtBr extends MatPaginatorIntl {
@@ -101,7 +133,9 @@ class PaginadorPtBr extends MatPaginatorIntl {
   override firstPageLabel = 'Primeira página';
   override lastPageLabel = 'Última página';
   override getRangeLabel = (pagina: number, tamanho: number, total: number) =>
-    total === 0 ? '0 de 0' : `${pagina * tamanho + 1}–${Math.min((pagina + 1) * tamanho, total)} de ${numero(total)}`;
+    total === 0
+      ? '0 de 0'
+      : `${pagina * tamanho + 1}–${Math.min((pagina + 1) * tamanho, total)} de ${numero(total)}`;
 }
 
 /**
@@ -109,11 +143,30 @@ class PaginadorPtBr extends MatPaginatorIntl {
  * SSO corporativo.
  */
 @Component({
+  changeDetection: ChangeDetectionStrategy.OnPush,
   selector: 'aurora-usuarios',
   imports: [
-    NgTemplateOutlet, ReactiveFormsModule, MatTableModule, MatPaginatorModule, MatButtonModule, MatButtonToggleModule,
-    MatFormFieldModule, MatInputModule, MatSelectModule, MatAutocompleteModule, MatDatepickerModule, MatDialogModule,
-    MatMenuModule, MatTooltipModule, MatProgressSpinnerModule, MatSnackBarModule, MatSlideToggleModule, Selo, RetencaoAuditoriaPolitica, SsoCorporativo, FiltroUnidade,
+    NgTemplateOutlet,
+    ReactiveFormsModule,
+    MatTableModule,
+    MatPaginatorModule,
+    MatButtonModule,
+    MatButtonToggleModule,
+    MatFormFieldModule,
+    MatInputModule,
+    MatSelectModule,
+    MatAutocompleteModule,
+    MatDatepickerModule,
+    MatDialogModule,
+    MatMenuModule,
+    MatTooltipModule,
+    MatProgressSpinnerModule,
+    MatSnackBarModule,
+    MatSlideToggleModule,
+    Selo,
+    RetencaoAuditoriaPolitica,
+    SsoCorporativo,
+    FiltroUnidade,
   ],
   providers: [{ provide: MatPaginatorIntl, useClass: PaginadorPtBr }],
   templateUrl: './usuarios.html',
@@ -126,16 +179,24 @@ export class Usuarios {
   protected readonly sessao = inject(SessaoService);
 
   private readonly podeGerir = computed(() => this.sessao.pode(GERIR_USUARIOS));
-  protected readonly dados = httpResource<Usuario[]>(() => (this.podeGerir() ? '/api/v1/usuarios' : undefined));
-  private readonly dadosPerfis = httpResource<Perfil[]>(() => (this.podeGerir() ? '/api/v1/perfis' : undefined));
-  private readonly dadosUnidades = httpResource<Unidade[]>(() => (this.podeGerir() ? '/api/v1/unidades' : undefined));
+  protected readonly dados = httpResource<Usuario[]>(() =>
+    this.podeGerir() ? '/api/v1/usuarios' : undefined,
+  );
+  private readonly dadosPerfis = httpResource<Perfil[]>(() =>
+    this.podeGerir() ? '/api/v1/perfis' : undefined,
+  );
+  private readonly dadosUnidades = httpResource<Unidade[]>(() =>
+    this.podeGerir() ? '/api/v1/unidades' : undefined,
+  );
 
   protected readonly politica = httpResource<PoliticaSegundoFator>(() =>
     this.podeGerir() ? '/api/v1/seguranca/segundo-fator' : undefined,
   );
   protected readonly alterandoPolitica = signal(false);
 
-  protected readonly usuarios = computed(() => (this.dados.hasValue() ? this.dados.value() : undefined));
+  protected readonly usuarios = computed(() =>
+    this.dados.hasValue() ? this.dados.value() : undefined,
+  );
   protected readonly perfis = computed(() =>
     this.dadosPerfis.hasValue()
       ? [...this.dadosPerfis.value()].sort((a, b) => a.nome.localeCompare(b.nome, 'pt-BR'))
@@ -148,17 +209,26 @@ export class Usuarios {
   protected readonly resumo = computed(() => {
     const lista = this.usuarios() ?? [];
     const conta = (s: SituacaoUsuario) => lista.filter((u) => u.situacao === s).length;
-    return { total: lista.length, ativos: conta('ATIVO'), pendentes: conta('CONVITE_PENDENTE'), inativos: conta('INATIVO') };
+    return {
+      total: lista.length,
+      ativos: conta('ATIVO'),
+      pendentes: conta('CONVITE_PENDENTE'),
+      inativos: conta('INATIVO'),
+    };
   });
 
   // ----- Filtros (na URL) e paginação (no cliente: a lista vem inteira, ver ADR 0011) -----
   protected readonly filtros = filtrosNaUrl(['busca', 'situacao', 'perfil', 'unidade']);
   protected readonly busca = new FormControl(this.filtros.inicial('busca'), { nonNullable: true });
   private readonly termo = computed(() => this.filtros.valor('busca') ?? '');
-  protected readonly filtroSituacao = computed(() => (this.filtros.valor('situacao') as Filtro | null) ?? 'TODOS');
+  protected readonly filtroSituacao = computed(
+    () => (this.filtros.valor('situacao') as Filtro | null) ?? 'TODOS',
+  );
   protected readonly filtroPerfil = computed(() => this.filtros.valor('perfil'));
   protected readonly filtroUnidade = computed(() => this.filtros.valor('unidade'));
-  protected readonly unidadesDoFiltro = computed(() => (this.dadosUnidades.hasValue() ? this.dadosUnidades.value() : []));
+  protected readonly unidadesDoFiltro = computed(() =>
+    this.dadosUnidades.hasValue() ? this.dadosUnidades.value() : [],
+  );
   protected readonly filtrando = computed(() => this.filtros.ativos() > 0);
   protected readonly pagina = signal({ indice: 0, tamanho: 25 });
   private readonly paginador = viewChild(MatPaginator);
@@ -166,7 +236,9 @@ export class Usuarios {
   protected readonly filtrados = computed(() => {
     const id = this.filtroUnidade();
     const todas = this.unidadesDoFiltro();
-    const unidades = id ? new Set([id, ...[...subarvore(todas, id), ...ancestrais(todas, id)].map((u) => u.id)]) : null;
+    const unidades = id
+      ? new Set([id, ...[...subarvore(todas, id), ...ancestrais(todas, id)].map((u) => u.id)])
+      : null;
     return filtrarUsuarios(this.usuarios() ?? [], this.filtroSituacao(), this.termo(), {
       perfilId: this.filtroPerfil(),
       unidades,
@@ -222,7 +294,8 @@ export class Usuarios {
   private readonly modeloConvite = viewChild.required<TemplateRef<unknown>>('modeloConvite');
   private readonly modeloAcesso = viewChild.required<TemplateRef<unknown>>('modeloAcesso');
   private readonly modeloDesativar = viewChild.required<TemplateRef<unknown>>('modeloDesativar');
-  private readonly modeloSegundoFator = viewChild.required<TemplateRef<unknown>>('modeloSegundoFator');
+  private readonly modeloSegundoFator =
+    viewChild.required<TemplateRef<unknown>>('modeloSegundoFator');
   private dialogoAberto?: MatDialogRef<unknown>;
 
   protected readonly emEdicao = signal<Usuario | null>(null);
@@ -237,7 +310,10 @@ export class Usuarios {
   protected readonly amanha = new Date(Date.now() + 86_400_000);
 
   protected readonly convite = new FormGroup({
-    nome: new FormControl('', { nonNullable: true, validators: [Validators.required, Validators.maxLength(120)] }),
+    nome: new FormControl('', {
+      nonNullable: true,
+      validators: [Validators.required, Validators.maxLength(120)],
+    }),
     email: new FormControl('', {
       nonNullable: true,
       validators: [Validators.required, Validators.email, Validators.maxLength(254)],
@@ -256,11 +332,18 @@ export class Usuarios {
     return typeof valor === 'string' ? filtrarUnidades(this.unidades(), valor) : this.unidades();
   }
 
-  protected adicionarConcessao(perfilId: string | null = null, unidade: OpcaoUnidade | null = null, validoAte: Date | null = null): void {
+  protected adicionarConcessao(
+    perfilId: string | null = null,
+    unidade: OpcaoUnidade | null = null,
+    validoAte: Date | null = null,
+  ): void {
     this.concessoes.push(
       new FormGroup({
         perfilId: new FormControl<string | null>(perfilId, Validators.required),
-        unidade: new FormControl<OpcaoUnidade | string | null>(unidade, [Validators.required, unidadeDaLista]),
+        unidade: new FormControl<OpcaoUnidade | string | null>(unidade, [
+          Validators.required,
+          unidadeDaLista,
+        ]),
         validoAte: new FormControl<Date | null>(validoAte),
       }),
     );
@@ -276,7 +359,10 @@ export class Usuarios {
     this.convite.reset({ nome: '', email: '' });
     this.concessoes.clear();
     this.adicionarConcessao();
-    this.dialogoAberto = this.dialogos.open(this.modeloConvite(), { width: '760px', autoFocus: 'first-tabbable' });
+    this.dialogoAberto = this.dialogos.open(this.modeloConvite(), {
+      width: '760px',
+      autoFocus: 'first-tabbable',
+    });
   }
 
   protected abrirAcesso(u: Usuario): void {
@@ -290,7 +376,10 @@ export class Usuarios {
     if (u.concessoes.length === 0) {
       this.adicionarConcessao();
     }
-    this.dialogoAberto = this.dialogos.open(this.modeloAcesso(), { width: '760px', autoFocus: 'dialog' });
+    this.dialogoAberto = this.dialogos.open(this.modeloAcesso(), {
+      width: '760px',
+      autoFocus: 'dialog',
+    });
   }
 
   protected abrirDesativacao(u: Usuario): void {
@@ -346,8 +435,15 @@ export class Usuarios {
       return;
     }
     const v = this.convite.getRawValue();
-    const pedido: PedidoConvite = { nome: v.nome.trim(), email: v.email.trim(), concessoes: this.pedidoConcessoes() };
-    await this.enviar(() => this.http.post('/api/v1/usuarios', pedido), `Convite enviado para ${pedido.email}.`);
+    const pedido: PedidoConvite = {
+      nome: v.nome.trim(),
+      email: v.email.trim(),
+      concessoes: this.pedidoConcessoes(),
+    };
+    await this.enviar(
+      () => this.http.post('/api/v1/usuarios', pedido),
+      `Convite enviado para ${pedido.email}.`,
+    );
   }
 
   protected async salvarAcesso(): Promise<void> {
@@ -377,11 +473,17 @@ export class Usuarios {
   }
 
   protected async reativar(u: Usuario): Promise<void> {
-    await this.acaoDireta(() => this.http.put(`/api/v1/usuarios/${u.id}/situacao`, { ativo: true }), `Acesso de ${u.nome} reativado.`);
+    await this.acaoDireta(
+      () => this.http.put(`/api/v1/usuarios/${u.id}/situacao`, { ativo: true }),
+      `Acesso de ${u.nome} reativado.`,
+    );
   }
 
   protected async reenviarConvite(u: Usuario): Promise<void> {
-    await this.acaoDireta(() => this.http.post(`/api/v1/usuarios/${u.id}/convite`, null), `Convite reenviado para ${u.email}.`);
+    await this.acaoDireta(
+      () => this.http.post(`/api/v1/usuarios/${u.id}/convite`, null),
+      `Convite reenviado para ${u.email}.`,
+    );
   }
 
   protected async redefinirSenha(u: Usuario): Promise<void> {

@@ -1,4 +1,13 @@
-import { Component, ElementRef, OnDestroy, effect, inject, input, viewChild } from '@angular/core';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  effect,
+  ElementRef,
+  inject,
+  input,
+  OnDestroy,
+  viewChild,
+} from '@angular/core';
 import { BarChart, LineChart } from 'echarts/charts';
 import { GridComponent, LegendComponent, TooltipComponent } from 'echarts/components';
 import * as echarts from 'echarts/core';
@@ -25,9 +34,20 @@ function somarMeses(competencia: string, meses: number): string {
  * e limite de alerta (pontilhada).
  */
 @Component({
+  changeDetection: ChangeDetectionStrategy.OnPush,
   selector: 'aurora-grafico-adesao',
-  template: `<div #area class="area" role="img" [attr.aria-label]="'Gráfico da adesão mensal'"></div>`,
-  styles: `.area { width: 100%; height: 280px; }`,
+  template: `<div
+    #area
+    class="area"
+    role="img"
+    [attr.aria-label]="'Gráfico da adesão mensal'"
+  ></div>`,
+  styles: `
+    .area {
+      width: 100%;
+      height: 280px;
+    }
+  `,
 })
 export class GraficoAdesao implements OnDestroy {
   readonly serie = input.required<PontoSerie[]>();
@@ -81,7 +101,13 @@ export class GraficoAdesao implements OnDestroy {
         animationDuration: matchMedia('(prefers-reduced-motion: reduce)').matches ? 0 : 600,
         textStyle: { fontFamily: token('--font-ui') },
         grid: { left: 48, right: 16, top: 36, bottom: 28 },
-        legend: { top: 0, left: 0, textStyle: { color: token('--text-2') }, icon: 'roundRect', itemHeight: 3 },
+        legend: {
+          top: 0,
+          left: 0,
+          textStyle: { color: token('--text-2') },
+          icon: 'roundRect',
+          itemHeight: 3,
+        },
         tooltip: {
           trigger: 'axis',
           backgroundColor: token('--bg-3'),

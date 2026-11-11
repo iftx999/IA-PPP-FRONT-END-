@@ -1,5 +1,5 @@
 import { httpResource } from '@angular/common/http';
-import { Component, computed, inject, input, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, inject, input, signal } from '@angular/core';
 import { MatButtonModule } from '@angular/material/button';
 import { MatButtonToggleModule } from '@angular/material/button-toggle';
 import { MatFormFieldModule } from '@angular/material/form-field';
@@ -9,7 +9,13 @@ import { MatSliderModule } from '@angular/material/slider';
 import { MatTableModule } from '@angular/material/table';
 import { Router, RouterLink } from '@angular/router';
 import type { Simulacao } from '../../api/tipos';
-import { competenciaCurta, competenciaLonga, numero, percentual, pontosPercentuais } from '../../nucleo/formato';
+import {
+  competenciaCurta,
+  competenciaLonga,
+  numero,
+  percentual,
+  pontosPercentuais,
+} from '../../nucleo/formato';
 import { SessaoService } from '../../nucleo/sessao';
 import { Selo } from '../../ui/selo';
 import { GraficoSimulacao } from './grafico-simulacao';
@@ -23,10 +29,19 @@ const HORIZONTES = [0, 6, 12, 24, 36, 60];
  * simulação pode ser compartilhada e o "voltar" do navegador funciona. Sempre uma estimativa.
  */
 @Component({
+  changeDetection: ChangeDetectionStrategy.OnPush,
   selector: 'aurora-simulador',
   imports: [
-    RouterLink, MatButtonModule, MatButtonToggleModule, MatFormFieldModule, MatInputModule, MatSelectModule,
-    MatSliderModule, MatTableModule, Selo, GraficoSimulacao,
+    RouterLink,
+    MatButtonModule,
+    MatButtonToggleModule,
+    MatFormFieldModule,
+    MatInputModule,
+    MatSelectModule,
+    MatSliderModule,
+    MatTableModule,
+    Selo,
+    GraficoSimulacao,
   ],
   templateUrl: './simulador.html',
   styleUrl: './simulador.scss',
@@ -52,12 +67,18 @@ export class Simulador {
       : undefined,
   );
 
-  protected readonly simulacao = computed(() => (this.dados.hasValue() ? this.dados.value() : undefined));
-  protected readonly naoEncontrado = computed(() => (this.dados.error() as { status?: number } | undefined)?.status === 404);
+  protected readonly simulacao = computed(() =>
+    this.dados.hasValue() ? this.dados.value() : undefined,
+  );
+  protected readonly naoEncontrado = computed(
+    () => (this.dados.error() as { status?: number } | undefined)?.status === 404,
+  );
 
   /** Valor do controle enquanto se arrasta (a URL só muda ao soltar ou confirmar). */
   protected readonly rascunho = signal<number | null>(null);
-  protected readonly ritmoNaTela = computed(() => this.rascunho() ?? this.simulacao()?.cenario.ligacoesPorMes ?? 0);
+  protected readonly ritmoNaTela = computed(
+    () => this.rascunho() ?? this.simulacao()?.cenario.ligacoesPorMes ?? 0,
+  );
 
   /** Fim da escala do controle: folga sobre o maior ritmo de referência. */
   protected readonly maximoDoControle = computed(() => {
@@ -65,14 +86,26 @@ export class Simulador {
     if (!s) {
       return 100;
     }
-    const referencia = Math.max(s.ritmoAtual ?? 0, s.ligacoesNecessariasPorMes ?? 0, s.cenario.ligacoesPorMes, 10);
+    const referencia = Math.max(
+      s.ritmoAtual ?? 0,
+      s.ligacoesNecessariasPorMes ?? 0,
+      s.cenario.ligacoesPorMes,
+      10,
+    );
     const bruto = referencia * 2;
     const passo = 10 ** Math.max(0, Math.floor(Math.log10(bruto)) - 1);
     return Math.ceil(bruto / passo) * passo;
   });
 
   protected readonly verMesAMes = signal(false);
-  protected readonly colunas = ['competencia', 'ligados', 'adesao', 'abaixo', 'multa', 'multaAtual'];
+  protected readonly colunas = [
+    'competencia',
+    'ligados',
+    'adesao',
+    'abaixo',
+    'multa',
+    'multaAtual',
+  ];
   protected readonly horizontes = HORIZONTES;
 
   /** Linhas da tabela mês a mês: cenário e ritmo atual lado a lado. */
@@ -81,15 +114,27 @@ export class Simulador {
     if (!s) {
       return [];
     }
-    return s.cenario.meses.map((m, i) => ({ ...m, multaAtual: s.ritmoAtualProjetado.meses[i]?.multa ?? 0 }));
+    return s.cenario.meses.map((m, i) => ({
+      ...m,
+      multaAtual: s.ritmoAtualProjetado.meses[i]?.multa ?? 0,
+    }));
   });
 
   protected readonly fmt = {
-    numero, percentual, pontosPercentuais, competenciaCurta, competenciaLonga, moeda, descreverRegra, veredito, comparacao,
+    numero,
+    percentual,
+    pontosPercentuais,
+    competenciaCurta,
+    competenciaLonga,
+    moeda,
+    descreverRegra,
+    veredito,
+    comparacao,
   };
 
   protected aplicarRitmo(valor: number | string | null): void {
-    const n = typeof valor === 'string' ? Number(valor.replace(/\./g, '').replace(',', '.')) : valor;
+    const n =
+      typeof valor === 'string' ? Number(valor.replace(/\./g, '').replace(',', '.')) : valor;
     this.rascunho.set(null);
     if (n == null || !Number.isFinite(n) || n < 0) {
       return;
@@ -97,7 +142,11 @@ export class Simulador {
     this.navegar({ ligacoes: String(Math.round(n)) });
   }
 
-  protected navegar(params: { unidade?: string | null; ligacoes?: string | null; meses?: string | null }): void {
+  protected navegar(params: {
+    unidade?: string | null;
+    ligacoes?: string | null;
+    meses?: string | null;
+  }): void {
     void this.router.navigate([], { queryParams: params, queryParamsHandling: 'merge' });
   }
 

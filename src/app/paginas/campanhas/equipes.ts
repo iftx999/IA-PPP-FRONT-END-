@@ -1,5 +1,13 @@
 import { HttpClient, httpResource } from '@angular/common/http';
-import { Component, TemplateRef, computed, inject, signal, viewChild } from '@angular/core';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  computed,
+  inject,
+  signal,
+  TemplateRef,
+  viewChild,
+} from '@angular/core';
 import { toSignal } from '@angular/core/rxjs-interop';
 import {
   FormControl,
@@ -37,6 +45,7 @@ const daLista: ValidatorFn = (c) =>
  * para a equipe) e as pessoas que veem as OS em "Minhas OS" (perfil Equipe de campo).
  */
 @Component({
+  changeDetection: ChangeDetectionStrategy.OnPush,
   selector: 'aurora-equipes',
   imports: [
     ReactiveFormsModule,

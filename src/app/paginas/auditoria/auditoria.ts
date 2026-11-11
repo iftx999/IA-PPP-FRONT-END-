@@ -1,5 +1,14 @@
 import { HttpClient, httpResource } from '@angular/common/http';
-import { Component, TemplateRef, computed, inject, linkedSignal, signal, viewChild } from '@angular/core';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  computed,
+  inject,
+  linkedSignal,
+  signal,
+  TemplateRef,
+  viewChild,
+} from '@angular/core';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { FormControl, FormGroup, ReactiveFormsModule } from '@angular/forms';
 import { MatAutocompleteModule } from '@angular/material/autocomplete';
@@ -66,10 +75,20 @@ export function parametros(f: Filtros): Record<string, string | string[]> {
 
 /** Trilha de auditoria (S8): quem fez o quê, quando e onde; exportação e verificação da cadeia. */
 @Component({
+  changeDetection: ChangeDetectionStrategy.OnPush,
   selector: 'aurora-auditoria',
   imports: [
-    ReactiveFormsModule, MatButtonModule, MatFormFieldModule, MatInputModule, MatSelectModule, MatAutocompleteModule,
-    MatDatepickerModule, MatDialogModule, MatTooltipModule, MatProgressSpinnerModule, Selo,
+    ReactiveFormsModule,
+    MatButtonModule,
+    MatFormFieldModule,
+    MatInputModule,
+    MatSelectModule,
+    MatAutocompleteModule,
+    MatDatepickerModule,
+    MatDialogModule,
+    MatTooltipModule,
+    MatProgressSpinnerModule,
+    Selo,
   ],
   templateUrl: './auditoria.html',
   styleUrl: './auditoria.scss',
@@ -92,25 +111,46 @@ export class Auditoria {
 
   protected readonly filtros = signal<Filtros>(SEM_FILTROS);
   protected readonly dados = httpResource<PaginaAuditoria>(() =>
-    this.podeVer() ? { url: '/api/v1/auditoria/eventos', params: { ...parametros(this.filtros()), limite: LIMITE } } : undefined,
+    this.podeVer()
+      ? {
+          url: '/api/v1/auditoria/eventos',
+          params: { ...parametros(this.filtros()), limite: LIMITE },
+        }
+      : undefined,
   );
-  private readonly dadosTipos = httpResource<string[]>(() => (this.podeVer() ? '/api/v1/auditoria/tipos' : undefined));
-  private readonly dadosAutores = httpResource<AutorAuditoria[]>(() => (this.podeVer() ? '/api/v1/auditoria/autores' : undefined));
-  private readonly dadosUnidades = httpResource<Unidade[]>(() => (this.podeVer() ? '/api/v1/unidades' : undefined));
+  private readonly dadosTipos = httpResource<string[]>(() =>
+    this.podeVer() ? '/api/v1/auditoria/tipos' : undefined,
+  );
+  private readonly dadosAutores = httpResource<AutorAuditoria[]>(() =>
+    this.podeVer() ? '/api/v1/auditoria/autores' : undefined,
+  );
+  private readonly dadosUnidades = httpResource<Unidade[]>(() =>
+    this.podeVer() ? '/api/v1/unidades' : undefined,
+  );
 
   /** Eventos já carregados (primeira página + "carregar mais"). */
   protected readonly eventos = linkedSignal<EventoAuditoria[] | undefined>(() =>
     this.dados.hasValue() ? this.dados.value().eventos : undefined,
   );
-  protected readonly proximo = linkedSignal<string | null>(() => (this.dados.hasValue() ? this.dados.value().proximo : null));
+  protected readonly proximo = linkedSignal<string | null>(() =>
+    this.dados.hasValue() ? this.dados.value().proximo : null,
+  );
   protected readonly carregandoMais = signal(false);
 
   /** 403 da API: tem a permissão, mas não na unidade raiz. */
-  protected readonly semEscopo = computed(() => (this.dados.error() as { status?: number } | undefined)?.status === 403);
+  protected readonly semEscopo = computed(
+    () => (this.dados.error() as { status?: number } | undefined)?.status === 403,
+  );
 
-  protected readonly grupos = computed(() => (this.dadosTipos.hasValue() ? gruposDeEventos(this.dadosTipos.value()) : []));
-  protected readonly autores = computed(() => (this.dadosAutores.hasValue() ? this.dadosAutores.value() : []));
-  private readonly unidades = computed(() => (this.dadosUnidades.hasValue() ? arvoreDeUnidades(this.dadosUnidades.value()) : []));
+  protected readonly grupos = computed(() =>
+    this.dadosTipos.hasValue() ? gruposDeEventos(this.dadosTipos.value()) : [],
+  );
+  protected readonly autores = computed(() =>
+    this.dadosAutores.hasValue() ? this.dadosAutores.value() : [],
+  );
+  private readonly unidades = computed(() =>
+    this.dadosUnidades.hasValue() ? arvoreDeUnidades(this.dadosUnidades.value()) : [],
+  );
 
   // ----- Campos dos filtros -----
   protected readonly campoUsuario = new FormControl<string | null>(null);
@@ -120,14 +160,19 @@ export class Auditoria {
   protected readonly campoUnidade = new FormControl<OpcaoUnidade | string | null>(null);
   /** Agrupa os campos para o (ngSubmit) do formulário (sem [formGroup] o submit seria o nativo). */
   protected readonly formFiltros = new FormGroup({
-    usuario: this.campoUsuario, tipos: this.campoTipos, de: this.campoDe, ate: this.campoAte, unidade: this.campoUnidade,
+    usuario: this.campoUsuario,
+    tipos: this.campoTipos,
+    de: this.campoDe,
+    ate: this.campoAte,
+    unidade: this.campoUnidade,
   });
   private readonly textoUnidade = toSignal(this.campoUnidade.valueChanges, { initialValue: null });
   protected readonly opcoesUnidade = computed(() => {
     const texto = this.textoUnidade();
     return typeof texto === 'string' ? filtrarUnidades(this.unidades(), texto) : this.unidades();
   });
-  protected readonly exibirUnidade = (o: OpcaoUnidade | string | null) => (o && typeof o === 'object' ? o.caminho : (o ?? ''));
+  protected readonly exibirUnidade = (o: OpcaoUnidade | string | null) =>
+    o && typeof o === 'object' ? o.caminho : (o ?? '');
 
   protected readonly temFiltros = computed(() => {
     const f = this.filtros();
@@ -204,9 +249,17 @@ export class Auditoria {
     try {
       const p = parametros(this.filtros());
       // HttpParams aceita listas; o serviço de download recebe pares simples, então os tipos vão separados.
-      const simples = Object.fromEntries(Object.entries(p).filter(([, v]) => typeof v === 'string')) as Record<string, string>;
-      const tipos = this.filtros().tipos.map((t) => `tipo=${encodeURIComponent(t)}`).join('&');
-      await this.downloads.baixar(`/api/v1/auditoria/eventos/exportacao.csv${tipos ? `?${tipos}` : ''}`, simples, 'auditoria.csv');
+      const simples = Object.fromEntries(
+        Object.entries(p).filter(([, v]) => typeof v === 'string'),
+      ) as Record<string, string>;
+      const tipos = this.filtros()
+        .tipos.map((t) => `tipo=${encodeURIComponent(t)}`)
+        .join('&');
+      await this.downloads.baixar(
+        `/api/v1/auditoria/eventos/exportacao.csv${tipos ? `?${tipos}` : ''}`,
+        simples,
+        'auditoria.csv',
+      );
       // A exportação também entra na trilha.
       this.dados.reload();
     } catch (falha) {
@@ -220,7 +273,9 @@ export class Auditoria {
     this.verificando.set(true);
     this.erroVerificacao.set(null);
     try {
-      this.verificacao.set(await firstValueFrom(this.http.get<VerificacaoAuditoria>('/api/v1/auditoria/verificacao')));
+      this.verificacao.set(
+        await firstValueFrom(this.http.get<VerificacaoAuditoria>('/api/v1/auditoria/verificacao')),
+      );
     } catch (falha) {
       this.erroVerificacao.set(mensagemDeErro(falha));
     } finally {

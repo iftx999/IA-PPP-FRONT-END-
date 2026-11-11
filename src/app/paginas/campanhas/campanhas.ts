@@ -1,12 +1,13 @@
 import { HttpClient, httpResource } from '@angular/common/http';
 import {
-  Component,
-  TemplateRef,
   afterNextRender,
+  ChangeDetectionStrategy,
+  Component,
   computed,
   inject,
   input,
   signal,
+  TemplateRef,
   viewChild,
 } from '@angular/core';
 import { takeUntilDestroyed, toSignal } from '@angular/core/rxjs-interop';
@@ -43,7 +44,13 @@ import { mensagemDeErro } from '../../nucleo/erro-api';
 import { filtrosNaUrl } from '../../nucleo/filtros';
 import { competenciaLonga, data, numero, percentual } from '../../nucleo/formato';
 import { SessaoService } from '../../nucleo/sessao';
-import { arvoreDeUnidades, filtrarUnidades, semAcento, subarvore, type OpcaoUnidade } from '../../nucleo/unidades-arvore';
+import {
+  arvoreDeUnidades,
+  filtrarUnidades,
+  semAcento,
+  subarvore,
+  type OpcaoUnidade,
+} from '../../nucleo/unidades-arvore';
 import { FiltroUnidade } from '../../ui/filtro-unidade';
 import { Selo } from '../../ui/selo';
 import {
@@ -71,6 +78,7 @@ interface AreaDaUrl {
  * Mapa): ?origem=&unidade=&situacao=&motivoCorte=&oeste=&sul=&leste=&norte= abre o diálogo já preenchido.
  */
 @Component({
+  changeDetection: ChangeDetectionStrategy.OnPush,
   selector: 'aurora-campanhas',
   imports: [
     ReactiveFormsModule,
@@ -126,7 +134,9 @@ export class Campanhas {
     const acao = this.filtroAcao();
     const id = this.filtroUnidade();
     const unidades =
-      id && this.dadosUnidades.hasValue() ? new Set(subarvore(this.dadosUnidades.value(), id).map((u) => u.id)) : null;
+      id && this.dadosUnidades.hasValue()
+        ? new Set(subarvore(this.dadosUnidades.value(), id).map((u) => u.id))
+        : null;
     return this.dados
       .value()
       .filter(

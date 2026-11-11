@@ -1,6 +1,14 @@
 import { Clipboard } from '@angular/cdk/clipboard';
 import { HttpClient, httpResource } from '@angular/common/http';
-import { Component, TemplateRef, computed, inject, signal, viewChild } from '@angular/core';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  computed,
+  inject,
+  signal,
+  TemplateRef,
+  viewChild,
+} from '@angular/core';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
@@ -20,7 +28,10 @@ import { Selo } from '../../ui/selo';
 export type Protocolo = PedidoSso['protocolo'];
 
 /** Endereços que o administrador registra no IdP, conforme o protocolo. */
-export function enderecosParaRegistrar(sso: Sso, protocolo: Protocolo): { rotulo: string; valor: string }[] {
+export function enderecosParaRegistrar(
+  sso: Sso,
+  protocolo: Protocolo,
+): { rotulo: string; valor: string }[] {
   return protocolo === 'OIDC'
     ? [{ rotulo: 'Endereço de retorno (redirect URI)', valor: sso.enderecoRetorno }]
     : [
@@ -32,8 +43,13 @@ export function enderecosParaRegistrar(sso: Sso, protocolo: Protocolo): { rotulo
 
 /** Monta o pedido; segredo vazio mantém o atual no servidor e não vai para SAML. */
 export function pedidoSso(v: {
-  protocolo: Protocolo; nome: string; endereco: string; clienteId: string; segredo: string;
-  habilitado: boolean; confiaSegundoFator: boolean;
+  protocolo: Protocolo;
+  nome: string;
+  endereco: string;
+  clienteId: string;
+  segredo: string;
+  habilitado: boolean;
+  confiaSegundoFator: boolean;
 }): PedidoSso {
   const oidc = v.protocolo === 'OIDC';
   return {
@@ -52,10 +68,20 @@ export function pedidoSso(v: {
  * Só quem já foi convidado entra por ele; perfis e unidades continuam definidos na Aurora.
  */
 @Component({
+  changeDetection: ChangeDetectionStrategy.OnPush,
   selector: 'aurora-sso-corporativo',
   imports: [
-    ReactiveFormsModule, MatButtonModule, MatButtonToggleModule, MatDialogModule, MatFormFieldModule, MatInputModule,
-    MatProgressSpinnerModule, MatSlideToggleModule, MatSnackBarModule, MatTooltipModule, Selo,
+    ReactiveFormsModule,
+    MatButtonModule,
+    MatButtonToggleModule,
+    MatDialogModule,
+    MatFormFieldModule,
+    MatInputModule,
+    MatProgressSpinnerModule,
+    MatSlideToggleModule,
+    MatSnackBarModule,
+    MatTooltipModule,
+    Selo,
   ],
   templateUrl: './sso-corporativo.html',
   styleUrl: './sso-corporativo.scss',
@@ -67,7 +93,9 @@ export class SsoCorporativo {
   private readonly areaDeTransferencia = inject(Clipboard);
 
   protected readonly sso = httpResource<Sso>(() => '/api/v1/seguranca/sso');
-  protected readonly provedor = computed(() => (this.sso.hasValue() ? this.sso.value().provedor : null));
+  protected readonly provedor = computed(() =>
+    this.sso.hasValue() ? this.sso.value().provedor : null,
+  );
 
   private readonly modelo = viewChild.required<TemplateRef<unknown>>('modeloSso');
   private dialogo?: MatDialogRef<unknown>;
@@ -77,17 +105,26 @@ export class SsoCorporativo {
 
   protected readonly formulario = new FormGroup({
     protocolo: new FormControl<Protocolo>('OIDC', { nonNullable: true }),
-    nome: new FormControl('', { nonNullable: true, validators: [Validators.required, Validators.maxLength(60)] }),
+    nome: new FormControl('', {
+      nonNullable: true,
+      validators: [Validators.required, Validators.maxLength(60)],
+    }),
     endereco: new FormControl('', {
       nonNullable: true,
-      validators: [Validators.required, Validators.maxLength(2048), Validators.pattern(/^https?:\/\/\S+$/i)],
+      validators: [
+        Validators.required,
+        Validators.maxLength(2048),
+        Validators.pattern(/^https?:\/\/\S+$/i),
+      ],
     }),
     clienteId: new FormControl('', { nonNullable: true, validators: [Validators.maxLength(255)] }),
     segredo: new FormControl('', { nonNullable: true, validators: [Validators.maxLength(1024)] }),
     habilitado: new FormControl(true, { nonNullable: true }),
     confiaSegundoFator: new FormControl(false, { nonNullable: true }),
   });
-  protected readonly protocolo = toSignal(this.formulario.controls.protocolo.valueChanges, { initialValue: 'OIDC' as Protocolo });
+  protected readonly protocolo = toSignal(this.formulario.controls.protocolo.valueChanges, {
+    initialValue: 'OIDC' as Protocolo,
+  });
   /** Segredo já gravado no provedor: o campo pode ficar vazio. */
   protected readonly temSegredo = signal(false);
   protected readonly enderecos = computed(() =>
@@ -108,7 +145,10 @@ export class SsoCorporativo {
       habilitado: p?.habilitado ?? true,
       confiaSegundoFator: this.sso.hasValue() ? this.sso.value().confiaSegundoFator : false,
     });
-    this.dialogo = this.dialogos.open(this.modelo(), { width: '680px', autoFocus: 'first-tabbable' });
+    this.dialogo = this.dialogos.open(this.modelo(), {
+      width: '680px',
+      autoFocus: 'first-tabbable',
+    });
   }
 
   protected copiar(valor: string): void {
@@ -122,7 +162,9 @@ export class SsoCorporativo {
       return false;
     }
     const { clienteId, segredo } = this.formulario.controls;
-    clienteId.setErrors(clienteId.value.trim() ? clienteId.errors : { ...clienteId.errors, required: true });
+    clienteId.setErrors(
+      clienteId.value.trim() ? clienteId.errors : { ...clienteId.errors, required: true },
+    );
     if (!this.temSegredo() && !segredo.value) {
       segredo.setErrors({ ...segredo.errors, required: true });
     }
@@ -138,12 +180,17 @@ export class SsoCorporativo {
     const pedido = pedidoSso(this.formulario.getRawValue());
     await this.enviar(
       () => this.http.put<Sso>('/api/v1/seguranca/sso', pedido),
-      pedido.habilitado ? `Login com ${pedido.nome} ativado.` : 'SSO corporativo salvo (desabilitado).',
+      pedido.habilitado
+        ? `Login com ${pedido.nome} ativado.`
+        : 'SSO corporativo salvo (desabilitado).',
     );
   }
 
   protected async remover(): Promise<void> {
-    await this.enviar(() => this.http.delete<Sso>('/api/v1/seguranca/sso'), 'SSO corporativo removido.');
+    await this.enviar(
+      () => this.http.delete<Sso>('/api/v1/seguranca/sso'),
+      'SSO corporativo removido.',
+    );
   }
 
   protected fechar(): void {

@@ -1,5 +1,13 @@
 import { HttpClient, httpResource } from '@angular/common/http';
-import { Component, TemplateRef, computed, inject, signal, viewChild } from '@angular/core';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  computed,
+  inject,
+  signal,
+  TemplateRef,
+  viewChild,
+} from '@angular/core';
 import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { MatAutocompleteModule } from '@angular/material/autocomplete';
 import { MatButtonModule } from '@angular/material/button';
@@ -13,7 +21,12 @@ import { MatTableModule } from '@angular/material/table';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { firstValueFrom, startWith } from 'rxjs';
-import type { LinhaMeta, Metas as DadosMetas, Situacao, VersaoAnteriorDaMeta } from '../../api/tipos';
+import type {
+  LinhaMeta,
+  Metas as DadosMetas,
+  Situacao,
+  VersaoAnteriorDaMeta,
+} from '../../api/tipos';
 import { deIso, paraIso } from '../../nucleo/datas';
 import { mensagemDeErro } from '../../nucleo/erro-api';
 import { competenciaCurta, data, dataEHora, numero, percentual } from '../../nucleo/formato';
@@ -51,11 +64,22 @@ const ORIGENS: { valor: Origem; rotulo: string; icone: string }[] = [
 
 /** Metas por unidade (épico C): árvore expansível com herança, meta própria e encerramento. */
 @Component({
+  changeDetection: ChangeDetectionStrategy.OnPush,
   selector: 'aurora-metas',
   imports: [
-    ReactiveFormsModule, MatTableModule, MatButtonModule, MatFormFieldModule, MatInputModule, MatSelectModule,
-    MatAutocompleteModule, MatDatepickerModule, MatDialogModule, MatTooltipModule, MatProgressSpinnerModule,
-    SeloSituacao, BarraAdesao,
+    ReactiveFormsModule,
+    MatTableModule,
+    MatButtonModule,
+    MatFormFieldModule,
+    MatInputModule,
+    MatSelectModule,
+    MatAutocompleteModule,
+    MatDatepickerModule,
+    MatDialogModule,
+    MatTooltipModule,
+    MatProgressSpinnerModule,
+    SeloSituacao,
+    BarraAdesao,
   ],
   templateUrl: './metas.html',
   styleUrl: './metas.scss',
@@ -66,17 +90,27 @@ export class Metas {
   protected readonly sessao = inject(SessaoService);
 
   protected readonly dados = httpResource<DadosMetas>(() => '/api/v1/metas');
-  protected readonly metas = computed(() => (this.dados.hasValue() ? this.dados.value() : undefined));
+  protected readonly metas = computed(() =>
+    this.dados.hasValue() ? this.dados.value() : undefined,
+  );
 
   protected readonly situacoes = SITUACOES;
   protected readonly origens = ORIGENS;
   protected readonly busca = new FormControl('', { nonNullable: true });
   protected readonly filtroSituacao = new FormControl<Situacao | null>(null);
   protected readonly filtroOrigem = new FormControl<Origem | null>(null);
-  private readonly termo = toSignal(this.busca.valueChanges.pipe(startWith('')), { initialValue: '' });
-  private readonly situacao = toSignal(this.filtroSituacao.valueChanges.pipe(startWith(null)), { initialValue: null });
-  private readonly origem = toSignal(this.filtroOrigem.valueChanges.pipe(startWith(null)), { initialValue: null });
-  protected readonly filtrando = computed(() => !!this.termo().trim() || this.situacao() != null || this.origem() != null);
+  private readonly termo = toSignal(this.busca.valueChanges.pipe(startWith('')), {
+    initialValue: '',
+  });
+  private readonly situacao = toSignal(this.filtroSituacao.valueChanges.pipe(startWith(null)), {
+    initialValue: null,
+  });
+  private readonly origem = toSignal(this.filtroOrigem.valueChanges.pipe(startWith(null)), {
+    initialValue: null,
+  });
+  protected readonly filtrando = computed(
+    () => !!this.termo().trim() || this.situacao() != null || this.origem() != null,
+  );
 
   /** Unidades recolhidas (por padrão a árvore vem toda aberta). */
   protected readonly recolhidas = signal(new Set<string>());
@@ -138,7 +172,9 @@ export class Metas {
   }
 
   protected motivo(motivo: string): string {
-    return motivo === 'SUBSTITUIDA_POR_ADITIVO' ? 'Substituída por aditivo' : 'Encerrada por aditivo';
+    return motivo === 'SUBSTITUIDA_POR_ADITIVO'
+      ? 'Substituída por aditivo'
+      : 'Encerrada por aditivo';
   }
   private dialogoAberto?: MatDialogRef<unknown>;
 
@@ -146,9 +182,12 @@ export class Metas {
     Validators.required,
     (c) => (c.value && typeof c.value === 'object' ? null : { escolha: true }),
   ]);
-  private readonly textoUnidade = toSignal(this.unidadeEscolhida.valueChanges.pipe(startWith(null)), {
-    initialValue: null,
-  });
+  private readonly textoUnidade = toSignal(
+    this.unidadeEscolhida.valueChanges.pipe(startWith(null)),
+    {
+      initialValue: null,
+    },
+  );
   protected readonly opcoesUnidade = computed<OpcaoUnidade[]>(() => {
     const digitado = this.textoUnidade();
     const termo = typeof digitado === 'string' ? digitado.toLocaleLowerCase('pt-BR') : '';
@@ -156,15 +195,26 @@ export class Metas {
       .map((l) => ({ valor: l.unidadeId, rotulo: l.unidadeNome }))
       .filter((o) => !termo || o.rotulo.toLocaleLowerCase('pt-BR').includes(termo));
   });
-  protected readonly exibirUnidade = (o: OpcaoUnidade | string | null) => (o && typeof o === 'object' ? o.rotulo : (o ?? ''));
+  protected readonly exibirUnidade = (o: OpcaoUnidade | string | null) =>
+    o && typeof o === 'object' ? o.rotulo : (o ?? '');
 
   protected readonly formulario = new FormGroup({
-    valor: new FormControl<number | null>(null, [Validators.required, Validators.min(0.01), Validators.max(100)]),
-    alerta: new FormControl<number | null>(null, [Validators.required, Validators.min(0), Validators.max(100)]),
+    valor: new FormControl<number | null>(null, [
+      Validators.required,
+      Validators.min(0.01),
+      Validators.max(100),
+    ]),
+    alerta: new FormControl<number | null>(null, [
+      Validators.required,
+      Validators.min(0),
+      Validators.max(100),
+    ]),
     vigenciaInicio: new FormControl<Date | null>(new Date(), [Validators.required]),
     vigenciaFim: new FormControl<Date | null>(null),
   });
-  protected readonly fimEncerramento = new FormControl<Date | null>(new Date(), [Validators.required]);
+  protected readonly fimEncerramento = new FormControl<Date | null>(new Date(), [
+    Validators.required,
+  ]);
   /** Formulário do diálogo de encerramento (sem [formGroup], o submit seria o nativo e recarregaria a página). */
   protected readonly formEncerrar = new FormGroup({ fim: this.fimEncerramento });
   protected readonly emEncerramento = signal<LinhaMeta | null>(null);
@@ -207,9 +257,19 @@ export class Metas {
 
   protected abrirNova(linha?: LinhaMeta): void {
     this.erro.set(null);
-    this.unidadeEscolhida.reset(linha ? { valor: linha.unidadeId, rotulo: linha.unidadeNome } : null);
-    this.formulario.reset({ valor: null, alerta: null, vigenciaInicio: new Date(), vigenciaFim: null });
-    this.dialogoAberto = this.dialogos.open(this.modeloNova(), { width: '560px', autoFocus: 'dialog' });
+    this.unidadeEscolhida.reset(
+      linha ? { valor: linha.unidadeId, rotulo: linha.unidadeNome } : null,
+    );
+    this.formulario.reset({
+      valor: null,
+      alerta: null,
+      vigenciaInicio: new Date(),
+      vigenciaFim: null,
+    });
+    this.dialogoAberto = this.dialogos.open(this.modeloNova(), {
+      width: '560px',
+      autoFocus: 'dialog',
+    });
   }
 
   protected abrirEncerrar(linha: LinhaMeta): void {
@@ -253,7 +313,9 @@ export class Metas {
       return;
     }
     await this.enviar(() =>
-      this.http.post(`/api/v1/metas/${linha.propria!.id}/encerramento`, { fim: paraIso(this.fimEncerramento.value) }),
+      this.http.post(`/api/v1/metas/${linha.propria!.id}/encerramento`, {
+        fim: paraIso(this.fimEncerramento.value),
+      }),
     );
   }
 

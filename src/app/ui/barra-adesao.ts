@@ -1,7 +1,8 @@
-import { Component, computed, input } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, input } from '@angular/core';
 
 /** Barra de adesão com marcador vertical na posição da meta (docs/07, 7.5). */
 @Component({
+  changeDetection: ChangeDetectionStrategy.OnPush,
   selector: 'aurora-barra-adesao',
   template: `
     <span class="preenchimento" [style.width.%]="largura()"></span>
@@ -12,13 +13,26 @@ import { Component, computed, input } from '@angular/core';
   host: { role: 'presentation' },
   styles: `
     :host {
-      position: relative; display: block;
-      height: 6px; min-width: 80px;
+      position: relative;
+      display: block;
+      height: 6px;
+      min-width: 80px;
       border-radius: 999px;
       background: var(--bg-3);
     }
-    .preenchimento { position: absolute; inset: 0 auto 0 0; border-radius: inherit; background: var(--accent-2); }
-    .meta { position: absolute; top: -3px; bottom: -3px; width: 2px; background: var(--text-1); }
+    .preenchimento {
+      position: absolute;
+      inset: 0 auto 0 0;
+      border-radius: inherit;
+      background: var(--accent-2);
+    }
+    .meta {
+      position: absolute;
+      top: -3px;
+      bottom: -3px;
+      width: 2px;
+      background: var(--text-1);
+    }
   `,
 })
 export class BarraAdesao {

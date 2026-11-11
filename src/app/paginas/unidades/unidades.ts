@@ -1,7 +1,22 @@
 import { HttpClient, httpResource } from '@angular/common/http';
-import { Component, TemplateRef, computed, inject, linkedSignal, signal, viewChild } from '@angular/core';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  computed,
+  inject,
+  linkedSignal,
+  signal,
+  TemplateRef,
+  viewChild,
+} from '@angular/core';
 import { toSignal } from '@angular/core/rxjs-interop';
-import { FormControl, FormGroup, ReactiveFormsModule, Validators, type ValidatorFn } from '@angular/forms';
+import {
+  FormControl,
+  FormGroup,
+  ReactiveFormsModule,
+  Validators,
+  type ValidatorFn,
+} from '@angular/forms';
 import { MatAutocompleteModule } from '@angular/material/autocomplete';
 import { MatButtonModule } from '@angular/material/button';
 import { MatDialog, MatDialogModule, MatDialogRef } from '@angular/material/dialog';
@@ -13,7 +28,13 @@ import { MatSlideToggleModule } from '@angular/material/slide-toggle';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { debounceTime, firstValueFrom, type Observable } from 'rxjs';
-import type { CodigoTipoUnidade, NoArvore, PedidoDadosUnidade, PedidoNovaUnidade, TipoUnidade } from '../../api/tipos';
+import type {
+  CodigoTipoUnidade,
+  NoArvore,
+  PedidoDadosUnidade,
+  PedidoNovaUnidade,
+  TipoUnidade,
+} from '../../api/tipos';
 import { mensagemDeErro } from '../../nucleo/erro-api';
 import { numero } from '../../nucleo/formato';
 import { SessaoService } from '../../nucleo/sessao';
@@ -23,14 +44,26 @@ import { ICONES, caminhoDe, destinosParaMover, linhasVisiveis, tiposFilhos } fro
 
 const GERIR_UNIDADES = 'unidade:gerenciar';
 
-const daLista: ValidatorFn = (c) => (c.value && typeof c.value === 'object' ? null : { escolha: true });
+const daLista: ValidatorFn = (c) =>
+  c.value && typeof c.value === 'object' ? null : { escolha: true };
 
 /** Cadastro de unidades (H1): árvore Grupo → Concessão → Município → Setor/ETE/EEE. */
 @Component({
+  changeDetection: ChangeDetectionStrategy.OnPush,
   selector: 'aurora-unidades',
   imports: [
-    ReactiveFormsModule, MatButtonModule, MatDialogModule, MatFormFieldModule, MatInputModule, MatSelectModule,
-    MatAutocompleteModule, MatSlideToggleModule, MatTooltipModule, MatProgressSpinnerModule, MatSnackBarModule, Selo,
+    ReactiveFormsModule,
+    MatButtonModule,
+    MatDialogModule,
+    MatFormFieldModule,
+    MatInputModule,
+    MatSelectModule,
+    MatAutocompleteModule,
+    MatSlideToggleModule,
+    MatTooltipModule,
+    MatProgressSpinnerModule,
+    MatSnackBarModule,
+    Selo,
   ],
   templateUrl: './unidades.html',
   styleUrl: './unidades.scss',
@@ -42,19 +75,26 @@ export class Unidades {
   protected readonly sessao = inject(SessaoService);
 
   private readonly podeGerir = computed(() => this.sessao.pode(GERIR_UNIDADES));
-  protected readonly dados = httpResource<NoArvore[]>(() => (this.podeGerir() ? '/api/v1/unidades/arvore' : undefined));
-  private readonly dadosTipos = httpResource<TipoUnidade[]>(() => (this.podeGerir() ? '/api/v1/unidades/tipos' : undefined));
+  protected readonly dados = httpResource<NoArvore[]>(() =>
+    this.podeGerir() ? '/api/v1/unidades/arvore' : undefined,
+  );
+  private readonly dadosTipos = httpResource<TipoUnidade[]>(() =>
+    this.podeGerir() ? '/api/v1/unidades/tipos' : undefined,
+  );
 
   /** Mantém a última lista durante o recarregamento, para a árvore não piscar depois de salvar. */
   protected readonly nos = linkedSignal<NoArvore[] | undefined, NoArvore[] | undefined>({
     source: () => (this.dados.hasValue() ? this.dados.value() : undefined),
     computation: (atual, anterior) => atual ?? anterior?.value,
   });
-  protected readonly tipos = computed(() => (this.dadosTipos.hasValue() ? this.dadosTipos.value() : []));
+  protected readonly tipos = computed(() =>
+    this.dadosTipos.hasValue() ? this.dadosTipos.value() : [],
+  );
 
   protected readonly resumo = computed(() => {
     const lista = this.nos() ?? [];
-    const conta = (tipo: CodigoTipoUnidade) => lista.filter((n) => n.ativo && n.tipo === tipo).length;
+    const conta = (tipo: CodigoTipoUnidade) =>
+      lista.filter((n) => n.ativo && n.tipo === tipo).length;
     return {
       concessoes: conta('CONCESSAO'),
       municipios: conta('MUNICIPIO'),
@@ -66,7 +106,9 @@ export class Unidades {
 
   // ----- Árvore -----
   protected readonly busca = new FormControl('', { nonNullable: true });
-  private readonly termo = toSignal(this.busca.valueChanges.pipe(debounceTime(150)), { initialValue: '' });
+  private readonly termo = toSignal(this.busca.valueChanges.pipe(debounceTime(150)), {
+    initialValue: '',
+  });
   protected readonly mostrarInativas = signal(false);
   private readonly fechadas = signal(new Set<string>());
   protected readonly linhas = computed(() =>
@@ -76,7 +118,9 @@ export class Unidades {
   protected readonly selecionadaId = signal<string | null>(null);
   protected readonly selecionada = computed(() => {
     const lista = this.nos() ?? [];
-    return lista.find((n) => n.id === this.selecionadaId()) ?? lista.find((n) => !n.unidadePaiId) ?? null;
+    return (
+      lista.find((n) => n.id === this.selecionadaId()) ?? lista.find((n) => !n.unidadePaiId) ?? null
+    );
   });
   protected readonly caminhoSelecionada = computed(() => {
     const s = this.selecionada();
@@ -111,7 +155,12 @@ export class Unidades {
   }
 
   /** Setas e Enter na árvore (padrão de treeview do WAI-ARIA, simplificado). */
-  protected teclado(evento: KeyboardEvent, no: NoArvore, aberta: boolean, temFilhas: boolean): void {
+  protected teclado(
+    evento: KeyboardEvent,
+    no: NoArvore,
+    aberta: boolean,
+    temFilhas: boolean,
+  ): void {
     const linhas = this.linhas();
     const i = linhas.findIndex((l) => l.no.id === no.id);
     const focar = (alvo: number) => {
@@ -122,9 +171,19 @@ export class Unidades {
       }
     };
     switch (evento.key) {
-      case 'ArrowDown': focar(i + 1); break;
-      case 'ArrowUp': focar(i - 1); break;
-      case 'ArrowRight': if (temFilhas && !aberta) { this.alternar(no.id); } else { focar(i + 1); } break;
+      case 'ArrowDown':
+        focar(i + 1);
+        break;
+      case 'ArrowUp':
+        focar(i - 1);
+        break;
+      case 'ArrowRight':
+        if (temFilhas && !aberta) {
+          this.alternar(no.id);
+        } else {
+          focar(i + 1);
+        }
+        break;
       case 'ArrowLeft':
         if (temFilhas && aberta) {
           this.alternar(no.id);
@@ -132,7 +191,8 @@ export class Unidades {
           focar(linhas.findIndex((l) => l.no.id === no.unidadePaiId));
         }
         break;
-      default: return;
+      default:
+        return;
     }
     evento.preventDefault();
   }
@@ -152,14 +212,26 @@ export class Unidades {
     tipo: new FormControl<CodigoTipoUnidade | null>(null, Validators.required),
     codigo: new FormControl('', {
       nonNullable: true,
-      validators: [Validators.required, Validators.maxLength(40), Validators.pattern(/^\s*[A-Za-z0-9][A-Za-z0-9_.-]*\s*$/)],
+      validators: [
+        Validators.required,
+        Validators.maxLength(40),
+        Validators.pattern(/^\s*[A-Za-z0-9][A-Za-z0-9_.-]*\s*$/),
+      ],
     }),
-    nome: new FormControl('', { nonNullable: true, validators: [Validators.required, Validators.maxLength(120)] }),
-    codigoIbge: new FormControl('', { nonNullable: true, validators: [Validators.pattern(/^\d{7}$/)] }),
+    nome: new FormControl('', {
+      nonNullable: true,
+      validators: [Validators.required, Validators.maxLength(120)],
+    }),
+    codigoIbge: new FormControl('', {
+      nonNullable: true,
+      validators: [Validators.pattern(/^\d{7}$/)],
+    }),
     latitude: new FormControl<number | null>(null, [Validators.min(-90), Validators.max(90)]),
     longitude: new FormControl<number | null>(null, [Validators.min(-180), Validators.max(180)]),
   });
-  private readonly tipoEscolhido = toSignal(this.formulario.controls.tipo.valueChanges, { initialValue: null });
+  private readonly tipoEscolhido = toSignal(this.formulario.controls.tipo.valueChanges, {
+    initialValue: null,
+  });
   protected readonly exigeIbge = computed(
     () => this.tipos().find((t) => t.codigo === this.tipoEscolhido())?.exigeCodigoIbge ?? false,
   );
@@ -168,7 +240,10 @@ export class Unidades {
     return pai ? tiposFilhos(this.tipos(), pai) : [];
   });
 
-  protected readonly destino = new FormControl<NoArvore | string | null>(null, [Validators.required, daLista]);
+  protected readonly destino = new FormControl<NoArvore | string | null>(null, [
+    Validators.required,
+    daLista,
+  ]);
   /** Formulário do diálogo de mover (sem ele, o submit seria o nativo do navegador). */
   protected readonly formMover = new FormGroup({ destino: this.destino });
   private readonly textoDestino = toSignal(this.destino.valueChanges, { initialValue: null });
@@ -191,25 +266,45 @@ export class Unidades {
     this.prepararEditor('nova');
     this.paiDaNova.set(pai);
     const tipos = tiposFilhos(this.tipos(), pai);
-    this.formulario.reset({ tipo: tipos.length === 1 ? tipos[0]!.codigo : null, codigo: '', nome: '', codigoIbge: '', latitude: null, longitude: null });
+    this.formulario.reset({
+      tipo: tipos.length === 1 ? tipos[0]!.codigo : null,
+      codigo: '',
+      nome: '',
+      codigoIbge: '',
+      latitude: null,
+      longitude: null,
+    });
     this.formulario.controls.tipo.enable();
-    this.dialogoAberto = this.dialogos.open(this.modeloEditor(), { width: '620px', autoFocus: 'first-tabbable' });
+    this.dialogoAberto = this.dialogos.open(this.modeloEditor(), {
+      width: '620px',
+      autoFocus: 'first-tabbable',
+    });
   }
 
   protected abrirEdicao(no: NoArvore): void {
     this.prepararEditor('editar');
     this.formulario.reset({
-      tipo: no.tipo, codigo: no.codigo, nome: no.nome, codigoIbge: no.codigoIbge ?? '',
-      latitude: no.latitude, longitude: no.longitude,
+      tipo: no.tipo,
+      codigo: no.codigo,
+      nome: no.nome,
+      codigoIbge: no.codigoIbge ?? '',
+      latitude: no.latitude,
+      longitude: no.longitude,
     });
     this.formulario.controls.tipo.disable();
-    this.dialogoAberto = this.dialogos.open(this.modeloEditor(), { width: '620px', autoFocus: 'first-tabbable' });
+    this.dialogoAberto = this.dialogos.open(this.modeloEditor(), {
+      width: '620px',
+      autoFocus: 'first-tabbable',
+    });
   }
 
   protected abrirMover(): void {
     this.erro.set(null);
     this.destino.reset(null);
-    this.dialogoAberto = this.dialogos.open(this.modeloMover(), { width: '560px', autoFocus: 'first-tabbable' });
+    this.dialogoAberto = this.dialogos.open(this.modeloMover(), {
+      width: '560px',
+      autoFocus: 'first-tabbable',
+    });
   }
 
   protected abrirInativacao(): void {
@@ -235,16 +330,27 @@ export class Unidades {
       longitude: v.longitude,
     };
     if (this.modo() === 'nova') {
-      const pedido: PedidoNovaUnidade = { tipo: v.tipo!, unidadePaiId: this.paiDaNova()!.id, dados };
-      await this.enviar(() => this.http.post<{ id: string }>('/api/v1/unidades', pedido), `${dados.nome} criada.`, (r) => {
-        const criada = r as { id: string } | null;
-        if (criada?.id) {
-          this.selecionadaId.set(criada.id);
-        }
-      });
+      const pedido: PedidoNovaUnidade = {
+        tipo: v.tipo!,
+        unidadePaiId: this.paiDaNova()!.id,
+        dados,
+      };
+      await this.enviar(
+        () => this.http.post<{ id: string }>('/api/v1/unidades', pedido),
+        `${dados.nome} criada.`,
+        (r) => {
+          const criada = r as { id: string } | null;
+          if (criada?.id) {
+            this.selecionadaId.set(criada.id);
+          }
+        },
+      );
     } else {
       const no = this.selecionada()!;
-      await this.enviar(() => this.http.put(`/api/v1/unidades/${no.id}`, dados), `${dados.nome} atualizada.`);
+      await this.enviar(
+        () => this.http.put(`/api/v1/unidades/${no.id}`, dados),
+        `${dados.nome} atualizada.`,
+      );
     }
   }
 
@@ -264,8 +370,10 @@ export class Unidades {
   protected async confirmarInativacao(): Promise<void> {
     const no = this.selecionada();
     if (no) {
-      await this.enviar(() => this.http.put(`/api/v1/unidades/${no.id}/situacao`, { ativo: false }), `${no.nome} inativada.`, () =>
-        this.mostrarInativas.set(true),
+      await this.enviar(
+        () => this.http.put(`/api/v1/unidades/${no.id}/situacao`, { ativo: false }),
+        `${no.nome} inativada.`,
+        () => this.mostrarInativas.set(true),
       );
     }
   }
@@ -288,7 +396,11 @@ export class Unidades {
     this.modo.set(modo);
   }
 
-  private async enviar(requisicao: () => Observable<unknown>, sucesso: string, depois?: (resposta: unknown) => void): Promise<void> {
+  private async enviar(
+    requisicao: () => Observable<unknown>,
+    sucesso: string,
+    depois?: (resposta: unknown) => void,
+  ): Promise<void> {
     this.salvando.set(true);
     this.erro.set(null);
     try {

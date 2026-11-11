@@ -1,5 +1,15 @@
 import { HttpClient, httpResource } from '@angular/common/http';
-import { Component, DestroyRef, computed, effect, inject, input, linkedSignal, signal } from '@angular/core';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  computed,
+  DestroyRef,
+  effect,
+  inject,
+  input,
+  linkedSignal,
+  signal,
+} from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormControl, ReactiveFormsModule } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
@@ -11,7 +21,11 @@ import { MatTableModule } from '@angular/material/table';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { Router, RouterLink } from '@angular/router';
 import { debounceTime, distinctUntilChanged, firstValueFrom } from 'rxjs';
-import type { ImovelSemLigacao, SemLigacao as DadosSemLigacao, SituacaoImovel } from '../../api/tipos';
+import type {
+  ImovelSemLigacao,
+  SemLigacao as DadosSemLigacao,
+  SituacaoImovel,
+} from '../../api/tipos';
 import { DownloadService } from '../../nucleo/download';
 import { competenciaCurta, competenciaLonga, numero } from '../../nucleo/formato';
 import { SessaoService } from '../../nucleo/sessao';
@@ -26,10 +40,19 @@ const LIMITE = 50;
  * A Aurora não guarda nome nem endereço: a pessoa localiza o imóvel no sistema comercial pela matrícula (D3).
  */
 @Component({
+  changeDetection: ChangeDetectionStrategy.OnPush,
   selector: 'aurora-sem-ligacao',
   imports: [
-    ReactiveFormsModule, RouterLink, MatButtonModule, MatButtonToggleModule, MatFormFieldModule, MatInputModule,
-    MatTableModule, MatTooltipModule, MatProgressSpinnerModule, Selo,
+    ReactiveFormsModule,
+    RouterLink,
+    MatButtonModule,
+    MatButtonToggleModule,
+    MatFormFieldModule,
+    MatInputModule,
+    MatTableModule,
+    MatTooltipModule,
+    MatProgressSpinnerModule,
+    Selo,
   ],
   templateUrl: './sem-ligacao.html',
   styleUrl: './sem-ligacao.scss',
@@ -74,7 +97,9 @@ export class SemLigacao {
     if (!totais) {
       return 0;
     }
-    return { TODOS: totais.todos, FACTIVEL: totais.factiveis, CORTADO: totais.cortados }[this.aba()];
+    return { TODOS: totais.todos, FACTIVEL: totais.factiveis, CORTADO: totais.cortados }[
+      this.aba()
+    ];
   });
   protected readonly naoEncontrado = computed(
     () => (this.primeiraPagina.error() as { status?: number } | undefined)?.status === 404,
@@ -85,7 +110,8 @@ export class SemLigacao {
   /** RN-02: o que separa factível de cortado é a conexão física. */
   protected readonly definicoes: Record<SituacaoImovel, string> = {
     FACTIVEL: 'Rede pública disponível na rua, mas o imóvel ainda não fez a conexão física.',
-    CORTADO: 'Imóvel conectado, com o serviço interrompido por falta de pagamento ou suspenso a pedido do cliente.',
+    CORTADO:
+      'Imóvel conectado, com o serviço interrompido por falta de pagamento ou suspenso a pedido do cliente.',
   };
 
   /** Motivo do corte informado pela carga (RN-02). */
@@ -106,7 +132,10 @@ export class SemLigacao {
       return this.definicoes.CORTADO;
     }
     const semMotivo = totais.cortados - porInadimplencia - aPedido;
-    const partes = [`${numero(porInadimplencia)} por falta de pagamento`, `${numero(aPedido)} a pedido do cliente`];
+    const partes = [
+      `${numero(porInadimplencia)} por falta de pagamento`,
+      `${numero(aPedido)} a pedido do cliente`,
+    ];
     if (semMotivo > 0) {
       partes.push(`${numero(semMotivo)} sem motivo informado`);
     }
@@ -133,7 +162,6 @@ export class SemLigacao {
       }
     });
   }
-
 
   protected escolherAba(aba: Aba): void {
     this.filtrar({ situacao: aba === 'TODOS' ? null : aba });

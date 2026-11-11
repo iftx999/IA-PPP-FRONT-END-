@@ -1,6 +1,14 @@
 import { NgTemplateOutlet } from '@angular/common';
 import { HttpClient, httpResource } from '@angular/common/http';
-import { Component, TemplateRef, computed, inject, signal, viewChild } from '@angular/core';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  computed,
+  inject,
+  signal,
+  TemplateRef,
+  viewChild,
+} from '@angular/core';
 import { takeUntilDestroyed, toSignal } from '@angular/core/rxjs-interop';
 import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
@@ -16,7 +24,12 @@ import { MatTableModule } from '@angular/material/table';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { OidcSecurityService } from 'angular-auth-oidc-client';
 import { debounceTime, firstValueFrom, map, type Observable } from 'rxjs';
-import type { ClientePlataforma, LimitesCliente, PedidoAlteracaoCliente, PedidoNovoCliente } from '../../api/tipos';
+import type {
+  ClientePlataforma,
+  LimitesCliente,
+  PedidoAlteracaoCliente,
+  PedidoNovoCliente,
+} from '../../api/tipos';
 import { entrarDeNovo } from '../../nucleo/autenticacao';
 import { mensagemDeErro } from '../../nucleo/erro-api';
 import { filtrosNaUrl } from '../../nucleo/filtros';
@@ -47,13 +60,21 @@ export function filtrarClientes(
   const t = semAcento(termo.trim());
   return clientes.filter(
     (c) =>
-      (!t || semAcento(`${c.nome} ${c.codigo} ${c.contatoNome ?? ''} ${c.contatoEmail ?? ''}`).includes(t)) &&
+      (!t ||
+        semAcento(`${c.nome} ${c.codigo} ${c.contatoNome ?? ''} ${c.contatoEmail ?? ''}`).includes(
+          t,
+        )) &&
       (!situacao ||
-        (situacao === 'PENDENTE' ? !c.provisionado : c.provisionado && c.ativo === (situacao === 'ATIVO'))),
+        (situacao === 'PENDENTE'
+          ? !c.provisionado
+          : c.provisionado && c.ativo === (situacao === 'ATIVO'))),
   );
 }
 
-export function situacaoCliente(c: Pick<ClientePlataforma, 'ativo' | 'provisionado'>): { rotulo: string; tom: Tom } {
+export function situacaoCliente(c: Pick<ClientePlataforma, 'ativo' | 'provisionado'>): {
+  rotulo: string;
+  tom: Tom;
+} {
   if (!c.provisionado) {
     return { rotulo: 'Provisionamento pendente', tom: 'atencao' };
   }
@@ -61,11 +82,17 @@ export function situacaoCliente(c: Pick<ClientePlataforma, 'ativo' | 'provisiona
 }
 
 /** "3 de 10" ou "3" sem limite; perigo quando atinge o limite. */
-export function usoDeUsuarios(c: Pick<ClientePlataforma, 'usuariosAtivos' | 'limites'>): { texto: string; cheio: boolean } {
+export function usoDeUsuarios(c: Pick<ClientePlataforma, 'usuariosAtivos' | 'limites'>): {
+  texto: string;
+  cheio: boolean;
+} {
   const limite = c.limites.usuarios;
   return limite == null
     ? { texto: `${numero(c.usuariosAtivos)}`, cheio: false }
-    : { texto: `${numero(c.usuariosAtivos)} de ${numero(limite)}`, cheio: c.usuariosAtivos >= limite };
+    : {
+        texto: `${numero(c.usuariosAtivos)} de ${numero(limite)}`,
+        cheio: c.usuariosAtivos >= limite,
+      };
 }
 
 const CODIGO = /^[a-z0-9](-?[a-z0-9])+$/;
@@ -75,10 +102,23 @@ const CODIGO = /^[a-z0-9](-?[a-z0-9])+$/;
  * plataforma; nada aqui mostra dados de dentro dos clientes.
  */
 @Component({
+  changeDetection: ChangeDetectionStrategy.OnPush,
   selector: 'aurora-plataforma',
   imports: [
-    NgTemplateOutlet, ReactiveFormsModule, MatButtonModule, MatDialogModule, MatFormFieldModule, MatInputModule, MatMenuModule,
-    MatProgressSpinnerModule, MatSelectModule, MatSlideToggleModule, MatSnackBarModule, MatTableModule, MatTooltipModule, Selo,
+    NgTemplateOutlet,
+    ReactiveFormsModule,
+    MatButtonModule,
+    MatDialogModule,
+    MatFormFieldModule,
+    MatInputModule,
+    MatMenuModule,
+    MatProgressSpinnerModule,
+    MatSelectModule,
+    MatSlideToggleModule,
+    MatSnackBarModule,
+    MatTableModule,
+    MatTooltipModule,
+    Selo,
   ],
   templateUrl: './plataforma.html',
   styleUrl: './plataforma.scss',
@@ -89,19 +129,32 @@ export class Plataforma {
   private readonly avisos = inject(MatSnackBar);
   private readonly oidc = inject(OidcSecurityService);
 
-  protected readonly email = toSignal(this.oidc.userData$.pipe(map((d) => (d.userData as { email?: string } | null)?.email ?? '')), {
-    initialValue: '',
-  });
-  protected readonly clientes = httpResource<ClientePlataforma[]>(() => '/api/v1/plataforma/clientes');
-  protected readonly lista = computed(() => (this.clientes.hasValue() ? this.clientes.value() : []));
+  protected readonly email = toSignal(
+    this.oidc.userData$.pipe(map((d) => (d.userData as { email?: string } | null)?.email ?? '')),
+    {
+      initialValue: '',
+    },
+  );
+  protected readonly clientes = httpResource<ClientePlataforma[]>(
+    () => '/api/v1/plataforma/clientes',
+  );
+  protected readonly lista = computed(() =>
+    this.clientes.hasValue() ? this.clientes.value() : [],
+  );
   protected readonly semCodigo = computed(() => exigeSegundoFator(this.clientes.error()));
   protected readonly resumo = computed(() => {
     const l = this.lista();
-    return { total: l.length, ativos: l.filter((c) => c.ativo && c.provisionado).length, pendentes: l.filter((c) => !c.provisionado).length };
+    return {
+      total: l.length,
+      ativos: l.filter((c) => c.ativo && c.provisionado).length,
+      pendentes: l.filter((c) => !c.provisionado).length,
+    };
   });
   protected readonly filtros = filtrosNaUrl(['busca', 'situacao']);
   protected readonly busca = new FormControl(this.filtros.inicial('busca'), { nonNullable: true });
-  protected readonly filtroSituacao = computed(() => this.filtros.valor('situacao') as SituacaoFiltroCliente | null);
+  protected readonly filtroSituacao = computed(
+    () => this.filtros.valor('situacao') as SituacaoFiltroCliente | null,
+  );
   protected readonly filtrando = computed(() => this.filtros.ativos() > 0);
   protected readonly visiveis = computed(() =>
     filtrarClientes(this.lista(), this.filtros.valor('busca') ?? '', this.filtroSituacao()),
@@ -129,18 +182,35 @@ export class Plataforma {
     });
 
   protected readonly novo = new FormGroup({
-    nome: new FormControl('', { nonNullable: true, validators: [Validators.required, Validators.maxLength(120)] }),
+    nome: new FormControl('', {
+      nonNullable: true,
+      validators: [Validators.required, Validators.maxLength(120)],
+    }),
     codigo: new FormControl('', {
       nonNullable: true,
-      validators: [Validators.required, Validators.minLength(3), Validators.maxLength(40), Validators.pattern(CODIGO)],
+      validators: [
+        Validators.required,
+        Validators.minLength(3),
+        Validators.maxLength(40),
+        Validators.pattern(CODIGO),
+      ],
     }),
-    contatoNome: new FormControl('', { nonNullable: true, validators: [Validators.required, Validators.maxLength(120)] }),
-    contatoEmail: new FormControl('', { nonNullable: true, validators: [Validators.required, Validators.email, Validators.maxLength(254)] }),
+    contatoNome: new FormControl('', {
+      nonNullable: true,
+      validators: [Validators.required, Validators.maxLength(120)],
+    }),
+    contatoEmail: new FormControl('', {
+      nonNullable: true,
+      validators: [Validators.required, Validators.email, Validators.maxLength(254)],
+    }),
     limites: this.limites(),
   });
 
   protected readonly edicao = new FormGroup({
-    nome: new FormControl('', { nonNullable: true, validators: [Validators.required, Validators.maxLength(120)] }),
+    nome: new FormControl('', {
+      nonNullable: true,
+      validators: [Validators.required, Validators.maxLength(120)],
+    }),
     ativo: new FormControl(true, { nonNullable: true }),
     limites: this.limites(),
   });
@@ -181,7 +251,10 @@ export class Plataforma {
     this.erro.set(null);
     this.codigoEditado = false;
     this.novo.reset();
-    this.dialogo = this.dialogos.open(this.modeloNovo(), { width: '640px', autoFocus: 'first-tabbable' });
+    this.dialogo = this.dialogos.open(this.modeloNovo(), {
+      width: '640px',
+      autoFocus: 'first-tabbable',
+    });
   }
 
   protected abrirEdicao(c: ClientePlataforma): void {
@@ -198,7 +271,10 @@ export class Plataforma {
     }
     const v = this.novo.getRawValue();
     const pedido: PedidoNovoCliente = {
-      nome: v.nome.trim(), codigo: v.codigo.trim(), contatoNome: v.contatoNome.trim(), contatoEmail: v.contatoEmail.trim(),
+      nome: v.nome.trim(),
+      codigo: v.codigo.trim(),
+      contatoNome: v.contatoNome.trim(),
+      contatoEmail: v.contatoEmail.trim(),
       limites: limitesDoFormulario(v.limites),
     };
     await this.enviar(
@@ -215,8 +291,16 @@ export class Plataforma {
       return;
     }
     const v = this.edicao.getRawValue();
-    const pedido: PedidoAlteracaoCliente = { nome: v.nome.trim(), ativo: v.ativo, limites: limitesDoFormulario(v.limites) };
-    await this.enviar(() => this.http.put<ClientePlataforma>(`/api/v1/plataforma/clientes/${c.id}`, pedido), (n) => `${n.nome} atualizado.`, true);
+    const pedido: PedidoAlteracaoCliente = {
+      nome: v.nome.trim(),
+      ativo: v.ativo,
+      limites: limitesDoFormulario(v.limites),
+    };
+    await this.enviar(
+      () => this.http.put<ClientePlataforma>(`/api/v1/plataforma/clientes/${c.id}`, pedido),
+      (n) => `${n.nome} atualizado.`,
+      true,
+    );
   }
 
   protected async enviarLogo(evento: Event): Promise<void> {
@@ -228,22 +312,36 @@ export class Plataforma {
     }
     const corpo = new FormData();
     corpo.append('arquivo', arquivo);
-    await this.enviar(() => this.http.put<ClientePlataforma>(`/api/v1/plataforma/clientes/${c.id}/logo`, corpo), () => 'Logo atualizada.', false);
+    await this.enviar(
+      () => this.http.put<ClientePlataforma>(`/api/v1/plataforma/clientes/${c.id}/logo`, corpo),
+      () => 'Logo atualizada.',
+      false,
+    );
   }
 
   protected async removerLogo(): Promise<void> {
     const c = this.emEdicao();
     if (c) {
-      await this.enviar(() => this.http.delete<ClientePlataforma>(`/api/v1/plataforma/clientes/${c.id}/logo`), () => 'Logo removida.', false);
+      await this.enviar(
+        () => this.http.delete<ClientePlataforma>(`/api/v1/plataforma/clientes/${c.id}/logo`),
+        () => 'Logo removida.',
+        false,
+      );
     }
   }
 
   protected async concluirProvisionamento(c: ClientePlataforma): Promise<void> {
-    await this.acao(() => this.http.post(`/api/v1/plataforma/clientes/${c.id}/provisionamento`, null), `Provisionamento de ${c.nome} concluído.`);
+    await this.acao(
+      () => this.http.post(`/api/v1/plataforma/clientes/${c.id}/provisionamento`, null),
+      `Provisionamento de ${c.nome} concluído.`,
+    );
   }
 
   protected async reenviarConvite(c: ClientePlataforma): Promise<void> {
-    await this.acao(() => this.http.post(`/api/v1/plataforma/clientes/${c.id}/convite`, null), `Convite reenviado para ${c.contatoEmail}.`);
+    await this.acao(
+      () => this.http.post(`/api/v1/plataforma/clientes/${c.id}/convite`, null),
+      `Convite reenviado para ${c.contatoEmail}.`,
+    );
   }
 
   protected fechar(): void {
@@ -285,7 +383,11 @@ export class Plataforma {
   }
 }
 
-function limitesDoFormulario(v: { usuarios: number | null; assistenteTokensPorMes: number | null; assistenteUsdPorMes: number | null }): LimitesCliente {
+function limitesDoFormulario(v: {
+  usuarios: number | null;
+  assistenteTokensPorMes: number | null;
+  assistenteUsdPorMes: number | null;
+}): LimitesCliente {
   return {
     usuarios: v.usuarios || null,
     assistenteTokensPorMes: v.assistenteTokensPorMes || null,

@@ -1,4 +1,4 @@
-import { Component, computed, input } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, input } from '@angular/core';
 import type { Situacao } from '../api/tipos';
 import { Selo, type Tom } from './selo';
 
@@ -11,6 +11,7 @@ const APARENCIA: Record<Situacao, { rotulo: string; tom: Tom }> = {
 
 /** Situação da unidade frente à meta (RN-03). */
 @Component({
+  changeDetection: ChangeDetectionStrategy.OnPush,
   selector: 'aurora-selo-situacao',
   imports: [Selo],
   template: `<aurora-selo [tom]="aparencia().tom">{{ aparencia().rotulo }}</aurora-selo>`,

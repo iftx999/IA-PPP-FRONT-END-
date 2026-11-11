@@ -1,4 +1,4 @@
-import { Component, computed, inject } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, inject } from '@angular/core';
 import { MatButtonModule } from '@angular/material/button';
 import { MatMenuModule } from '@angular/material/menu';
 import { MatSnackBar } from '@angular/material/snack-bar';
@@ -10,11 +10,18 @@ import { SessaoService } from '../nucleo/sessao';
 import { secoesPermitidas } from '../nucleo/telas';
 import { TemaService } from '../nucleo/tema';
 
-
 /** Estrutura da aplicação: barra lateral fixa + cabeçalho + conteúdo (docs/07, seções 7.4 e 7.5). */
 @Component({
+  changeDetection: ChangeDetectionStrategy.OnPush,
   selector: 'aurora-shell',
-  imports: [RouterOutlet, RouterLink, RouterLinkActive, MatButtonModule, MatMenuModule, MatTooltipModule],
+  imports: [
+    RouterOutlet,
+    RouterLink,
+    RouterLinkActive,
+    MatButtonModule,
+    MatMenuModule,
+    MatTooltipModule,
+  ],
   templateUrl: './shell.html',
   styleUrl: './shell.scss',
   host: { '(document:keydown.control.j)': 'abrirAssistente($event)' },
@@ -30,9 +37,13 @@ export class Shell {
 
   protected async sairDeTodosOsDispositivos(): Promise<void> {
     if (!(await this.sessao.sairDeTodosOsDispositivos())) {
-      this.avisos.open('Não foi possível encerrar as sessões agora. Tente de novo em instantes.', 'Fechar', {
-        duration: 8000,
-      });
+      this.avisos.open(
+        'Não foi possível encerrar as sessões agora. Tente de novo em instantes.',
+        'Fechar',
+        {
+          duration: 8000,
+        },
+      );
     }
   }
 
@@ -43,5 +54,7 @@ export class Shell {
   }
 
   /** Doc 08, 8.4: só as telas que o perfil permite abrir. */
-  protected readonly secoes = computed(() => secoesPermitidas(this.sessao.usuario()?.permissoes ?? []));
+  protected readonly secoes = computed(() =>
+    secoesPermitidas(this.sessao.usuario()?.permissoes ?? []),
+  );
 }

@@ -1,6 +1,17 @@
 import { HttpClient, httpResource } from '@angular/common/http';
 import {
-  Component, DestroyRef, ElementRef, TemplateRef, afterRenderEffect, computed, effect, inject, input, signal, untracked,
+  afterRenderEffect,
+  ChangeDetectionStrategy,
+  Component,
+  computed,
+  DestroyRef,
+  effect,
+  ElementRef,
+  inject,
+  input,
+  signal,
+  TemplateRef,
+  untracked,
   viewChild,
 } from '@angular/core';
 import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
@@ -15,14 +26,26 @@ import { MatSelectModule } from '@angular/material/select';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { Router, RouterLink } from '@angular/router';
 import {
-  type GeoJSONSource, Map as MapaLibre, type MapGeoJSONFeature, type MapMouseEvent, NavigationControl, ScaleControl,
-  type VectorTileSource, setWorkerUrl,
+  type GeoJSONSource,
+  Map as MapaLibre,
+  type MapGeoJSONFeature,
+  type MapMouseEvent,
+  NavigationControl,
+  ScaleControl,
+  type VectorTileSource,
+  setWorkerUrl,
 } from 'maplibre-gl';
 import type { Point } from 'geojson';
 import { OidcSecurityService } from 'angular-auth-oidc-client';
 import { firstValueFrom } from 'rxjs';
 import type {
-  CamadasMapa, ImovelNoPonto, MarcacaoMapa, MunicipioMapa, PedidoExportacaoMapa, PedidoMarcacao, SituacaoNoMapa,
+  CamadasMapa,
+  ImovelNoPonto,
+  MarcacaoMapa,
+  MunicipioMapa,
+  PedidoExportacaoMapa,
+  PedidoMarcacao,
+  SituacaoNoMapa,
 } from '../../api/tipos';
 import { DownloadService } from '../../nucleo/download';
 import { mensagemDeErro } from '../../nucleo/erro-api';
@@ -32,9 +55,25 @@ import { SessaoService } from '../../nucleo/sessao';
 import { TemaService } from '../../nucleo/tema';
 import { SeloSituacao } from '../../ui/selo-situacao';
 import {
-  CAMADAS_DO_GRUPO, CAMADAS_PADRAO, type Camadas, PREFIXO_AGRUPAMENTO, SITUACOES, SITUACOES_MUNICIPIO, areaVisivel,
-  camadasDaAurora, colecoes, estiloBase, iconeAgrupamento, iconeCasa, iconeCasaAproximada, iconeEstacao, iconePino,
-  lerCores, pinturaDoFundo, raioDoClique, urlDosTiles,
+  CAMADAS_DO_GRUPO,
+  CAMADAS_PADRAO,
+  type Camadas,
+  PREFIXO_AGRUPAMENTO,
+  SITUACOES,
+  SITUACOES_MUNICIPIO,
+  areaVisivel,
+  camadasDaAurora,
+  colecoes,
+  estiloBase,
+  iconeAgrupamento,
+  iconeCasa,
+  iconeCasaAproximada,
+  iconeEstacao,
+  iconePino,
+  lerCores,
+  pinturaDoFundo,
+  raioDoClique,
+  urlDosTiles,
 } from './estilo-mapa';
 
 type Grupo = keyof typeof CAMADAS_DO_GRUPO;
@@ -57,10 +96,21 @@ const LARGURA_IMAGEM = 2000;
  * marcar local e exportar a área visível. Imóveis e rede vêm por tiles vetoriais da API (ADR 0017), com o token.
  */
 @Component({
+  changeDetection: ChangeDetectionStrategy.OnPush,
   selector: 'aurora-mapa',
   imports: [
-    ReactiveFormsModule, RouterLink, MatButtonModule, MatCheckboxModule, MatDialogModule, MatFormFieldModule,
-    MatInputModule, MatMenuModule, MatProgressSpinnerModule, MatSelectModule, MatTooltipModule, SeloSituacao,
+    ReactiveFormsModule,
+    RouterLink,
+    MatButtonModule,
+    MatCheckboxModule,
+    MatDialogModule,
+    MatFormFieldModule,
+    MatInputModule,
+    MatMenuModule,
+    MatProgressSpinnerModule,
+    MatSelectModule,
+    MatTooltipModule,
+    SeloSituacao,
   ],
   templateUrl: './mapa.html',
   styleUrl: './mapa.scss',
@@ -93,10 +143,15 @@ export class Mapa {
     const params: Record<string, string> = competencia ? { competencia } : {};
     return { url: '/api/v1/mapa/camadas', params };
   });
-  protected readonly camadasMapa = computed(() => (this.dados.hasValue() ? this.dados.value() : undefined));
+  protected readonly camadasMapa = computed(() =>
+    this.dados.hasValue() ? this.dados.value() : undefined,
+  );
   protected readonly competenciaAtual = computed(() => this.camadasMapa()?.competencia ?? null);
 
-  protected readonly camadas = signal<Camadas>({ ...CAMADAS_PADRAO, situacoes: [...CAMADAS_PADRAO.situacoes] });
+  protected readonly camadas = signal<Camadas>({
+    ...CAMADAS_PADRAO,
+    situacoes: [...CAMADAS_PADRAO.situacoes],
+  });
   protected readonly vista3d = signal(false);
   protected readonly marcando = signal(false);
   protected readonly selecao = signal<Selecao | null>(null);
@@ -120,7 +175,10 @@ export class Mapa {
 
   // ----- Marcar local -----
   protected readonly formMarcacao = new FormGroup({
-    titulo: new FormControl('', { nonNullable: true, validators: [Validators.required, Validators.maxLength(80)] }),
+    titulo: new FormControl('', {
+      nonNullable: true,
+      validators: [Validators.required, Validators.maxLength(80)],
+    }),
     observacao: new FormControl('', { nonNullable: true, validators: [Validators.maxLength(500)] }),
   });
   protected readonly pontoDaMarcacao = signal<{ longitude: number; latitude: number } | null>(null);
@@ -208,7 +266,9 @@ export class Mapa {
   protected ligarSituacao(situacao: SituacaoNoMapa, ligado: boolean): void {
     this.camadas.update((c) => ({
       ...c,
-      situacoes: ligado ? [...new Set([...c.situacoes, situacao])] : c.situacoes.filter((s) => s !== situacao),
+      situacoes: ligado
+        ? [...new Set([...c.situacoes, situacao])]
+        : c.situacoes.filter((s) => s !== situacao),
     }));
   }
 
@@ -219,7 +279,13 @@ export class Mapa {
   protected enquadrar(): void {
     const area = this.camadasMapa()?.enquadramento;
     if (area && this.mapa) {
-      this.mapa.fitBounds([[area.oeste, area.sul], [area.leste, area.norte]], { padding: 48, duration: 600 });
+      this.mapa.fitBounds(
+        [
+          [area.oeste, area.sul],
+          [area.leste, area.norte],
+        ],
+        { padding: 48, duration: 600 },
+      );
     }
   }
 
@@ -236,7 +302,13 @@ export class Mapa {
     }
     const area = areaVisivel(mapa.getBounds());
     void this.router.navigate(['/campanhas'], {
-      queryParams: { origem: 'AREA_DO_MAPA', oeste: area.oeste, sul: area.sul, leste: area.leste, norte: area.norte },
+      queryParams: {
+        origem: 'AREA_DO_MAPA',
+        oeste: area.oeste,
+        sul: area.sul,
+        leste: area.leste,
+        norte: area.norte,
+      },
     });
   }
 
@@ -252,7 +324,11 @@ export class Mapa {
       formato,
       area: areaVisivel(mapa.getBounds()),
       imoveis: imoveisVisiveis
-        ? { competencia: this.competenciaAtual(), situacoes: camadas.situacoes, aproximadas: camadas.aproximadas }
+        ? {
+            competencia: this.competenciaAtual(),
+            situacoes: camadas.situacoes,
+            aproximadas: camadas.aproximadas,
+          }
         : null,
       marcacoes: camadas.marcacoes,
       imagemPng: formato === 'PDF' ? await this.imagemDoMapa(mapa) : null,
@@ -260,8 +336,11 @@ export class Mapa {
     this.exportando.set(formato);
     this.erroExportacao.set(null);
     try {
-      await this.downloads.baixarComCorpo('/api/v1/mapa/exportacao', pedido,
-        `area-do-mapa.${formato === 'PDF' ? 'pdf' : 'csv'}`);
+      await this.downloads.baixarComCorpo(
+        '/api/v1/mapa/exportacao',
+        pedido,
+        `area-do-mapa.${formato === 'PDF' ? 'pdf' : 'csv'}`,
+      );
     } catch (falha) {
       this.erroExportacao.set(await mensagemDoBlob(falha));
     } finally {
@@ -276,11 +355,17 @@ export class Mapa {
       return;
     }
     const valor = this.formMarcacao.getRawValue();
-    const pedido: PedidoMarcacao = { ...ponto, titulo: valor.titulo, observacao: valor.observacao || null };
+    const pedido: PedidoMarcacao = {
+      ...ponto,
+      titulo: valor.titulo,
+      observacao: valor.observacao || null,
+    };
     this.salvando.set(true);
     this.erroMarcacao.set(null);
     try {
-      const criada = await firstValueFrom(this.http.post<MarcacaoMapa>('/api/v1/mapa/marcacoes', pedido));
+      const criada = await firstValueFrom(
+        this.http.post<MarcacaoMapa>('/api/v1/mapa/marcacoes', pedido),
+      );
       this.dialogo?.close();
       this.marcando.set(false);
       this.carregarMarcacoes();
@@ -315,8 +400,12 @@ export class Mapa {
   }
 
   protected rotuloPrecisao(imovel: ImovelNoPonto): string {
-    return { ENDERECO: 'Endereço exato', LOGRADOURO: 'Pela rua (aproximada)', BAIRRO: 'Pelo bairro (aproximada)',
-      MANUAL: 'Marcada à mão' }[imovel.precisao];
+    return {
+      ENDERECO: 'Endereço exato',
+      LOGRADOURO: 'Pela rua (aproximada)',
+      BAIRRO: 'Pelo bairro (aproximada)',
+      MANUAL: 'Marcada à mão',
+    }[imovel.precisao];
   }
 
   // ----- Mapa -----
@@ -334,9 +423,10 @@ export class Mapa {
       zoom: vistaPedida ? Math.min(Math.max(zoom ?? 15, 3), 19) : 10,
       maxPitch: 70,
       attributionControl: { compact: true },
-      transformRequest: (url) => (url.startsWith(`${window.location.origin}/api/`)
-        ? { url, headers: { Authorization: `Bearer ${this.tokenAtual()}` } }
-        : { url }),
+      transformRequest: (url) =>
+        url.startsWith(`${window.location.origin}/api/`)
+          ? { url, headers: { Authorization: `Bearer ${this.tokenAtual()}` } }
+          : { url },
     });
     this.mapa = mapa;
     mapa.addControl(new NavigationControl({ visualizePitch: true }), 'bottom-right');
@@ -352,12 +442,18 @@ export class Mapa {
         mapa.addSource(fonte, { type: 'geojson', data: vazio });
       }
       mapa.addSource('aurora', {
-        type: 'vector', tiles: [urlDosTiles(window.location.origin, this.competenciaAtual(), this.camadas())],
-        minzoom: 8, maxzoom: 16,
+        type: 'vector',
+        tiles: [urlDosTiles(window.location.origin, this.competenciaAtual(), this.camadas())],
+        minzoom: 8,
+        maxzoom: 16,
       });
       const dados = this.camadasMapa();
-      for (const camada of camadasDaAurora(lerCores(), this.tema.tema() === 'dark', dados?.zoomImoveis ?? 15,
-        dados?.zoomRede ?? 12)) {
+      for (const camada of camadasDaAurora(
+        lerCores(),
+        this.tema.tema() === 'dark',
+        dados?.zoomImoveis ?? 15,
+        dados?.zoomRede ?? 12,
+      )) {
         mapa.addLayer(camada);
       }
       this.zoomAtual.set(mapa.getZoom());
@@ -380,16 +476,25 @@ export class Mapa {
     if (!this.enquadrado && dados.enquadramento) {
       this.enquadrado = true;
       const a = dados.enquadramento;
-      mapa.fitBounds([[a.oeste, a.sul], [a.leste, a.norte]], { padding: 48, duration: 0 });
+      mapa.fitBounds(
+        [
+          [a.oeste, a.sul],
+          [a.leste, a.norte],
+        ],
+        { padding: 48, duration: 0 },
+      );
     }
     this.carregarMarcacoes();
   }
 
   private aplicarCamadas(camadas: Camadas, competencia: string | null): void {
     const mapa = this.mapa!;
-    (mapa.getSource('aurora') as VectorTileSource).setTiles([urlDosTiles(window.location.origin, competencia, camadas)]);
+    (mapa.getSource('aurora') as VectorTileSource).setTiles([
+      urlDosTiles(window.location.origin, competencia, camadas),
+    ]);
     for (const [grupo, ids] of Object.entries(CAMADAS_DO_GRUPO) as [Grupo, string[]][]) {
-      const visivel = grupo === 'imoveis' ? camadas.imoveis && camadas.situacoes.length > 0 : camadas[grupo];
+      const visivel =
+        grupo === 'imoveis' ? camadas.imoveis && camadas.situacoes.length > 0 : camadas[grupo];
       for (const id of ids) {
         mapa.setLayoutProperty(id, 'visibility', visivel ? 'visible' : 'none');
       }
@@ -403,7 +508,12 @@ export class Mapa {
       mapa.setPaintProperty('fundo', propriedade as PropriedadeDePintura, valor);
     }
     const dados = this.camadasMapa();
-    for (const camada of camadasDaAurora(lerCores(), escuro, dados?.zoomImoveis ?? 15, dados?.zoomRede ?? 12)) {
+    for (const camada of camadasDaAurora(
+      lerCores(),
+      escuro,
+      dados?.zoomImoveis ?? 15,
+      dados?.zoomRede ?? 12,
+    )) {
       for (const [propriedade, valor] of Object.entries(camada.paint ?? {})) {
         mapa.setPaintProperty(camada.id, propriedade as PropriedadeDePintura, valor);
       }
@@ -413,7 +523,10 @@ export class Mapa {
     mapa.updateImage('pino', iconePino(cores));
     mapa.updateImage('estacao', iconeEstacao(cores));
     for (const id of mapa.listImages().filter((i) => i.startsWith(PREFIXO_AGRUPAMENTO))) {
-      mapa.updateImage(id, iconeAgrupamento(id.slice(PREFIXO_AGRUPAMENTO.length), cores, fonteDosDados()));
+      mapa.updateImage(
+        id,
+        iconeAgrupamento(id.slice(PREFIXO_AGRUPAMENTO.length), cores, fonteDosDados()),
+      );
     }
   }
 
@@ -428,25 +541,40 @@ export class Mapa {
 
   private desenharAgrupamento(id: string): void {
     if (id.startsWith(PREFIXO_AGRUPAMENTO) && this.mapa && !this.mapa.hasImage(id)) {
-      this.mapa.addImage(id, iconeAgrupamento(id.slice(PREFIXO_AGRUPAMENTO.length), lerCores(), fonteDosDados()),
-        { pixelRatio: 2 });
+      this.mapa.addImage(
+        id,
+        iconeAgrupamento(id.slice(PREFIXO_AGRUPAMENTO.length), lerCores(), fonteDosDados()),
+        { pixelRatio: 2 },
+      );
     }
   }
 
   private registrarInteracao(mapa: MapaLibre): void {
-    const clicaveis = ['marcacoes', 'operacionais', 'imoveis', 'agrupamentos', 'municipios-preenchimento'];
+    const clicaveis = [
+      'marcacoes',
+      'operacionais',
+      'imoveis',
+      'agrupamentos',
+      'municipios-preenchimento',
+    ];
     mapa.on('zoomend', () => this.zoomAtual.set(mapa.getZoom()));
     mapa.on('moveend', () => this.agendarMarcacoes());
     mapa.on('mousemove', (e) => {
       if (this.marcando()) {
         return;
       }
-      const alvo = mapa.queryRenderedFeatures(e.point, { layers: clicaveis.filter((c) => mapa.getLayer(c)) })[0];
-      mapa.getCanvas().style.cursor = alvo && alvo.layer.id !== 'municipios-preenchimento' ? 'pointer' : '';
-      const municipio = alvo?.layer.id === 'municipios-preenchimento' ? alvo.id ?? null : null;
+      const alvo = mapa.queryRenderedFeatures(e.point, {
+        layers: clicaveis.filter((c) => mapa.getLayer(c)),
+      })[0];
+      mapa.getCanvas().style.cursor =
+        alvo && alvo.layer.id !== 'municipios-preenchimento' ? 'pointer' : '';
+      const municipio = alvo?.layer.id === 'municipios-preenchimento' ? (alvo.id ?? null) : null;
       if (municipio !== this.municipioEmDestaque) {
         if (this.municipioEmDestaque != null) {
-          mapa.setFeatureState({ source: 'municipios', id: this.municipioEmDestaque }, { destaque: false });
+          mapa.setFeatureState(
+            { source: 'municipios', id: this.municipioEmDestaque },
+            { destaque: false },
+          );
         }
         if (municipio != null) {
           mapa.setFeatureState({ source: 'municipios', id: municipio }, { destaque: true });
@@ -463,7 +591,9 @@ export class Mapa {
       return;
     }
     const alvo: MapGeoJSONFeature | undefined = mapa.queryRenderedFeatures(e.point, {
-      layers: clicaveis.filter((c) => mapa.getLayer(c) && mapa.getLayoutProperty(c, 'visibility') !== 'none'),
+      layers: clicaveis.filter(
+        (c) => mapa.getLayer(c) && mapa.getLayoutProperty(c, 'visibility') !== 'none',
+      ),
     })[0];
     if (!alvo) {
       this.fecharSelecao();
@@ -480,13 +610,18 @@ export class Mapa {
       }
     } else if (camada === 'operacionais') {
       const p = alvo.properties;
-      const tipo = p['tipo'] === 'ETE' ? 'Estação de tratamento de esgoto' : 'Estação elevatória de esgoto';
-      this.selecionar({ tipo: 'operacional', nome: p['nome'] as string, descricao: tipo },
-        (alvo.geometry as Point).coordinates as [number, number]);
+      const tipo =
+        p['tipo'] === 'ETE' ? 'Estação de tratamento de esgoto' : 'Estação elevatória de esgoto';
+      this.selecionar(
+        { tipo: 'operacional', nome: p['nome'] as string, descricao: tipo },
+        (alvo.geometry as Point).coordinates as [number, number],
+      );
     } else if (camada === 'imoveis') {
       void this.buscarImoveis(e.lngLat.lng, e.lngLat.lat);
     } else {
-      const municipio = this.camadasMapa()?.municipios.find((m) => m.unidadeId === alvo.properties['unidadeId']);
+      const municipio = this.camadasMapa()?.municipios.find(
+        (m) => m.unidadeId === alvo.properties['unidadeId'],
+      );
       if (municipio) {
         this.selecionar({ tipo: 'municipio', municipio }, null);
       }
@@ -498,21 +633,30 @@ export class Mapa {
     const camadas = this.camadas();
     this.selecionar({ tipo: 'imoveis', carregando: true, imoveis: [] }, [longitude, latitude]);
     const params: Record<string, string | string[]> = {
-      longitude: String(longitude), latitude: String(latitude),
+      longitude: String(longitude),
+      latitude: String(latitude),
       raio: String(raioDoClique(mapa.getZoom(), latitude)),
-      situacoes: camadas.situacoes, aproximadas: String(camadas.aproximadas),
+      situacoes: camadas.situacoes,
+      aproximadas: String(camadas.aproximadas),
     };
     if (this.competenciaAtual()) {
       params['competencia'] = this.competenciaAtual()!;
     }
     try {
-      const imoveis = await firstValueFrom(this.http.get<ImovelNoPonto[]>('/api/v1/mapa/imoveis', { params }));
+      const imoveis = await firstValueFrom(
+        this.http.get<ImovelNoPonto[]>('/api/v1/mapa/imoveis', { params }),
+      );
       this.selecao.set({ tipo: 'imoveis', carregando: false, imoveis });
       if (imoveis[0]) {
         this.mostrarSelecao([imoveis[0].longitude, imoveis[0].latitude]);
       }
     } catch (falha) {
-      this.selecao.set({ tipo: 'imoveis', carregando: false, imoveis: [], erro: mensagemDeErro(falha) });
+      this.selecao.set({
+        tipo: 'imoveis',
+        carregando: false,
+        imoveis: [],
+        erro: mensagemDeErro(falha),
+      });
     }
   }
 
@@ -524,7 +668,9 @@ export class Mapa {
   private mostrarSelecao(ponto: [number, number] | null): void {
     (this.mapa?.getSource('selecao') as GeoJSONSource | undefined)?.setData({
       type: 'FeatureCollection',
-      features: ponto ? [{ type: 'Feature', geometry: { type: 'Point', coordinates: ponto }, properties: {} }] : [],
+      features: ponto
+        ? [{ type: 'Feature', geometry: { type: 'Point', coordinates: ponto }, properties: {} }]
+        : [],
     });
   }
 
@@ -555,24 +701,27 @@ export class Mapa {
     }
     const area = areaVisivel(mapa.getBounds());
     const pedido = ++this.pedidoMarcacoes;
-    this.http.get<MarcacaoMapa[]>('/api/v1/mapa/marcacoes', {
-      params: { oeste: area.oeste, sul: area.sul, leste: area.leste, norte: area.norte },
-    }).subscribe({
-      next: (marcacoes) => {
-        if (pedido !== this.pedidoMarcacoes) {
-          return;
-        }
-        this.marcacoes = marcacoes;
-        fonte.setData({
-          type: 'FeatureCollection',
-          features: marcacoes.map((m) => ({
-            type: 'Feature', geometry: { type: 'Point', coordinates: [m.longitude, m.latitude] },
-            properties: { id: m.id },
-          })),
-        });
-      },
-      error: () => undefined,
-    });
+    this.http
+      .get<MarcacaoMapa[]>('/api/v1/mapa/marcacoes', {
+        params: { oeste: area.oeste, sul: area.sul, leste: area.leste, norte: area.norte },
+      })
+      .subscribe({
+        next: (marcacoes) => {
+          if (pedido !== this.pedidoMarcacoes) {
+            return;
+          }
+          this.marcacoes = marcacoes;
+          fonte.setData({
+            type: 'FeatureCollection',
+            features: marcacoes.map((m) => ({
+              type: 'Feature',
+              geometry: { type: 'Point', coordinates: [m.longitude, m.latitude] },
+              properties: { id: m.id },
+            })),
+          });
+        },
+        error: () => undefined,
+      });
   }
 
   // ----- Apoio -----
@@ -580,7 +729,10 @@ export class Mapa {
   /** Token atual (a biblioteca o entrega de forma síncrona a partir do armazenamento da sessão). */
   private tokenAtual(): string {
     let token = '';
-    this.oidc.getAccessToken().subscribe((t) => (token = t)).unsubscribe();
+    this.oidc
+      .getAccessToken()
+      .subscribe((t) => (token = t))
+      .unsubscribe();
     return token;
   }
 
@@ -628,7 +780,9 @@ function arredondar(valor: number): number {
 }
 
 function fonteDosDados(): string {
-  return getComputedStyle(document.documentElement).getPropertyValue('--font-data').trim() || 'monospace';
+  return (
+    getComputedStyle(document.documentElement).getPropertyValue('--font-data').trim() || 'monospace'
+  );
 }
 
 /** Erros de download chegam como Blob: lê o Problem Details para mostrar a mensagem da API. */

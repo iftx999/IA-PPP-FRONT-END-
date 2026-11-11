@@ -1,5 +1,5 @@
 import { httpResource } from '@angular/common/http';
-import { Component, computed, inject } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, inject } from '@angular/core';
 import { MatButtonModule } from '@angular/material/button';
 import { MatDialog } from '@angular/material/dialog';
 import { MatSnackBar } from '@angular/material/snack-bar';
@@ -23,6 +23,7 @@ import {
  * últimos 30 dias. Feita para o celular: cartões, botão grande de resultado e o ponto no aplicativo de mapas.
  */
 @Component({
+  changeDetection: ChangeDetectionStrategy.OnPush,
   selector: 'aurora-minhas-ordens',
   imports: [MatButtonModule, Selo],
   templateUrl: './minhas-ordens.html',

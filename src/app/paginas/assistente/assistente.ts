@@ -2,7 +2,18 @@ import { Clipboard } from '@angular/cdk/clipboard';
 import { NgTemplateOutlet } from '@angular/common';
 import { HttpClient, httpResource } from '@angular/common/http';
 import {
-  Component, DestroyRef, ElementRef, TemplateRef, computed, effect, inject, input, linkedSignal, signal, untracked,
+  ChangeDetectionStrategy,
+  Component,
+  computed,
+  DestroyRef,
+  effect,
+  ElementRef,
+  inject,
+  input,
+  linkedSignal,
+  signal,
+  TemplateRef,
+  untracked,
   viewChild,
 } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
@@ -17,7 +28,10 @@ import { MatTooltipModule } from '@angular/material/tooltip';
 import { Router } from '@angular/router';
 import { debounceTime, distinctUntilChanged, firstValueFrom } from 'rxjs';
 import type {
-  ConversaAssistente, ConversaComMensagens, MensagemAssistente, SituacaoAssistente,
+  ConversaAssistente,
+  ConversaComMensagens,
+  MensagemAssistente,
+  SituacaoAssistente,
 } from '../../api/tipos';
 import { mensagemDeErro } from '../../nucleo/erro-api';
 import { dataEHora, haQuantoTempo } from '../../nucleo/formato';
@@ -37,10 +51,18 @@ const SUGESTOES = [
  * bases aparecem com aviso (G6).
  */
 @Component({
+  changeDetection: ChangeDetectionStrategy.OnPush,
   selector: 'aurora-assistente',
   imports: [
-    NgTemplateOutlet, ReactiveFormsModule, MatButtonModule, MatDialogModule, MatExpansionModule, MatFormFieldModule, MatInputModule,
-    MatProgressSpinnerModule, MatTooltipModule,
+    NgTemplateOutlet,
+    ReactiveFormsModule,
+    MatButtonModule,
+    MatDialogModule,
+    MatExpansionModule,
+    MatFormFieldModule,
+    MatInputModule,
+    MatProgressSpinnerModule,
+    MatTooltipModule,
   ],
   templateUrl: './assistente.html',
   styleUrl: './assistente.scss',
@@ -66,7 +88,9 @@ export class Assistente {
   protected readonly situacao = httpResource<SituacaoAssistente>(() =>
     this.podeUsar() ? '/api/v1/assistente/situacao' : undefined,
   );
-  protected readonly disponivel = computed(() => this.situacao.hasValue() && this.situacao.value().disponivel);
+  protected readonly disponivel = computed(
+    () => this.situacao.hasValue() && this.situacao.value().disponivel,
+  );
 
   protected readonly busca = new FormControl('', { nonNullable: true });
   private readonly termo = signal('');
@@ -79,14 +103,18 @@ export class Assistente {
   });
 
   protected readonly aberta = httpResource<ConversaComMensagens>(() =>
-    this.podeUsar() && this.conversa() ? `/api/v1/assistente/conversas/${this.conversa()}` : undefined,
+    this.podeUsar() && this.conversa()
+      ? `/api/v1/assistente/conversas/${this.conversa()}`
+      : undefined,
   );
   /** Mensagens da conversa aberta, acrescidas das trocas desta sessão sem recarregar. */
   protected readonly mensagens = linkedSignal<MensagemAssistente[]>(() =>
     this.conversa() && this.aberta.hasValue() ? this.aberta.value().mensagens : [],
   );
   protected readonly titulo = computed(() =>
-    this.conversa() && this.aberta.hasValue() ? this.aberta.value().conversa.titulo : 'Nova conversa',
+    this.conversa() && this.aberta.hasValue()
+      ? this.aberta.value().conversa.titulo
+      : 'Nova conversa',
   );
 
   protected readonly enviando = signal(false);
@@ -97,7 +125,10 @@ export class Assistente {
   protected readonly fonteAberta = signal<Record<string, number | null>>({});
 
   protected readonly formComposer = new FormGroup({
-    pergunta: new FormControl('', { nonNullable: true, validators: [Validators.required, Validators.maxLength(2000)] }),
+    pergunta: new FormControl('', {
+      nonNullable: true,
+      validators: [Validators.required, Validators.maxLength(2000)],
+    }),
   });
   protected readonly composer = this.formComposer.controls.pergunta;
   protected readonly formAvaliacao = new FormGroup({
@@ -134,13 +165,18 @@ export class Assistente {
   protected nova(): void {
     this.erro.set(null);
     this.composer.reset();
-    void this.router.navigate([], { queryParams: { conversa: null, unidade: null, pergunta: null }, queryParamsHandling: 'merge' });
+    void this.router.navigate([], {
+      queryParams: { conversa: null, unidade: null, pergunta: null },
+      queryParamsHandling: 'merge',
+    });
     queueMicrotask(() => this.campo()?.nativeElement.focus());
   }
 
   protected abrir(conversa: ConversaAssistente): void {
     this.erro.set(null);
-    void this.router.navigate([], { queryParams: { conversa: conversa.id, unidade: null, pergunta: null } });
+    void this.router.navigate([], {
+      queryParams: { conversa: conversa.id, unidade: null, pergunta: null },
+    });
   }
 
   protected usarSugestao(texto: string): void {
@@ -179,7 +215,9 @@ export class Assistente {
       if (troca.conversa.id !== this.conversa()) {
         // Conversa nova: entra na URL sem recarregar o que já está na tela.
         const atuais = this.mensagens();
-        await this.router.navigate([], { queryParams: { conversa: troca.conversa.id, unidade: null, pergunta: null } });
+        await this.router.navigate([], {
+          queryParams: { conversa: troca.conversa.id, unidade: null, pergunta: null },
+        });
         this.mensagens.set(atuais);
       }
     } catch (falha) {
@@ -192,7 +230,10 @@ export class Assistente {
   }
 
   protected alternarFonte(mensagem: MensagemAssistente, numero: number): void {
-    this.fonteAberta.update((atual) => ({ ...atual, [mensagem.id]: atual[mensagem.id] === numero ? null : numero }));
+    this.fonteAberta.update((atual) => ({
+      ...atual,
+      [mensagem.id]: atual[mensagem.id] === numero ? null : numero,
+    }));
   }
 
   protected copiar(mensagem: MensagemAssistente): void {
@@ -224,10 +265,21 @@ export class Assistente {
     this.dialogo?.close();
   }
 
-  private async avaliar(mensagem: MensagemAssistente, avaliacao: number, comentario: string | null): Promise<void> {
+  private async avaliar(
+    mensagem: MensagemAssistente,
+    avaliacao: number,
+    comentario: string | null,
+  ): Promise<void> {
     try {
-      await firstValueFrom(this.http.put(`/api/v1/assistente/mensagens/${mensagem.id}/avaliacao`, { avaliacao, comentario }));
-      this.mensagens.update((todas) => todas.map((m) => (m.id === mensagem.id ? { ...m, avaliacao } : m)));
+      await firstValueFrom(
+        this.http.put(`/api/v1/assistente/mensagens/${mensagem.id}/avaliacao`, {
+          avaliacao,
+          comentario,
+        }),
+      );
+      this.mensagens.update((todas) =>
+        todas.map((m) => (m.id === mensagem.id ? { ...m, avaliacao } : m)),
+      );
     } catch (falha) {
       this.erro.set(mensagemDeErro(falha));
     }

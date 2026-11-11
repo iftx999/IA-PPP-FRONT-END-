@@ -1,5 +1,13 @@
 import { HttpClient, httpResource } from '@angular/common/http';
-import { Component, TemplateRef, computed, inject, signal, viewChild } from '@angular/core';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  computed,
+  inject,
+  signal,
+  TemplateRef,
+  viewChild,
+} from '@angular/core';
 import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
 import { MatCheckboxModule } from '@angular/material/checkbox';
@@ -54,7 +62,9 @@ export function agruparPorArea(catalogo: Permissao[]): GrupoPermissoes[] {
     .map(([area, permissoes]) => ({
       area,
       rotulo: AREAS[area] ?? area,
-      permissoes: [...permissoes].sort((a, b) => peso(a) - peso(b) || a.codigo.localeCompare(b.codigo)),
+      permissoes: [...permissoes].sort(
+        (a, b) => peso(a) - peso(b) || a.codigo.localeCompare(b.codigo),
+      ),
     }));
 }
 
@@ -62,10 +72,18 @@ type Modo = 'novo' | 'editar' | 'ver';
 
 /** Perfis e permissões (H6, RN-16): matriz para comparar perfis e editor agrupado por área. */
 @Component({
+  changeDetection: ChangeDetectionStrategy.OnPush,
   selector: 'aurora-perfis',
   imports: [
-    ReactiveFormsModule, MatButtonModule, MatCheckboxModule, MatDialogModule, MatFormFieldModule, MatInputModule,
-    MatMenuModule, MatProgressSpinnerModule, MatTooltipModule,
+    ReactiveFormsModule,
+    MatButtonModule,
+    MatCheckboxModule,
+    MatDialogModule,
+    MatFormFieldModule,
+    MatInputModule,
+    MatMenuModule,
+    MatProgressSpinnerModule,
+    MatTooltipModule,
   ],
   templateUrl: './perfis.html',
   styleUrl: './perfis.scss',
@@ -77,8 +95,12 @@ export class Perfis {
 
   /** Só carrega com a permissão: sem ela a API responde 403 e a tela explica. */
   private readonly podeGerir = computed(() => this.sessao.pode(GERIR_USUARIOS));
-  protected readonly dadosCatalogo = httpResource<Permissao[]>(() => (this.podeGerir() ? '/api/v1/permissoes' : undefined));
-  protected readonly dadosPerfis = httpResource<Perfil[]>(() => (this.podeGerir() ? '/api/v1/perfis' : undefined));
+  protected readonly dadosCatalogo = httpResource<Permissao[]>(() =>
+    this.podeGerir() ? '/api/v1/permissoes' : undefined,
+  );
+  protected readonly dadosPerfis = httpResource<Perfil[]>(() =>
+    this.podeGerir() ? '/api/v1/perfis' : undefined,
+  );
 
   protected readonly grupos = computed(() =>
     this.dadosCatalogo.hasValue() ? agruparPorArea(this.dadosCatalogo.value()) : undefined,
@@ -95,8 +117,12 @@ export class Perfis {
     const lista = this.perfis() ?? [];
     return { total: lista.length, sistema: lista.filter((p) => p.sistema).length };
   });
-  protected readonly carregando = computed(() => this.dadosCatalogo.isLoading() || this.dadosPerfis.isLoading());
-  protected readonly falhou = computed(() => !!this.dadosCatalogo.error() || !!this.dadosPerfis.error());
+  protected readonly carregando = computed(
+    () => this.dadosCatalogo.isLoading() || this.dadosPerfis.isLoading(),
+  );
+  protected readonly falhou = computed(
+    () => !!this.dadosCatalogo.error() || !!this.dadosPerfis.error(),
+  );
 
   protected readonly fmt = { numero };
 
@@ -112,7 +138,10 @@ export class Perfis {
   protected readonly erro = signal<string | null>(null);
 
   protected readonly formulario = new FormGroup({
-    nome: new FormControl('', { nonNullable: true, validators: [Validators.required, Validators.maxLength(80)] }),
+    nome: new FormControl('', {
+      nonNullable: true,
+      validators: [Validators.required, Validators.maxLength(80)],
+    }),
     descricao: new FormControl('', { nonNullable: true, validators: [Validators.maxLength(300)] }),
   });
 
@@ -134,19 +163,29 @@ export class Perfis {
   }
 
   protected abrirEdicao(perfil: Perfil): void {
-    this.abrirEditor(perfil.sistema ? 'ver' : 'editar', perfil, {
-      nome: perfil.nome,
-      descricao: perfil.descricao ?? '',
-    }, perfil.permissoes);
+    this.abrirEditor(
+      perfil.sistema ? 'ver' : 'editar',
+      perfil,
+      {
+        nome: perfil.nome,
+        descricao: perfil.descricao ?? '',
+      },
+      perfil.permissoes,
+    );
   }
 
   /** Perfis do sistema não mudam: a forma de personalizar é partir de uma cópia. */
   protected duplicar(perfil: Perfil): void {
     this.dialogoAberto?.close();
-    this.abrirEditor('novo', null, {
-      nome: `Cópia de ${perfil.nome}`.slice(0, 80),
-      descricao: perfil.descricao ?? '',
-    }, perfil.permissoes);
+    this.abrirEditor(
+      'novo',
+      null,
+      {
+        nome: `Cópia de ${perfil.nome}`.slice(0, 80),
+        descricao: perfil.descricao ?? '',
+      },
+      perfil.permissoes,
+    );
   }
 
   protected abrirRemocao(perfil: Perfil): void {
@@ -207,7 +246,9 @@ export class Perfis {
     };
     const perfil = this.emEdicao();
     await this.enviar(() =>
-      perfil ? this.http.put(`/api/v1/perfis/${perfil.id}`, pedido) : this.http.post('/api/v1/perfis', pedido),
+      perfil
+        ? this.http.put(`/api/v1/perfis/${perfil.id}`, pedido)
+        : this.http.post('/api/v1/perfis', pedido),
     );
   }
 
@@ -222,7 +263,12 @@ export class Perfis {
     this.dialogoAberto?.close();
   }
 
-  private abrirEditor(modo: Modo, perfil: Perfil | null, valores: { nome: string; descricao: string }, permissoes: string[]): void {
+  private abrirEditor(
+    modo: Modo,
+    perfil: Perfil | null,
+    valores: { nome: string; descricao: string },
+    permissoes: string[],
+  ): void {
     this.erro.set(null);
     this.modo.set(modo);
     this.emEdicao.set(perfil);
@@ -233,7 +279,10 @@ export class Perfis {
     } else {
       this.formulario.enable();
     }
-    this.dialogoAberto = this.dialogos.open(this.modeloEditor(), { width: '720px', autoFocus: 'dialog' });
+    this.dialogoAberto = this.dialogos.open(this.modeloEditor(), {
+      width: '720px',
+      autoFocus: 'dialog',
+    });
   }
 
   private async enviar(requisicao: () => Observable<unknown>): Promise<void> {

@@ -1,13 +1,14 @@
 import { SelectionModel } from '@angular/cdk/collections';
 import { HttpClient, httpResource } from '@angular/common/http';
 import {
+  ChangeDetectionStrategy,
   Component,
-  TemplateRef,
   computed,
   effect,
   inject,
   input,
   signal,
+  TemplateRef,
   viewChild,
 } from '@angular/core';
 import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
@@ -84,6 +85,7 @@ function paginadorEmPortugues(): MatPaginatorIntl {
  * o link do alerta de divergência abrir já filtrado.
  */
 @Component({
+  changeDetection: ChangeDetectionStrategy.OnPush,
   selector: 'aurora-campanha',
   imports: [
     ReactiveFormsModule,

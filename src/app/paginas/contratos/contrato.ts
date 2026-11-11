@@ -1,5 +1,16 @@
 import { HttpClient, httpResource } from '@angular/common/http';
-import { Component, DestroyRef, TemplateRef, computed, effect, inject, input, signal, viewChild } from '@angular/core';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  computed,
+  DestroyRef,
+  effect,
+  inject,
+  input,
+  signal,
+  TemplateRef,
+  viewChild,
+} from '@angular/core';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { MatAutocompleteModule } from '@angular/material/autocomplete';
@@ -17,17 +28,38 @@ import { MatTooltipModule } from '@angular/material/tooltip';
 import { RouterLink } from '@angular/router';
 import { debounceTime, firstValueFrom, type Observable } from 'rxjs';
 import type {
-  AgendaDePrazo, DetalheContrato, DocumentoContrato, ItemContratual, PedidoItem, Recorrencia, StatusItem, TipoItem, Unidade,
+  AgendaDePrazo,
+  DetalheContrato,
+  DocumentoContrato,
+  ItemContratual,
+  PedidoItem,
+  Recorrencia,
+  StatusItem,
+  TipoItem,
+  Unidade,
 } from '../../api/tipos';
 import { deIso, paraIso } from '../../nucleo/datas';
 import { mensagemDeErro } from '../../nucleo/erro-api';
 import { data, dataEHora, haQuantoTempo, numero, percentual } from '../../nucleo/formato';
 import { SessaoService } from '../../nucleo/sessao';
-import { arvoreDeUnidades, filtrarUnidades, subarvore, type OpcaoUnidade } from '../../nucleo/unidades-arvore';
+import {
+  arvoreDeUnidades,
+  filtrarUnidades,
+  subarvore,
+  type OpcaoUnidade,
+} from '../../nucleo/unidades-arvore';
 import { Selo } from '../../ui/selo';
 import { VisualizadorPdf } from '../../ui/visualizador-pdf';
 import { RegraPenalidade } from './regra-penalidade';
-import { RECORRENCIAS, SITUACOES_DOCUMENTO, STATUS_ITEM, TIPOS_ITEM, referencia, situacaoDoPrazo, temVencimento } from './rotulos';
+import {
+  RECORRENCIAS,
+  SITUACOES_DOCUMENTO,
+  STATUS_ITEM,
+  TIPOS_ITEM,
+  referencia,
+  situacaoDoPrazo,
+  temVencimento,
+} from './rotulos';
 
 type Filtro = 'TODOS' | StatusItem;
 
@@ -56,17 +88,34 @@ export function diferencasDaIa(item: ItemContratual): Diferenca[] {
     ['Unidade', p['unidadeAlvo'], item.unidadeNome],
   ];
   return pares
-    .filter(([, ia, atual, numerico]) => (numerico ? num(ia) !== num(atual) : texto(ia) !== texto(atual)))
+    .filter(([, ia, atual, numerico]) =>
+      numerico ? num(ia) !== num(atual) : texto(ia) !== texto(atual),
+    )
     .map(([campo, ia]) => ({ campo, ia: texto(ia) }));
 }
 
 /** Detalhe do contrato (A1–A4): documentos, processamento e revisão dos itens ao lado do PDF. */
 @Component({
+  changeDetection: ChangeDetectionStrategy.OnPush,
   selector: 'aurora-contrato',
   imports: [
-    ReactiveFormsModule, RouterLink, MatButtonModule, MatButtonToggleModule, MatDialogModule, MatFormFieldModule,
-    MatInputModule, MatSelectModule, MatAutocompleteModule, MatDatepickerModule, MatMenuModule, MatTooltipModule,
-    MatProgressSpinnerModule, MatSnackBarModule, Selo, VisualizadorPdf, RegraPenalidade,
+    ReactiveFormsModule,
+    RouterLink,
+    MatButtonModule,
+    MatButtonToggleModule,
+    MatDialogModule,
+    MatFormFieldModule,
+    MatInputModule,
+    MatSelectModule,
+    MatAutocompleteModule,
+    MatDatepickerModule,
+    MatMenuModule,
+    MatTooltipModule,
+    MatProgressSpinnerModule,
+    MatSnackBarModule,
+    Selo,
+    VisualizadorPdf,
+    RegraPenalidade,
   ],
   templateUrl: './contrato.html',
   styleUrl: './contrato.scss',
@@ -82,12 +131,20 @@ export class ContratoPagina {
 
   protected readonly podeGerir = computed(() => this.sessao.pode('contrato:gerenciar'));
   protected readonly dados = httpResource<DetalheContrato>(() => `/api/v1/contratos/${this.id()}`);
-  protected readonly dadosItens = httpResource<ItemContratual[]>(() => `/api/v1/contratos/${this.id()}/itens`);
+  protected readonly dadosItens = httpResource<ItemContratual[]>(
+    () => `/api/v1/contratos/${this.id()}/itens`,
+  );
   private readonly dadosUnidades = httpResource<Unidade[]>(() => '/api/v1/unidades');
 
-  protected readonly detalhe = computed(() => (this.dados.hasValue() ? this.dados.value() : undefined));
-  protected readonly itens = computed(() => (this.dadosItens.hasValue() ? this.dadosItens.value() : undefined));
-  protected readonly naoEncontrado = computed(() => (this.dados.error() as { status?: number } | undefined)?.status === 404);
+  protected readonly detalhe = computed(() =>
+    this.dados.hasValue() ? this.dados.value() : undefined,
+  );
+  protected readonly itens = computed(() =>
+    this.dadosItens.hasValue() ? this.dadosItens.value() : undefined,
+  );
+  protected readonly naoEncontrado = computed(
+    () => (this.dados.error() as { status?: number } | undefined)?.status === 404,
+  );
   protected readonly processando = computed(() =>
     (this.detalhe()?.documentos ?? []).some((d) => SITUACOES_DOCUMENTO[d.situacao].andamento),
   );
@@ -95,7 +152,9 @@ export class ContratoPagina {
   protected readonly filtro = signal<Filtro | null>(null);
   /** Abre em "Para revisar" quando há pendências; senão, em "Todos". */
   protected readonly filtroEfetivo = computed<Filtro>(
-    () => this.filtro() ?? ((this.itens() ?? []).some((i) => i.status === 'PROPOSTO') ? 'PROPOSTO' : 'TODOS'),
+    () =>
+      this.filtro() ??
+      ((this.itens() ?? []).some((i) => i.status === 'PROPOSTO') ? 'PROPOSTO' : 'TODOS'),
   );
   protected readonly itensVisiveis = computed(() => {
     const f = this.filtroEfetivo();
@@ -104,7 +163,12 @@ export class ContratoPagina {
   protected readonly contagem = computed(() => {
     const lista = this.itens() ?? [];
     const conta = (s: StatusItem) => lista.filter((i) => i.status === s).length;
-    return { todos: lista.length, proposto: conta('PROPOSTO'), aprovado: conta('APROVADO'), rejeitado: conta('REJEITADO') };
+    return {
+      todos: lista.length,
+      proposto: conta('PROPOSTO'),
+      aprovado: conta('APROVADO'),
+      rejeitado: conta('REJEITADO'),
+    };
   });
 
   /** Unidades cobertas pelo contrato (alvo de metas). */
@@ -113,10 +177,15 @@ export class ContratoPagina {
     if (!raiz || !this.dadosUnidades.hasValue()) {
       return [];
     }
-    return arvoreDeUnidades(subarvore(this.dadosUnidades.value(), raiz)).filter((o) => o.tipo !== 'ETE' && o.tipo !== 'EEE');
+    return arvoreDeUnidades(subarvore(this.dadosUnidades.value(), raiz)).filter(
+      (o) => o.tipo !== 'ETE' && o.tipo !== 'EEE',
+    );
   });
 
-  protected readonly tipos = Object.entries(TIPOS_ITEM).map(([codigo, info]) => ({ codigo: codigo as TipoItem, ...info }));
+  protected readonly tipos = Object.entries(TIPOS_ITEM).map(([codigo, info]) => ({
+    codigo: codigo as TipoItem,
+    ...info,
+  }));
   protected readonly fmt = { data, dataEHora, haQuantoTempo, numero, percentual, referencia };
   protected readonly situacaoDoc = (d: DocumentoContrato) => SITUACOES_DOCUMENTO[d.situacao];
   protected readonly statusItem = (i: ItemContratual) => STATUS_ITEM[i.status];
@@ -132,7 +201,9 @@ export class ContratoPagina {
   }));
   /** ADR 0026: obrigações que o contrato diz que se repetem, mas ainda sem data para a Aurora acompanhar. */
   protected readonly recorrentesSemData = computed(
-    () => (this.itens() ?? []).filter((i) => temVencimento(i) && !i.agenda && i.recorrenciaSugerida).length,
+    () =>
+      (this.itens() ?? []).filter((i) => temVencimento(i) && !i.agenda && i.recorrenciaSugerida)
+        .length,
   );
 
   constructor() {
@@ -152,7 +223,9 @@ export class ContratoPagina {
   }
 
   // ----- Envio de documentos -----
-  protected readonly tipoDocumento = new FormControl<'ORIGINAL' | 'ANEXO' | 'ADITIVO'>('ORIGINAL', { nonNullable: true });
+  protected readonly tipoDocumento = new FormControl<'ORIGINAL' | 'ANEXO' | 'ADITIVO'>('ORIGINAL', {
+    nonNullable: true,
+  });
   protected readonly enviando = signal(false);
   protected readonly arrastando = signal(false);
 
@@ -184,12 +257,18 @@ export class ContratoPagina {
     this.enviando.set(true);
     try {
       await firstValueFrom(
-        this.http.post(`/api/v1/contratos/${this.id()}/documentos`, corpo, { params: { tipo: this.tipoDocumento.value } }),
+        this.http.post(`/api/v1/contratos/${this.id()}/documentos`, corpo, {
+          params: { tipo: this.tipoDocumento.value },
+        }),
       );
-      this.avisos.open(`${arquivo.name} enviado. A leitura começou.`, undefined, { duration: 4000 });
+      this.avisos.open(`${arquivo.name} enviado. A leitura começou.`, undefined, {
+        duration: 4000,
+      });
       this.dados.reload();
     } catch (falha) {
-      this.avisos.open(mensagemDeErro(falha, 'Não foi possível enviar o arquivo.'), 'Fechar', { duration: 8000 });
+      this.avisos.open(mensagemDeErro(falha, 'Não foi possível enviar o arquivo.'), 'Fechar', {
+        duration: 8000,
+      });
     } finally {
       this.enviando.set(false);
     }
@@ -197,7 +276,9 @@ export class ContratoPagina {
 
   protected async reprocessar(d: DocumentoContrato): Promise<void> {
     try {
-      await firstValueFrom(this.http.post(`/api/v1/contratos/documentos/${d.id}/processamento`, null));
+      await firstValueFrom(
+        this.http.post(`/api/v1/contratos/documentos/${d.id}/processamento`, null),
+      );
       this.avisos.open(`Reprocessando ${d.titulo}.`, undefined, { duration: 4000 });
       this.dados.reload();
     } catch (falha) {
@@ -228,7 +309,9 @@ export class ContratoPagina {
     this.erroPdf.set(false);
     try {
       const dados = await firstValueFrom(
-        this.http.get(`/api/v1/contratos/documentos/${documento}/arquivo`, { responseType: 'arraybuffer' }),
+        this.http.get(`/api/v1/contratos/documentos/${documento}/arquivo`, {
+          responseType: 'arraybuffer',
+        }),
       );
       this.pdfs.set(documento, dados);
       return dados;
@@ -260,7 +343,10 @@ export class ContratoPagina {
   protected readonly salvando = signal(false);
   protected readonly erro = signal<string | null>(null);
   protected readonly rejeitando = signal(false);
-  protected readonly motivo = new FormControl('', { nonNullable: true, validators: [Validators.required, Validators.minLength(3)] });
+  protected readonly motivo = new FormControl('', {
+    nonNullable: true,
+    validators: [Validators.required, Validators.minLength(3)],
+  });
 
   /** ADR 0026: quando o prazo ou a obrigação aprovado vence e se repete ('UNICA' = não se repete). */
   protected readonly agendaForm = new FormGroup({
@@ -272,31 +358,61 @@ export class ContratoPagina {
   protected readonly formulario = new FormGroup({
     documentoId: new FormControl<string | null>(null, Validators.required),
     tipo: new FormControl<TipoItem>('OBRIGACAO', { nonNullable: true }),
-    titulo: new FormControl('', { nonNullable: true, validators: [Validators.required, Validators.maxLength(200)] }),
-    resumo: new FormControl('', { nonNullable: true, validators: [Validators.required, Validators.maxLength(2000)] }),
+    titulo: new FormControl('', {
+      nonNullable: true,
+      validators: [Validators.required, Validators.maxLength(200)],
+    }),
+    resumo: new FormControl('', {
+      nonNullable: true,
+      validators: [Validators.required, Validators.maxLength(2000)],
+    }),
     clausula: new FormControl('', { nonNullable: true, validators: [Validators.maxLength(40)] }),
-    pagina: new FormControl<number>(1, { nonNullable: true, validators: [Validators.required, Validators.min(1)] }),
-    trecho: new FormControl('', { nonNullable: true, validators: [Validators.required, Validators.maxLength(4000)] }),
+    pagina: new FormControl<number>(1, {
+      nonNullable: true,
+      validators: [Validators.required, Validators.min(1)],
+    }),
+    trecho: new FormControl('', {
+      nonNullable: true,
+      validators: [Validators.required, Validators.maxLength(4000)],
+    }),
     valorReferencia: new FormControl<number | null>(null),
-    unidadeMedida: new FormControl('', { nonNullable: true, validators: [Validators.maxLength(40)] }),
+    unidadeMedida: new FormControl('', {
+      nonNullable: true,
+      validators: [Validators.maxLength(40)],
+    }),
     dataLimite: new FormControl<Date | null>(null),
-    periodicidade: new FormControl('', { nonNullable: true, validators: [Validators.maxLength(60)] }),
+    periodicidade: new FormControl('', {
+      nonNullable: true,
+      validators: [Validators.maxLength(60)],
+    }),
     unidade: new FormControl<OpcaoUnidade | string | null>(null),
     valorAlerta: new FormControl<number | null>(null, [Validators.min(0), Validators.max(100)]),
     vigenciaInicio: new FormControl<Date | null>(null),
   });
-  private readonly tipoEscolhido = toSignal(this.formulario.controls.tipo.valueChanges, { initialValue: 'OBRIGACAO' as TipoItem });
+  private readonly tipoEscolhido = toSignal(this.formulario.controls.tipo.valueChanges, {
+    initialValue: 'OBRIGACAO' as TipoItem,
+  });
   protected readonly ehMeta = computed(() => this.tipoEscolhido() === 'META');
   /** O trecho digitado é destacado no PDF enquanto a pessoa revisa. */
-  protected readonly trechoAtual = toSignal(this.formulario.controls.trecho.valueChanges.pipe(debounceTime(300)), { initialValue: '' });
-  private readonly textoUnidade = toSignal(this.formulario.controls.unidade.valueChanges, { initialValue: null });
+  protected readonly trechoAtual = toSignal(
+    this.formulario.controls.trecho.valueChanges.pipe(debounceTime(300)),
+    { initialValue: '' },
+  );
+  private readonly textoUnidade = toSignal(this.formulario.controls.unidade.valueChanges, {
+    initialValue: null,
+  });
   protected readonly opcoesUnidade = computed(() => {
     const texto = this.textoUnidade();
-    return typeof texto === 'string' ? filtrarUnidades(this.unidadesDoContrato(), texto) : this.unidadesDoContrato();
+    return typeof texto === 'string'
+      ? filtrarUnidades(this.unidadesDoContrato(), texto)
+      : this.unidadesDoContrato();
   });
-  protected readonly exibirUnidade = (o: OpcaoUnidade | string | null) => (o && typeof o === 'object' ? o.caminho : (o ?? ''));
+  protected readonly exibirUnidade = (o: OpcaoUnidade | string | null) =>
+    o && typeof o === 'object' ? o.caminho : (o ?? '');
   protected readonly documentosParaItem = computed(() =>
-    (this.detalhe()?.documentos ?? []).filter((d) => !SITUACOES_DOCUMENTO[d.situacao].andamento && d.situacao !== 'FALHA'),
+    (this.detalhe()?.documentos ?? []).filter(
+      (d) => !SITUACOES_DOCUMENTO[d.situacao].andamento && d.situacao !== 'FALHA',
+    ),
   );
 
   /** A5: título do item do aditivo que substituiu outro. */
@@ -362,7 +478,10 @@ export class ContratoPagina {
       () =>
         item
           ? this.http.put(`/api/v1/contratos/itens/${item.id}`, pedido)
-          : this.http.post(`/api/v1/contratos/${this.id()}/itens`, { documentoId: this.formulario.controls.documentoId.value, item: pedido }),
+          : this.http.post(`/api/v1/contratos/${this.id()}/itens`, {
+              documentoId: this.formulario.controls.documentoId.value,
+              item: pedido,
+            }),
       item ? 'Alterações salvas.' : 'Item cadastrado. Ele ainda precisa ser aprovado.',
     );
   }
@@ -375,12 +494,17 @@ export class ContratoPagina {
       return;
     }
     const alterado = this.formulario.dirty;
-    await this.enviarRevisao(async () => {
-      if (alterado) {
-        await firstValueFrom(this.http.put(`/api/v1/contratos/itens/${item.id}`, pedido));
-      }
-      return this.http.post(`/api/v1/contratos/itens/${item.id}/aprovacao`, null);
-    }, item.tipo === 'META' || pedido.tipo === 'META' ? 'Item aprovado e meta criada.' : 'Item aprovado.');
+    await this.enviarRevisao(
+      async () => {
+        if (alterado) {
+          await firstValueFrom(this.http.put(`/api/v1/contratos/itens/${item.id}`, pedido));
+        }
+        return this.http.post(`/api/v1/contratos/itens/${item.id}/aprovacao`, null);
+      },
+      item.tipo === 'META' || pedido.tipo === 'META'
+        ? 'Item aprovado e meta criada.'
+        : 'Item aprovado.',
+    );
   }
 
   protected async rejeitar(): Promise<void> {
@@ -397,7 +521,10 @@ export class ContratoPagina {
       return;
     }
     await this.enviarRevisao(
-      () => this.http.post(`/api/v1/contratos/itens/${item.id}/rejeicao`, { motivo: this.motivo.value.trim() }),
+      () =>
+        this.http.post(`/api/v1/contratos/itens/${item.id}/rejeicao`, {
+          motivo: this.motivo.value.trim(),
+        }),
       'Item rejeitado.',
     );
   }
@@ -414,11 +541,14 @@ export class ContratoPagina {
     }
     const url = `/api/v1/contratos/itens/${item.id}/cumprimento`;
     await this.alterarAgenda(
-      () => (cumprido ? this.http.post<AgendaDePrazo>(url, null) : this.http.delete<AgendaDePrazo>(url)),
+      () =>
+        cumprido ? this.http.post<AgendaDePrazo>(url, null) : this.http.delete<AgendaDePrazo>(url),
       (agenda) =>
         cumprido
           ? `Vencimento de ${data(vencimento + 'T12:00:00')} cumprido.` +
-            (agenda.proximoVencimento ? ` Próximo: ${data(agenda.proximoVencimento + 'T12:00:00')}.` : '')
+            (agenda.proximoVencimento
+              ? ` Próximo: ${data(agenda.proximoVencimento + 'T12:00:00')}.`
+              : '')
           : 'Último cumprimento desfeito.',
     );
   }
@@ -426,7 +556,9 @@ export class ContratoPagina {
   protected abrirEdicaoAgenda(item: ItemContratual): void {
     this.agendaForm.reset({
       primeiroVencimento: deIso(item.agenda?.primeiroVencimento ?? item.dataLimite ?? null),
-      recorrencia: item.agenda ? (item.agenda.recorrencia ?? 'UNICA') : (item.recorrenciaSugerida ?? 'UNICA'),
+      recorrencia: item.agenda
+        ? (item.agenda.recorrencia ?? 'UNICA')
+        : (item.recorrenciaSugerida ?? 'UNICA'),
     });
     this.editandoAgenda.set(true);
   }
@@ -438,7 +570,10 @@ export class ContratoPagina {
       return;
     }
     const v = this.agendaForm.getRawValue();
-    const pedido = { primeiroVencimento: paraIso(v.primeiroVencimento), recorrencia: v.recorrencia === 'UNICA' ? null : v.recorrencia };
+    const pedido = {
+      primeiroVencimento: paraIso(v.primeiroVencimento),
+      recorrencia: v.recorrencia === 'UNICA' ? null : v.recorrencia,
+    };
     await this.alterarAgenda(
       () => this.http.put<AgendaDePrazo>(`/api/v1/contratos/itens/${item.id}/agenda`, pedido),
       (agenda) =>
@@ -449,7 +584,10 @@ export class ContratoPagina {
   }
 
   /** Agenda muda sem fechar o diálogo: o item aberto e a lista refletem a resposta. */
-  private async alterarAgenda(acao: () => Observable<AgendaDePrazo>, sucesso: (a: AgendaDePrazo) => string): Promise<void> {
+  private async alterarAgenda(
+    acao: () => Observable<AgendaDePrazo>,
+    sucesso: (a: AgendaDePrazo) => string,
+  ): Promise<void> {
     const item = this.emRevisao();
     this.salvando.set(true);
     this.erro.set(null);
@@ -512,7 +650,10 @@ export class ContratoPagina {
     };
   }
 
-  private async enviarRevisao(acao: () => Observable<unknown> | Promise<Observable<unknown>>, sucesso: string): Promise<void> {
+  private async enviarRevisao(
+    acao: () => Observable<unknown> | Promise<Observable<unknown>>,
+    sucesso: string,
+  ): Promise<void> {
     this.salvando.set(true);
     this.erro.set(null);
     try {

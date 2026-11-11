@@ -1,6 +1,14 @@
 import { Clipboard } from '@angular/cdk/clipboard';
 import { HttpClient, httpResource } from '@angular/common/http';
-import { Component, TemplateRef, computed, inject, signal, viewChild } from '@angular/core';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  computed,
+  inject,
+  signal,
+  TemplateRef,
+  viewChild,
+} from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
@@ -14,7 +22,14 @@ import { MatSlideToggleModule } from '@angular/material/slide-toggle';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { debounceTime, firstValueFrom } from 'rxjs';
-import type { CredencialApi, CredencialGerada, ExecucaoApi, FonteApi, PedidoFonte, ResultadoCarga } from '../../api/tipos';
+import type {
+  CredencialApi,
+  CredencialGerada,
+  ExecucaoApi,
+  FonteApi,
+  PedidoFonte,
+  ResultadoCarga,
+} from '../../api/tipos';
 import { AlertasService } from '../../nucleo/alertas';
 import { mensagemDeErro } from '../../nucleo/erro-api';
 import { filtrosNaUrl } from '../../nucleo/filtros';
@@ -35,7 +50,11 @@ export function filtrarFontes(
       (!t || semAcento(`${x.nome} ${x.sistemaOrigem ?? ''}`).includes(t)) &&
       (!f.tipo || x.tipo === f.tipo) &&
       (!f.situacao ||
-        (f.situacao === 'INATIVA' ? !x.ativo : f.situacao === 'ATRASADA' ? x.ativo && x.atrasada : x.ativo && !x.atrasada)),
+        (f.situacao === 'INATIVA'
+          ? !x.ativo
+          : f.situacao === 'ATRASADA'
+            ? x.ativo && x.atrasada
+            : x.ativo && !x.atrasada)),
   );
 }
 
@@ -57,7 +76,10 @@ export function atraso(horas: number): string {
 }
 
 /** As últimas competências, da atual para trás ("2026-10" → "out/2026"). */
-export function ultimasCompetencias(quantidade: number, hoje = new Date()): { valor: string; rotulo: string }[] {
+export function ultimasCompetencias(
+  quantidade: number,
+  hoje = new Date(),
+): { valor: string; rotulo: string }[] {
   return Array.from({ length: quantidade }, (_, i) => {
     const d = new Date(hoje.getFullYear(), hoje.getMonth() - i, 1);
     const valor = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
@@ -66,7 +88,8 @@ export function ultimasCompetencias(quantidade: number, hoje = new Date()): { va
 }
 
 /** Modelo do CSV de carga (o mesmo formato que o servidor lê). */
-export const MODELO_CSV = 'matricula;unidade;situacao\n100001;CA-CENTRO;LIGADO\n100002;CA-CENTRO;FACTIVEL\n100003;CB-SUL;CORTADO\n100004;CB-SUL;POTENCIAL\n';
+export const MODELO_CSV =
+  'matricula;unidade;situacao\n100001;CA-CENTRO;LIGADO\n100002;CA-CENTRO;FACTIVEL\n100003;CB-SUL;CORTADO\n100004;CB-SUL;POTENCIAL\n';
 
 export function situacaoFonte(f: FonteApi): { rotulo: string; tom: Tom } {
   if (!f.ativo) {
@@ -83,10 +106,21 @@ export function situacaoFonte(f: FonteApi): { rotulo: string; tom: Tom } {
 
 /** Integrações e cargas (H3, S11, RN-08). */
 @Component({
+  changeDetection: ChangeDetectionStrategy.OnPush,
   selector: 'aurora-integracoes',
   imports: [
-    ReactiveFormsModule, MatButtonModule, MatDialogModule, MatFormFieldModule, MatInputModule, MatSelectModule,
-    MatSlideToggleModule, MatMenuModule, MatTooltipModule, MatProgressSpinnerModule, MatSnackBarModule, Selo,
+    ReactiveFormsModule,
+    MatButtonModule,
+    MatDialogModule,
+    MatFormFieldModule,
+    MatInputModule,
+    MatSelectModule,
+    MatSlideToggleModule,
+    MatMenuModule,
+    MatTooltipModule,
+    MatProgressSpinnerModule,
+    MatSnackBarModule,
+    Selo,
   ],
   templateUrl: './integracoes.html',
   styleUrl: './integracoes.scss',
@@ -100,14 +134,25 @@ export class Integracoes {
   protected readonly sessao = inject(SessaoService);
 
   private readonly podeGerir = computed(() => this.sessao.pode('integracao:gerenciar'));
-  protected readonly dados = httpResource<FonteApi[]>(() => (this.podeGerir() ? '/api/v1/integracoes/fontes' : undefined));
-  protected readonly fontes = computed(() => (this.dados.hasValue() ? this.dados.value() : undefined));
+  protected readonly dados = httpResource<FonteApi[]>(() =>
+    this.podeGerir() ? '/api/v1/integracoes/fontes' : undefined,
+  );
+  protected readonly fontes = computed(() =>
+    this.dados.hasValue() ? this.dados.value() : undefined,
+  );
   protected readonly resumo = computed(() => {
     const lista = this.fontes() ?? [];
-    return { total: lista.length, atrasadas: lista.filter((f) => f.atrasada).length, inativas: lista.filter((f) => !f.ativo).length };
+    return {
+      total: lista.length,
+      atrasadas: lista.filter((f) => f.atrasada).length,
+      inativas: lista.filter((f) => !f.ativo).length,
+    };
   });
 
-  protected readonly tipos = Object.entries(TIPOS_FONTE).map(([codigo, rotulo]) => ({ codigo: codigo as FonteApi['tipo'], rotulo }));
+  protected readonly tipos = Object.entries(TIPOS_FONTE).map(([codigo, rotulo]) => ({
+    codigo: codigo as FonteApi['tipo'],
+    rotulo,
+  }));
   protected readonly fmt = { competenciaCurta, data, dataEHora, haQuantoTempo, numero, atraso };
   protected readonly situacao = situacaoFonte;
   protected readonly rotuloTipo = (t: FonteApi['tipo']) => TIPOS_FONTE[t];
@@ -115,10 +160,17 @@ export class Integracoes {
   // ----- Filtros (na URL) -----
   protected readonly filtros = filtrosNaUrl(['busca', 'tipo', 'situacao']);
   protected readonly busca = new FormControl(this.filtros.inicial('busca'), { nonNullable: true });
-  protected readonly filtroTipo = computed(() => this.filtros.valor('tipo') as FonteApi['tipo'] | null);
-  protected readonly filtroSituacao = computed(() => this.filtros.valor('situacao') as SituacaoFiltroFonte | null);
+  protected readonly filtroTipo = computed(
+    () => this.filtros.valor('tipo') as FonteApi['tipo'] | null,
+  );
+  protected readonly filtroSituacao = computed(
+    () => this.filtros.valor('situacao') as SituacaoFiltroFonte | null,
+  );
   protected readonly filtrando = computed(() => this.filtros.ativos() > 0);
-  protected readonly tiposFonte = Object.entries(TIPOS_FONTE).map(([valor, rotulo]) => ({ valor, rotulo }));
+  protected readonly tiposFonte = Object.entries(TIPOS_FONTE).map(([valor, rotulo]) => ({
+    valor,
+    rotulo,
+  }));
   protected readonly visiveis = computed(() =>
     filtrarFontes(this.fontes() ?? [], {
       termo: this.filtros.valor('busca') ?? '',
@@ -141,7 +193,8 @@ export class Integracoes {
   // ----- Diálogos -----
   private readonly modeloFonte = viewChild.required<TemplateRef<unknown>>('modeloFonte');
   private readonly modeloHistorico = viewChild.required<TemplateRef<unknown>>('modeloHistorico');
-  private readonly modeloCredenciais = viewChild.required<TemplateRef<unknown>>('modeloCredenciais');
+  private readonly modeloCredenciais =
+    viewChild.required<TemplateRef<unknown>>('modeloCredenciais');
   private readonly modeloCarga = viewChild.required<TemplateRef<unknown>>('modeloCarga');
   private dialogoAberto?: MatDialogRef<unknown>;
 
@@ -149,11 +202,20 @@ export class Integracoes {
   protected readonly salvando = signal(false);
   protected readonly erro = signal<string | null>(null);
   protected readonly formulario = new FormGroup({
-    nome: new FormControl('', { nonNullable: true, validators: [Validators.required, Validators.maxLength(120)] }),
+    nome: new FormControl('', {
+      nonNullable: true,
+      validators: [Validators.required, Validators.maxLength(120)],
+    }),
     tipo: new FormControl<FonteApi['tipo']>('AGENTE', { nonNullable: true }),
-    sistemaOrigem: new FormControl('', { nonNullable: true, validators: [Validators.maxLength(120)] }),
+    sistemaOrigem: new FormControl('', {
+      nonNullable: true,
+      validators: [Validators.maxLength(120)],
+    }),
     frequencia: new FormControl('', { nonNullable: true, validators: [Validators.maxLength(60)] }),
-    atraso: new FormControl(2, { nonNullable: true, validators: [Validators.required, Validators.min(1)] }),
+    atraso: new FormControl(2, {
+      nonNullable: true,
+      validators: [Validators.required, Validators.min(1)],
+    }),
     unidadeAtraso: new FormControl<'horas' | 'dias'>('dias', { nonNullable: true }),
     ativo: new FormControl(true, { nonNullable: true }),
   });
@@ -164,7 +226,9 @@ export class Integracoes {
 
   // ----- Carga por arquivo -----
   protected readonly competencias = ultimasCompetencias(24);
-  protected readonly competencia = new FormControl(this.competencias[1]!.valor, { nonNullable: true });
+  protected readonly competencia = new FormControl(this.competencias[1]!.valor, {
+    nonNullable: true,
+  });
   /** Só para o (ngSubmit): sem [formGroup] o envio seria o submit nativo. */
   protected readonly formCarga = new FormGroup({ competencia: this.competencia });
   protected readonly arquivoCarga = signal<File | null>(null);
@@ -173,8 +237,19 @@ export class Integracoes {
   protected abrirNova(): void {
     this.erro.set(null);
     this.emEdicao.set(null);
-    this.formulario.reset({ nome: '', tipo: 'AGENTE', sistemaOrigem: '', frequencia: '', atraso: 2, unidadeAtraso: 'dias', ativo: true });
-    this.dialogoAberto = this.dialogos.open(this.modeloFonte(), { width: '560px', autoFocus: 'first-tabbable' });
+    this.formulario.reset({
+      nome: '',
+      tipo: 'AGENTE',
+      sistemaOrigem: '',
+      frequencia: '',
+      atraso: 2,
+      unidadeAtraso: 'dias',
+      ativo: true,
+    });
+    this.dialogoAberto = this.dialogos.open(this.modeloFonte(), {
+      width: '560px',
+      autoFocus: 'first-tabbable',
+    });
   }
 
   protected abrirEdicao(f: FonteApi): void {
@@ -182,10 +257,18 @@ export class Integracoes {
     this.emEdicao.set(f);
     const emDias = f.atrasoMaximoHoras % 24 === 0;
     this.formulario.reset({
-      nome: f.nome, tipo: f.tipo, sistemaOrigem: f.sistemaOrigem ?? '', frequencia: f.frequencia ?? '',
-      atraso: emDias ? f.atrasoMaximoHoras / 24 : f.atrasoMaximoHoras, unidadeAtraso: emDias ? 'dias' : 'horas', ativo: f.ativo,
+      nome: f.nome,
+      tipo: f.tipo,
+      sistemaOrigem: f.sistemaOrigem ?? '',
+      frequencia: f.frequencia ?? '',
+      atraso: emDias ? f.atrasoMaximoHoras / 24 : f.atrasoMaximoHoras,
+      unidadeAtraso: emDias ? 'dias' : 'horas',
+      ativo: f.ativo,
     });
-    this.dialogoAberto = this.dialogos.open(this.modeloFonte(), { width: '560px', autoFocus: 'first-tabbable' });
+    this.dialogoAberto = this.dialogos.open(this.modeloFonte(), {
+      width: '560px',
+      autoFocus: 'first-tabbable',
+    });
   }
 
   protected async salvar(): Promise<void> {
@@ -206,9 +289,15 @@ export class Integracoes {
     this.salvando.set(true);
     this.erro.set(null);
     try {
-      await firstValueFrom(f ? this.http.put(`/api/v1/integracoes/fontes/${f.id}`, pedido) : this.http.post('/api/v1/integracoes/fontes', pedido));
+      await firstValueFrom(
+        f
+          ? this.http.put(`/api/v1/integracoes/fontes/${f.id}`, pedido)
+          : this.http.post('/api/v1/integracoes/fontes', pedido),
+      );
       this.dialogoAberto?.close();
-      this.avisos.open(f ? 'Fonte atualizada.' : 'Fonte cadastrada.', undefined, { duration: 4000 });
+      this.avisos.open(f ? 'Fonte atualizada.' : 'Fonte cadastrada.', undefined, {
+        duration: 4000,
+      });
       this.dados.reload();
       this.alertas.resumo.reload();
     } catch (falha) {
@@ -222,7 +311,11 @@ export class Integracoes {
     this.emEdicao.set(f);
     this.execucoes.set(null);
     this.dialogoAberto = this.dialogos.open(this.modeloHistorico(), { width: '920px' });
-    this.execucoes.set(await firstValueFrom(this.http.get<ExecucaoApi[]>(`/api/v1/integracoes/fontes/${f.id}/execucoes`)).catch(() => []));
+    this.execucoes.set(
+      await firstValueFrom(
+        this.http.get<ExecucaoApi[]>(`/api/v1/integracoes/fontes/${f.id}/execucoes`),
+      ).catch(() => []),
+    );
   }
 
   protected async abrirCredenciais(f: FonteApi): Promise<void> {
@@ -241,7 +334,11 @@ export class Integracoes {
     this.salvando.set(true);
     this.erro.set(null);
     try {
-      this.chaveGerada.set(await firstValueFrom(this.http.post<CredencialGerada>(`/api/v1/integracoes/fontes/${f.id}/credenciais`, null)));
+      this.chaveGerada.set(
+        await firstValueFrom(
+          this.http.post<CredencialGerada>(`/api/v1/integracoes/fontes/${f.id}/credenciais`, null),
+        ),
+      );
       await this.carregarCredenciais(f);
       this.dados.reload();
     } catch (falha) {
@@ -254,8 +351,14 @@ export class Integracoes {
   protected async revogar(c: CredencialApi): Promise<void> {
     const f = this.emEdicao();
     try {
-      await firstValueFrom(this.http.post(`/api/v1/integracoes/credenciais/${c.prefixo}/revogacao`, null));
-      this.avisos.open(`Credencial ${c.prefixo} revogada. O agente que a usava deixa de enviar dados.`, undefined, { duration: 5000 });
+      await firstValueFrom(
+        this.http.post(`/api/v1/integracoes/credenciais/${c.prefixo}/revogacao`, null),
+      );
+      this.avisos.open(
+        `Credencial ${c.prefixo} revogada. O agente que a usava deixa de enviar dados.`,
+        undefined,
+        { duration: 5000 },
+      );
       if (f) {
         await this.carregarCredenciais(f);
       }
@@ -266,8 +369,15 @@ export class Integracoes {
   }
 
   protected duracao(inicio: string, fim: string): string {
-    const segundos = Math.max(0, Math.round((new Date(fim).getTime() - new Date(inicio).getTime()) / 1000));
-    return segundos < 60 ? `${segundos} s` : segundos < 3600 ? `${Math.round(segundos / 60)} min` : `${(segundos / 3600).toFixed(1).replace('.', ',')} h`;
+    const segundos = Math.max(
+      0,
+      Math.round((new Date(fim).getTime() - new Date(inicio).getTime()) / 1000),
+    );
+    return segundos < 60
+      ? `${segundos} s`
+      : segundos < 3600
+        ? `${Math.round(segundos / 60)} min`
+        : `${(segundos / 3600).toFixed(1).replace('.', ',')} h`;
   }
 
   protected abrirCarga(f: FonteApi): void {
@@ -288,7 +398,9 @@ export class Integracoes {
   }
 
   protected baixarModelo(): void {
-    const url = URL.createObjectURL(new Blob(['\uFEFF' + MODELO_CSV], { type: 'text/csv;charset=utf-8' }));
+    const url = URL.createObjectURL(
+      new Blob(['\uFEFF' + MODELO_CSV], { type: 'text/csv;charset=utf-8' }),
+    );
     const link = document.createElement('a');
     link.href = url;
     link.download = 'modelo-carga.csv';
@@ -336,6 +448,10 @@ export class Integracoes {
   }
 
   private async carregarCredenciais(f: FonteApi): Promise<void> {
-    this.credenciais.set(await firstValueFrom(this.http.get<CredencialApi[]>(`/api/v1/integracoes/fontes/${f.id}/credenciais`)).catch(() => []));
+    this.credenciais.set(
+      await firstValueFrom(
+        this.http.get<CredencialApi[]>(`/api/v1/integracoes/fontes/${f.id}/credenciais`),
+      ).catch(() => []),
+    );
   }
 }

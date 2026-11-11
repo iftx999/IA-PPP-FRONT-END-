@@ -1,7 +1,22 @@
-import { Component, ElementRef, computed, effect, input, signal, untracked, viewChild } from '@angular/core';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  computed,
+  effect,
+  ElementRef,
+  input,
+  signal,
+  untracked,
+  viewChild,
+} from '@angular/core';
 import { MatButtonModule } from '@angular/material/button';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
-import type { PDFDocumentLoadingTask, PDFDocumentProxy, PDFPageProxy, RenderTask } from 'pdfjs-dist';
+import type {
+  PDFDocumentLoadingTask,
+  PDFDocumentProxy,
+  PDFPageProxy,
+  RenderTask,
+} from 'pdfjs-dist';
 
 /** Retângulo de destaque em % do tamanho da página (acompanha qualquer zoom). */
 export interface Destaque {
@@ -20,7 +35,12 @@ export interface PedacoDeTexto {
 
 /** Sem acento, minúsculo e espaços colapsados: o texto do PDF quebra linhas em lugares imprevisíveis. */
 export function normalizarParaBusca(texto: string): string {
-  return texto.normalize('NFD').replace(/\p{Diacritic}/gu, '').toLocaleLowerCase('pt-BR').replace(/\s+/g, ' ').trim();
+  return texto
+    .normalize('NFD')
+    .replace(/\p{Diacritic}/gu, '')
+    .toLocaleLowerCase('pt-BR')
+    .replace(/\s+/g, ' ')
+    .trim();
 }
 
 /**
@@ -55,28 +75,57 @@ export function pedacosDoTrecho(pedacos: PedacoDeTexto[], trecho: string): numbe
  * Recebe os bytes já baixados com o token; o pdf.js é carregado só quando o componente aparece.
  */
 @Component({
+  changeDetection: ChangeDetectionStrategy.OnPush,
   selector: 'aurora-visualizador-pdf',
   imports: [MatButtonModule, MatProgressSpinnerModule],
   template: `
     <div class="barra">
-      <button matIconButton type="button" (click)="ir(paginaAtual() - 1)" [disabled]="paginaAtual() <= 1" aria-label="Página anterior">
+      <button
+        matIconButton
+        type="button"
+        (click)="ir(paginaAtual() - 1)"
+        [disabled]="paginaAtual() <= 1"
+        aria-label="Página anterior"
+      >
         <span class="material-symbols-rounded">chevron_left</span>
       </button>
-      <span class="dado" aria-live="polite">Página {{ paginaAtual() }} de {{ totalPaginas() || '…' }}</span>
-      <button matIconButton type="button" (click)="ir(paginaAtual() + 1)" [disabled]="paginaAtual() >= totalPaginas()" aria-label="Próxima página">
+      <span class="dado" aria-live="polite"
+        >Página {{ paginaAtual() }} de {{ totalPaginas() || '…' }}</span
+      >
+      <button
+        matIconButton
+        type="button"
+        (click)="ir(paginaAtual() + 1)"
+        [disabled]="paginaAtual() >= totalPaginas()"
+        aria-label="Próxima página"
+      >
         <span class="material-symbols-rounded">chevron_right</span>
       </button>
       <span class="espaco"></span>
       @if (destaque()) {
         <span class="situacao" [class.achou]="destaques().length > 0">
-          <span class="material-symbols-rounded" aria-hidden="true">{{ destaques().length ? 'ink_highlighter' : 'search_off' }}</span>
+          <span class="material-symbols-rounded" aria-hidden="true">{{
+            destaques().length ? 'ink_highlighter' : 'search_off'
+          }}</span>
           {{ destaques().length ? 'Trecho destacado' : 'Trecho não encontrado nesta página' }}
         </span>
       }
-      <button matIconButton type="button" (click)="zoom.set(zoom() - 0.25)" [disabled]="zoom() <= 0.75" aria-label="Diminuir zoom">
+      <button
+        matIconButton
+        type="button"
+        (click)="zoom.set(zoom() - 0.25)"
+        [disabled]="zoom() <= 0.75"
+        aria-label="Diminuir zoom"
+      >
         <span class="material-symbols-rounded">zoom_out</span>
       </button>
-      <button matIconButton type="button" (click)="zoom.set(zoom() + 0.25)" [disabled]="zoom() >= 2.5" aria-label="Aumentar zoom">
+      <button
+        matIconButton
+        type="button"
+        (click)="zoom.set(zoom() + 0.25)"
+        [disabled]="zoom() >= 2.5"
+        aria-label="Aumentar zoom"
+      >
         <span class="material-symbols-rounded">zoom_in</span>
       </button>
     </div>
@@ -85,9 +134,19 @@ export function pedacosDoTrecho(pedacos: PedacoDeTexto[], trecho: string): numbe
         <p class="aviso">Não foi possível mostrar o PDF.</p>
       } @else {
         <div class="pagina" [style.width.px]="larguraPagina()">
-          <canvas #tela role="img" [attr.aria-label]="'Página ' + paginaAtual() + ' do PDF'"></canvas>
+          <canvas
+            #tela
+            role="img"
+            [attr.aria-label]="'Página ' + paginaAtual() + ' do PDF'"
+          ></canvas>
           @for (d of destaques(); track $index) {
-            <span class="destaque" [style.left.%]="d.esquerda" [style.top.%]="d.topo" [style.width.%]="d.largura" [style.height.%]="d.altura"></span>
+            <span
+              class="destaque"
+              [style.left.%]="d.esquerda"
+              [style.top.%]="d.topo"
+              [style.width.%]="d.largura"
+              [style.height.%]="d.altura"
+            ></span>
           }
         </div>
         @if (carregando()) {
@@ -97,20 +156,76 @@ export function pedacosDoTrecho(pedacos: PedacoDeTexto[], trecho: string): numbe
     </div>
   `,
   styles: `
-    :host { display: grid; grid-template-rows: auto 1fr; height: 100%; min-height: 0; background: var(--bg-3); }
-    .barra { display: flex; align-items: center; gap: 4px; padding: 4px 8px; border-bottom: var(--border); background: var(--bg-2);
-      font-size: var(--fs-small); color: var(--text-2); }
-    .espaco { flex: 1; }
-    .situacao { display: inline-flex; align-items: center; gap: 4px; margin-right: 8px; color: var(--warn); font-size: var(--fs-label);
-      .material-symbols-rounded { font-size: 16px; } }
-    .situacao.achou { color: var(--accent); }
-    .area { position: relative; overflow: auto; padding: 16px; min-height: 0; }
-    .pagina { position: relative; margin: 0 auto; box-shadow: 0 2px 12px rgba(0, 0, 0, .35); background: #fff; }
-    canvas { display: block; width: 100%; height: auto; }
-    .destaque { position: absolute; background: rgba(255, 213, 0, .38); mix-blend-mode: multiply; border-radius: 2px;
-      outline: 1px solid rgba(214, 160, 0, .6); pointer-events: none; }
-    .carregando { position: absolute; inset: 0; display: grid; place-items: center; }
-    .aviso { color: var(--text-3); text-align: center; margin-top: 48px; }
+    :host {
+      display: grid;
+      grid-template-rows: auto 1fr;
+      height: 100%;
+      min-height: 0;
+      background: var(--bg-3);
+    }
+    .barra {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      padding: 4px 8px;
+      border-bottom: var(--border);
+      background: var(--bg-2);
+      font-size: var(--fs-small);
+      color: var(--text-2);
+    }
+    .espaco {
+      flex: 1;
+    }
+    .situacao {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      margin-right: 8px;
+      color: var(--warn);
+      font-size: var(--fs-label);
+      .material-symbols-rounded {
+        font-size: 16px;
+      }
+    }
+    .situacao.achou {
+      color: var(--accent);
+    }
+    .area {
+      position: relative;
+      overflow: auto;
+      padding: 16px;
+      min-height: 0;
+    }
+    .pagina {
+      position: relative;
+      margin: 0 auto;
+      box-shadow: 0 2px 12px rgba(0, 0, 0, 0.35);
+      background: #fff;
+    }
+    canvas {
+      display: block;
+      width: 100%;
+      height: auto;
+    }
+    .destaque {
+      position: absolute;
+      background: rgba(255, 213, 0, 0.38);
+      mix-blend-mode: multiply;
+      border-radius: 2px;
+      outline: 1px solid rgba(214, 160, 0, 0.6);
+      pointer-events: none;
+    }
+    .carregando {
+      position: absolute;
+      inset: 0;
+      display: grid;
+      place-items: center;
+    }
+    .aviso {
+      color: var(--text-3);
+      text-align: center;
+      margin-top: 48px;
+    }
   `,
 })
 export class VisualizadorPdf {
@@ -131,7 +246,9 @@ export class VisualizadorPdf {
   protected readonly erro = signal(false);
   protected readonly destaques = signal<Destaque[]>([]);
   private readonly larguraArea = signal(600);
-  protected readonly larguraPagina = computed(() => Math.max(200, (this.larguraArea() - 32) * this.zoom()));
+  protected readonly larguraPagina = computed(() =>
+    Math.max(200, (this.larguraArea() - 32) * this.zoom()),
+  );
 
   private carregamento: PDFDocumentLoadingTask | null = null;
   private documento: PDFDocumentProxy | null = null;
@@ -158,7 +275,9 @@ export class VisualizadorPdf {
       untracked(() => void this.desenhar());
     });
     effect((limpar) => {
-      const observador = new ResizeObserver(([entrada]) => this.larguraArea.set(entrada!.contentRect.width));
+      const observador = new ResizeObserver(([entrada]) =>
+        this.larguraArea.set(entrada!.contentRect.width),
+      );
       observador.observe(this.area().nativeElement);
       limpar(() => observador.disconnect());
     });
@@ -215,13 +334,19 @@ export class VisualizadorPdf {
     }
   }
 
-  private async calcularDestaques(pagina: PDFPageProxy, trecho: string | null): Promise<Destaque[]> {
+  private async calcularDestaques(
+    pagina: PDFPageProxy,
+    trecho: string | null,
+  ): Promise<Destaque[]> {
     if (!trecho) {
       return [];
     }
     const conteudo = await pagina.getTextContent();
     const pedacos: PedacoDeTexto[] = conteudo.items
-      .filter((i): i is typeof i & { str: string; transform: number[]; width: number; height: number } => 'str' in i)
+      .filter(
+        (i): i is typeof i & { str: string; transform: number[]; width: number; height: number } =>
+          'str' in i,
+      )
       .map((i) => ({ texto: i.str, caixa: [i.transform[4]!, i.transform[5]!, i.width, i.height] }));
     const [x0, y0, x1, y1] = pagina.view as [number, number, number, number];
     const largura = x1 - x0;

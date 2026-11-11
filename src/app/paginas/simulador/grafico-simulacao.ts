@@ -1,6 +1,20 @@
-import { Component, ElementRef, OnDestroy, effect, inject, input, viewChild } from '@angular/core';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  effect,
+  ElementRef,
+  inject,
+  input,
+  OnDestroy,
+  viewChild,
+} from '@angular/core';
 import { BarChart, LineChart } from 'echarts/charts';
-import { GridComponent, LegendComponent, MarkLineComponent, TooltipComponent } from 'echarts/components';
+import {
+  GridComponent,
+  LegendComponent,
+  MarkLineComponent,
+  TooltipComponent,
+} from 'echarts/components';
 import * as echarts from 'echarts/core';
 import { SVGRenderer } from 'echarts/renderers';
 import type { Simulacao } from '../../api/tipos';
@@ -8,7 +22,15 @@ import { competenciaCurta, percentual } from '../../nucleo/formato';
 import { TemaService } from '../../nucleo/tema';
 import { moeda, moedaCompacta } from './textos';
 
-echarts.use([LineChart, BarChart, GridComponent, LegendComponent, TooltipComponent, MarkLineComponent, SVGRenderer]);
+echarts.use([
+  LineChart,
+  BarChart,
+  GridComponent,
+  LegendComponent,
+  TooltipComponent,
+  MarkLineComponent,
+  SVGRenderer,
+]);
 
 function token(nome: string): string {
   return getComputedStyle(document.documentElement).getPropertyValue(nome).trim();
@@ -19,9 +41,20 @@ function token(nome: string): string {
  * aferição (eixo da direita).
  */
 @Component({
+  changeDetection: ChangeDetectionStrategy.OnPush,
   selector: 'aurora-grafico-simulacao',
-  template: `<div #area class="area" role="img" [attr.aria-label]="'Gráfico da adesão projetada e da multa estimada'"></div>`,
-  styles: `.area { width: 100%; height: 320px; }`,
+  template: `<div
+    #area
+    class="area"
+    role="img"
+    [attr.aria-label]="'Gráfico da adesão projetada e da multa estimada'"
+  ></div>`,
+  styles: `
+    .area {
+      width: 100%;
+      height: 320px;
+    }
+  `,
 })
 export class GraficoSimulacao implements OnDestroy {
   readonly simulacao = input.required<Simulacao>();
@@ -64,7 +97,13 @@ export class GraficoSimulacao implements OnDestroy {
         animationDuration: matchMedia('(prefers-reduced-motion: reduce)').matches ? 0 : 600,
         textStyle: { fontFamily: token('--font-ui') },
         grid: { left: 48, right: temMulta ? 64 : 16, top: 36, bottom: 28 },
-        legend: { top: 0, left: 0, textStyle: { color: token('--text-2') }, icon: 'roundRect', itemHeight: 3 },
+        legend: {
+          top: 0,
+          left: 0,
+          textStyle: { color: token('--text-2') },
+          icon: 'roundRect',
+          itemHeight: 3,
+        },
         tooltip: {
           trigger: 'axis',
           backgroundColor: token('--bg-3'),
@@ -85,7 +124,13 @@ export class GraficoSimulacao implements OnDestroy {
             splitLine: { lineStyle: { color: linha } },
           },
           ...(temMulta
-            ? [{ type: 'value', axisLabel: { color: texto, formatter: moedaCompacta }, splitLine: { show: false } }]
+            ? [
+                {
+                  type: 'value',
+                  axisLabel: { color: texto, formatter: moedaCompacta },
+                  splitLine: { show: false },
+                },
+              ]
             : []),
         ],
         series: [
@@ -96,7 +141,9 @@ export class GraficoSimulacao implements OnDestroy {
             color: token('--accent-2'),
             symbolSize: 6,
             lineStyle: { width: 2 },
-            tooltip: { valueFormatter: (v: unknown) => (typeof v === 'number' ? percentual(v) : '—') },
+            tooltip: {
+              valueFormatter: (v: unknown) => (typeof v === 'number' ? percentual(v) : '—'),
+            },
           },
           {
             name: 'Ritmo atual',
@@ -105,7 +152,9 @@ export class GraficoSimulacao implements OnDestroy {
             color: token('--neutral'),
             showSymbol: false,
             lineStyle: { type: 'dashed', width: 2 },
-            tooltip: { valueFormatter: (v: unknown) => (typeof v === 'number' ? percentual(v) : '—') },
+            tooltip: {
+              valueFormatter: (v: unknown) => (typeof v === 'number' ? percentual(v) : '—'),
+            },
           },
           {
             name: 'Cenário',
@@ -114,7 +163,9 @@ export class GraficoSimulacao implements OnDestroy {
             color: token('--accent'),
             showSymbol: false,
             lineStyle: { width: 2.5 },
-            tooltip: { valueFormatter: (v: unknown) => (typeof v === 'number' ? percentual(v) : '—') },
+            tooltip: {
+              valueFormatter: (v: unknown) => (typeof v === 'number' ? percentual(v) : '—'),
+            },
             markLine: s.meta?.prazo
               ? {
                   symbol: 'none',
@@ -132,7 +183,9 @@ export class GraficoSimulacao implements OnDestroy {
             color: token('--ok'),
             showSymbol: false,
             lineStyle: { type: 'dashed', width: 1.5 },
-            tooltip: { valueFormatter: (v: unknown) => (typeof v === 'number' ? percentual(v) : '—') },
+            tooltip: {
+              valueFormatter: (v: unknown) => (typeof v === 'number' ? percentual(v) : '—'),
+            },
           },
           ...(temMulta
             ? [
@@ -144,7 +197,9 @@ export class GraficoSimulacao implements OnDestroy {
                   data: [...antes, ...projetados.map((m) => (m.multa > 0 ? m.multa : null))],
                   color: token('--danger'),
                   itemStyle: { opacity: 0.55, borderRadius: [3, 3, 0, 0] },
-                  tooltip: { valueFormatter: (v: unknown) => (typeof v === 'number' ? moeda(v) : '—') },
+                  tooltip: {
+                    valueFormatter: (v: unknown) => (typeof v === 'number' ? moeda(v) : '—'),
+                  },
                 },
               ]
             : []),

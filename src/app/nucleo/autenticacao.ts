@@ -1,6 +1,17 @@
-import { Component, EnvironmentProviders, OnInit, inject } from '@angular/core';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  EnvironmentProviders,
+  inject,
+  OnInit,
+} from '@angular/core';
 import { CanActivateFn, Router } from '@angular/router';
-import { LogLevel, OidcSecurityService, provideAuth, withAppInitializerAuthCheck } from 'angular-auth-oidc-client';
+import {
+  LogLevel,
+  OidcSecurityService,
+  provideAuth,
+  withAppInitializerAuthCheck,
+} from 'angular-auth-oidc-client';
 import { firstValueFrom } from 'rxjs';
 
 import type { ConfiguracaoAurora } from './configuracao';
@@ -21,7 +32,10 @@ let enderecoInicial: string | null = null;
  * Login OIDC (código + PKCE) no Keycloak. O token só é anexado às chamadas para /api.
  * O tenant é identificado pela API a partir do emissor do token, nunca pelo front.
  */
-export function provideAutenticacao(configuracao: ConfiguracaoAurora, retorno = ROTA_RETORNO): EnvironmentProviders {
+export function provideAutenticacao(
+  configuracao: ConfiguracaoAurora,
+  retorno = ROTA_RETORNO,
+): EnvironmentProviders {
   const origem = window.location.origin;
   const pedido = window.location.pathname + window.location.search + window.location.hash;
   enderecoInicial = pedido.startsWith(`/${retorno}`) || pedido === '/' ? null : pedido;
@@ -74,7 +88,11 @@ export function entrarDeNovo(oidc: OidcSecurityService, destino: string): void {
 }
 
 /** Volta do Keycloak: segue para a rota pedida antes do login (ou o Painel). */
-@Component({ selector: 'aurora-retorno-login', template: '' })
+@Component({
+  changeDetection: ChangeDetectionStrategy.OnPush,
+  selector: 'aurora-retorno-login',
+  template: '',
+})
 export class RetornoDoLogin implements OnInit {
   private readonly oidc = inject(OidcSecurityService);
   private readonly router = inject(Router);
@@ -83,9 +101,14 @@ export class RetornoDoLogin implements OnInit {
     const { isAuthenticated } = await firstValueFrom(this.oidc.isAuthenticated$);
     const destino = sessionStorage.getItem(CHAVE_RETORNO);
     sessionStorage.removeItem(CHAVE_RETORNO);
-    const seguro = destino?.startsWith('/') && !destino.startsWith('//') && !destino.includes(`/${ROTA_RETORNO}`);
+    const seguro =
+      destino?.startsWith('/') &&
+      !destino.startsWith('//') &&
+      !destino.includes(`/${ROTA_RETORNO}`);
     // A plataforma volta para a própria área; os clientes, para a tela inicial do perfil.
     const padrao = this.router.url.startsWith('/plataforma') ? '/plataforma' : '/';
-    await this.router.navigateByUrl(isAuthenticated && seguro ? destino! : padrao, { replaceUrl: true });
+    await this.router.navigateByUrl(isAuthenticated && seguro ? destino! : padrao, {
+      replaceUrl: true,
+    });
   }
 }

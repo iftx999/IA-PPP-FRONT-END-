@@ -1,5 +1,5 @@
 import { httpResource } from '@angular/common/http';
-import { Component, computed, inject, input, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, inject, input, signal } from '@angular/core';
 import { MatButtonModule } from '@angular/material/button';
 import { MatButtonToggleModule } from '@angular/material/button-toggle';
 import { MatFormFieldModule } from '@angular/material/form-field';
@@ -29,10 +29,21 @@ import { GraficoAdesao } from './grafico-adesao';
  * ser compartilhada e o "voltar" do navegador funciona.
  */
 @Component({
+  changeDetection: ChangeDetectionStrategy.OnPush,
   selector: 'aurora-painel',
   imports: [
-    RouterLink, MatButtonModule, MatButtonToggleModule, MatFormFieldModule, MatSelectModule, MatSortModule,
-    MatTableModule, MatMenuModule, MatProgressSpinnerModule, SeloSituacao, BarraAdesao, GraficoAdesao,
+    RouterLink,
+    MatButtonModule,
+    MatButtonToggleModule,
+    MatFormFieldModule,
+    MatSelectModule,
+    MatSortModule,
+    MatTableModule,
+    MatMenuModule,
+    MatProgressSpinnerModule,
+    SeloSituacao,
+    BarraAdesao,
+    GraficoAdesao,
   ],
   templateUrl: './painel.html',
   styleUrl: './painel.scss',
@@ -54,12 +65,21 @@ export class Painel {
   }));
 
   /** Valor carregado (value() lança exceção em estado de erro). */
-  protected readonly painel = computed(() => (this.dados.hasValue() ? this.dados.value() : undefined));
+  protected readonly painel = computed(() =>
+    this.dados.hasValue() ? this.dados.value() : undefined,
+  );
   protected readonly naoEncontrado = computed(
     () => (this.dados.error() as { status?: number } | undefined)?.status === 404,
   );
   protected readonly verComoTabela = signal(false);
-  protected readonly colunasUnidades = ['unidade', 'adesao', 'situacao', 'meta', 'variacao', 'ligados'];
+  protected readonly colunasUnidades = [
+    'unidade',
+    'adesao',
+    'situacao',
+    'meta',
+    'variacao',
+    'ligados',
+  ];
   protected readonly colunasSerie = ['competencia', 'percentual', 'ligados', 'comRede'];
   protected readonly ordem = signal<Sort>({ active: '', direction: '' });
 
@@ -71,18 +91,29 @@ export class Painel {
       return linhas;
     }
     const valor = (l: LinhaUnidade): string | number =>
-      active === 'unidade' ? l.unidade.nome
-        : active === 'variacao' ? (l.variacaoPp ?? -Infinity)
+      active === 'unidade'
+        ? l.unidade.nome
+        : active === 'variacao'
+          ? (l.variacaoPp ?? -Infinity)
           : (l.adesao.percentual ?? -Infinity);
     const fator = direction === 'asc' ? 1 : -1;
     return linhas.sort((a, b) => {
       const va = valor(a);
       const vb = valor(b);
-      return (typeof va === 'string' ? va.localeCompare(vb as string, 'pt-BR') : va - (vb as number)) * fator;
+      return (
+        (typeof va === 'string' ? va.localeCompare(vb as string, 'pt-BR') : va - (vb as number)) *
+        fator
+      );
     });
   });
 
-  protected readonly fmt = { numero, percentual, pontosPercentuais, competenciaCurta, competenciaLonga };
+  protected readonly fmt = {
+    numero,
+    percentual,
+    pontosPercentuais,
+    competenciaCurta,
+    competenciaLonga,
+  };
 
   private readonly downloads = inject(DownloadService);
   protected readonly exportando = signal<'csv' | 'pdf' | null>(null);
@@ -93,10 +124,15 @@ export class Painel {
     this.exportando.set(formato);
     this.erroExportacao.set(null);
     try {
-      await this.downloads.baixar(`/api/v1/painel/exportacao.${formato}`,
-        { unidade: p.unidade.id, competencia: p.competencia }, `painel-${p.competencia}.${formato}`);
+      await this.downloads.baixar(
+        `/api/v1/painel/exportacao.${formato}`,
+        { unidade: p.unidade.id, competencia: p.competencia },
+        `painel-${p.competencia}.${formato}`,
+      );
     } catch (falha) {
-      this.erroExportacao.set(mensagemDeErro(falha, 'Não foi possível exportar o painel. Tente novamente.'));
+      this.erroExportacao.set(
+        mensagemDeErro(falha, 'Não foi possível exportar o painel. Tente novamente.'),
+      );
     } finally {
       this.exportando.set(null);
     }
@@ -114,7 +150,9 @@ export class Painel {
     if (meta == null) {
       return 'Sem meta';
     }
-    return meta.seguidaDe ? `Segue ${meta.seguidaDe.nome} · ${percentual(meta.valor)}` : percentual(meta.valor);
+    return meta.seguidaDe
+      ? `Segue ${meta.seguidaDe.nome} · ${percentual(meta.valor)}`
+      : percentual(meta.valor);
   }
 
   protected tendencia(valor: number | null): 'sobe' | 'desce' | 'estavel' {
