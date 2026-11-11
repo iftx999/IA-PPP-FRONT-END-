@@ -8,6 +8,19 @@ map $uri $expiracao {
     ~*\.(js|css|woff2?|png|svg|ico|mjs)$     1y;
 }
 
+# Limite por IP de origem (ADR 0037 do back-end). O IP real vem do Caddy no X-Forwarded-For; só se confia nele vindo
+# da rede interna (o nginx não fica exposto direto). O limite fino, por pessoa, fica na API: escritórios inteiros
+# saem pelo mesmo IP, então aqui o limite é folgado e só barra inundação.
+set_real_ip_from 10.0.0.0/8;
+set_real_ip_from 172.16.0.0/12;
+set_real_ip_from 192.168.0.0/16;
+real_ip_header X-Forwarded-For;
+real_ip_recursive on;
+limit_req_zone $binary_remote_addr zone=api:10m rate=50r/s;
+limit_req_zone $binary_remote_addr zone=publico:2m rate=2r/s;
+limit_req_status 429;
+limit_req_log_level warn;
+
 server {
     listen 8080;
     root /usr/share/nginx/html;
@@ -47,7 +60,20 @@ server {
     resolver ${AURORA_DNS} valid=10s ipv6=off;
     set $api_aurora http://${AURORA_API_ENDERECO};
 
+    # Antes do login (código da empresa e logo): poucas chamadas legítimas, alvo fácil de varredura.
+    location /api/v1/publico/ {
+        limit_req zone=publico burst=20 nodelay;
+        proxy_pass $api_aurora;
+        proxy_http_version 1.1;
+        proxy_set_header Host $host;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+        proxy_set_header X-Forwarded-Host $host;
+    }
+
     location /api/ {
+        # Rajada folgada: o mapa pede dezenas de tiles de uma vez.
+        limit_req zone=api burst=200 nodelay;
         proxy_pass $api_aurora;
         proxy_http_version 1.1;
         proxy_set_header Host $host;
