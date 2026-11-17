@@ -1,0 +1,546 @@
+<nav class="trilha"><a routerLink="/servicos">← Catálogo de serviços</a></nav>
+
+@if (!sessao.usuario()) {
+  <div class="esqueleto" aria-busy="true" aria-label="Carregando"></div>
+} @else if (!podeGerir()) {
+  <section class="cartao aviso" role="alert">
+    <p class="rotulo">Sem acesso</p>
+    <p>Seu perfil não permite gerenciar o catálogo de serviços.</p>
+  </section>
+} @else if (naoEncontrado()) {
+  <section class="cartao aviso" role="alert">
+    <p class="rotulo">Serviço não encontrado</p>
+    <a matButton routerLink="/servicos">Voltar ao catálogo</a>
+  </section>
+} @else if (!catalogo.hasValue()) {
+  <div class="esqueleto" aria-busy="true" aria-label="Carregando"></div>
+} @else {
+  <header class="cabecalho">
+    <div class="titulo">
+      <span class="rotulo">Catálogo de serviços</span>
+      <h1>{{ novo() ? 'Novo serviço' : servico()?.definicao?.nome }}</h1>
+      @if (servico(); as s) {
+        <p class="orientacao">
+          <span class="dado">{{ s.codigo }}</span> · versão {{ s.versao }} · alterado em
+          {{ fmt.dataEHora(s.atualizadoEm) }}
+        </p>
+      }
+    </div>
+    <div class="acoes-topo">
+      @if (servico(); as s) {
+        <aurora-selo [tom]="s.ativo ? 'ok' : 'neutro'">{{
+          s.ativo ? 'Ativo' : 'Inativo'
+        }}</aurora-selo>
+      }
+      <button matButton="filled" type="submit" form="form-servico" [disabled]="salvando()">
+        @if (salvando()) {
+          <mat-spinner diameter="18" />
+        }
+        Salvar
+      </button>
+    </div>
+  </header>
+
+  @if (erro()) {
+    <p class="erro faixa" role="alert">
+      <span class="material-symbols-rounded" aria-hidden="true">error</span>{{ erro() }}
+    </p>
+  }
+
+  <div class="editor">
+    <form id="form-servico" [formGroup]="form" (ngSubmit)="salvar()" class="coluna-form">
+      <section class="cartao secao" aria-labelledby="sec-identificacao">
+        <h2 id="sec-identificacao">Identificação</h2>
+        <div class="formulario">
+          <mat-form-field>
+            <mat-label>Nome</mat-label>
+            <input matInput formControlName="nome" maxlength="120" placeholder="Limpeza de rede" />
+            <mat-error>Informe o nome (3 a 120 letras).</mat-error>
+          </mat-form-field>
+          <div class="dupla">
+            <mat-form-field>
+              <mat-label>Grupo</mat-label>
+              <mat-select formControlName="grupoId">
+                @for (g of grupos(); track g.id) {
+                  <mat-option [value]="g.id">{{ g.nome }}</mat-option>
+                }
+              </mat-select>
+              <mat-error>Escolha o grupo.</mat-error>
+            </mat-form-field>
+            <mat-form-field>
+              <mat-label>Código</mat-label>
+              <input
+                matInput
+                formControlName="codigo"
+                maxlength="40"
+                class="dado"
+                [placeholder]="codigoSugerido()"
+              />
+              <mat-hint>{{
+                novo() ? 'Em branco, vem do nome. Não muda depois.' : 'O código não muda.'
+              }}</mat-hint>
+            </mat-form-field>
+          </div>
+          <mat-form-field>
+            <mat-label>Descrição</mat-label>
+            <textarea matInput formControlName="descricao" maxlength="500" rows="2"></textarea>
+            <mat-hint>Opcional. Aparece para a equipe no app.</mat-hint>
+          </mat-form-field>
+          @if (!novo()) {
+            <mat-slide-toggle formControlName="ativo"
+              >Serviço ativo (aceita OS novas)</mat-slide-toggle
+            >
+          }
+        </div>
+      </section>
+
+      <section class="cartao secao" aria-labelledby="sec-execucao">
+        <h2 id="sec-execucao">Execução e medida</h2>
+        <div class="formulario">
+          <div class="dupla">
+            <mat-form-field>
+              <mat-label>Onde acontece</mat-label>
+              <mat-select formControlName="alvo">
+                @for (a of alvos; track a.valor) {
+                  <mat-option [value]="a.valor">{{ a.rotulo }}</mat-option>
+                }
+              </mat-select>
+            </mat-form-field>
+            <mat-form-field>
+              <mat-label>Unidade de medida</mat-label>
+              <mat-select formControlName="unidadeMedida">
+                @for (u of unidades; track u.valor) {
+                  <mat-option [value]="u.valor">{{ u.rotulo }}</mat-option>
+                }
+              </mat-select>
+            </mat-form-field>
+          </div>
+          <div class="dupla">
+            <mat-form-field>
+              <mat-label>Tempo padrão</mat-label>
+              <input
+                matInput
+                type="number"
+                formControlName="tempoPadraoMin"
+                min="0.01"
+                max="1440"
+                step="0.5"
+              />
+              <span matTextSuffix>min</span>
+              <mat-hint>{{ resumoTempo() }} · usado na estimativa das rotas.</mat-hint>
+              <mat-error>De 0,01 a 1.440 minutos.</mat-error>
+            </mat-form-field>
+            <mat-slide-toggle
+              formControlName="tempoPorUnidade"
+              [disabled]="!unidadeContavel()"
+              class="alinhado"
+              >Tempo por unidade de medida</mat-slide-toggle
+            >
+          </div>
+          <div class="dupla">
+            <mat-form-field>
+              <mat-label>Tipo de veículo exigido</mat-label>
+              <mat-select formControlName="tipoVeiculoId">
+                <mat-option [value]="null">Nenhum</mat-option>
+                @for (v of veiculos(); track v.id) {
+                  <mat-option [value]="v.id" [disabled]="!v.ativo">{{ v.nome }}</mat-option>
+                }
+              </mat-select>
+            </mat-form-field>
+            <mat-form-field>
+              <mat-label>Habilidade exigida</mat-label>
+              <mat-select formControlName="habilidadeId">
+                <mat-option [value]="null">Nenhuma</mat-option>
+                @for (h of habilidades(); track h.id) {
+                  <mat-option [value]="h.id" [disabled]="!h.ativo">{{ h.nome }}</mat-option>
+                }
+              </mat-select>
+            </mat-form-field>
+          </div>
+          <mat-slide-toggle formControlName="conferidoPelaCarga" [disabled]="!emImovel()"
+            >Conferido pela carga mensal (a execução precisa aparecer como ligado)</mat-slide-toggle
+          >
+        </div>
+      </section>
+
+      <section class="cartao secao" aria-labelledby="sec-prazos">
+        <h2 id="sec-prazos">Prazos por prioridade</h2>
+        <p class="nota">
+          Emergencial em horas corridas; as demais em dias úteis. A paralisação não suspende o
+          prazo.
+        </p>
+        <div class="prazos">
+          <mat-form-field>
+            <mat-label>Emergencial</mat-label>
+            <input matInput type="number" formControlName="emergencialHoras" min="1" max="72" />
+            <span matTextSuffix>h</span>
+            <mat-error>1 a 72 h</mat-error>
+          </mat-form-field>
+          <mat-form-field>
+            <mat-label>Alta</mat-label>
+            <input matInput type="number" formControlName="altaDias" min="1" max="365" />
+            <span matTextSuffix>dias</span>
+          </mat-form-field>
+          <mat-form-field>
+            <mat-label>Média</mat-label>
+            <input matInput type="number" formControlName="mediaDias" min="1" max="365" />
+            <span matTextSuffix>dias</span>
+          </mat-form-field>
+          <mat-form-field>
+            <mat-label>Baixa</mat-label>
+            <input matInput type="number" formControlName="baixaDias" min="1" max="365" />
+            <span matTextSuffix>dias</span>
+          </mat-form-field>
+        </div>
+      </section>
+
+      <section class="cartao secao" aria-labelledby="sec-parametros">
+        <div class="topo">
+          <div class="identificacao">
+            <h2 id="sec-parametros">Parâmetros de encerramento</h2>
+            <span class="sub">O que a equipe preenche no app ao encerrar a OS como executada.</span>
+          </div>
+          <button
+            matButton
+            type="button"
+            (click)="adicionarParametro()"
+            [disabled]="parametros.length >= maximoDeParametros"
+          >
+            <span class="material-symbols-rounded" aria-hidden="true">add</span> Parâmetro
+          </button>
+        </div>
+
+        @if (parametros.length) {
+          <mat-accordion class="parametros" formArrayName="parametros">
+            @for (p of parametros.controls; track p; let i = $index; let ultimo = $last) {
+              <mat-expansion-panel
+                [formGroupName]="i"
+                [expanded]="aberto() === i"
+                (opened)="aberto.set(i)"
+                [class.invalido]="p.invalid && p.touched"
+              >
+                <mat-expansion-panel-header>
+                  <mat-panel-title>
+                    <span class="material-symbols-rounded icone-tipo" aria-hidden="true">{{
+                      rotuloTipo[p.controls.tipo.value].icone
+                    }}</span>
+                    {{ p.controls.rotulo.value || 'Novo parâmetro' }}
+                  </mat-panel-title>
+                  <mat-panel-description>
+                    {{ rotuloTipo[p.controls.tipo.value].rotulo }}
+                    @if (p.controls.obrigatorio.value) {
+                      · obrigatório
+                    }
+                    @if (p.controls.condicaoChave.value) {
+                      · condicional
+                    }
+                  </mat-panel-description>
+                </mat-expansion-panel-header>
+
+                <div class="formulario">
+                  <div class="dupla">
+                    <mat-form-field>
+                      <mat-label>Rótulo</mat-label>
+                      <input
+                        matInput
+                        formControlName="rotulo"
+                        maxlength="80"
+                        (blur)="sugerirChave(i)"
+                      />
+                      <mat-error>2 a 80 letras.</mat-error>
+                    </mat-form-field>
+                    <mat-form-field>
+                      <mat-label>Tipo</mat-label>
+                      <mat-select formControlName="tipo">
+                        <mat-select-trigger>{{
+                          rotuloTipo[p.controls.tipo.value].rotulo
+                        }}</mat-select-trigger>
+                        @for (t of tiposParametro; track t.valor) {
+                          <mat-option [value]="t.valor">
+                            <span class="material-symbols-rounded opcao-icone" aria-hidden="true">{{
+                              t.icone
+                            }}</span>
+                            {{ t.rotulo }}
+                          </mat-option>
+                        }
+                      </mat-select>
+                    </mat-form-field>
+                  </div>
+                  <div class="dupla">
+                    <mat-form-field>
+                      <mat-label>Chave</mat-label>
+                      <input matInput formControlName="chave" maxlength="40" class="dado" />
+                      <mat-hint>Nome do campo nas integrações e relatórios.</mat-hint>
+                      <mat-error>Letras minúsculas, números e "_", começando por letra.</mat-error>
+                    </mat-form-field>
+                    <mat-form-field>
+                      <mat-label>Ajuda</mat-label>
+                      <input matInput formControlName="ajuda" maxlength="200" />
+                      <mat-hint>Opcional, aparece abaixo do campo no app.</mat-hint>
+                    </mat-form-field>
+                  </div>
+
+                  @if (
+                    p.controls.tipo.value === 'LISTA' || p.controls.tipo.value === 'LISTA_MULTIPLA'
+                  ) {
+                    <mat-form-field>
+                      <mat-label>Opções</mat-label>
+                      <mat-chip-grid
+                        #grade
+                        [attr.aria-label]="'Opções de ' + p.controls.rotulo.value"
+                      >
+                        @for (o of p.controls.opcoes.value; track o) {
+                          <mat-chip-row (removed)="removerOpcao(i, o)">
+                            {{ o }}
+                            <button matChipRemove [attr.aria-label]="'Remover ' + o">
+                              <span class="material-symbols-rounded" aria-hidden="true">close</span>
+                            </button>
+                          </mat-chip-row>
+                        }
+                        <input
+                          placeholder="Digite e tecle Enter"
+                          [matChipInputFor]="grade"
+                          (matChipInputTokenEnd)="adicionarOpcao(i, $event)"
+                          maxlength="60"
+                        />
+                      </mat-chip-grid>
+                      <mat-hint>De 2 a 30 opções.</mat-hint>
+                    </mat-form-field>
+                  }
+
+                  @if (temFaixa(p.controls.tipo.value)) {
+                    <div class="tripla">
+                      <mat-form-field>
+                        <mat-label>{{ rotuloFaixa(p.controls.tipo.value)[0] }}</mat-label>
+                        <input matInput type="number" formControlName="minimo" />
+                      </mat-form-field>
+                      <mat-form-field>
+                        <mat-label>{{ rotuloFaixa(p.controls.tipo.value)[1] }}</mat-label>
+                        <input matInput type="number" formControlName="maximo" />
+                      </mat-form-field>
+                      @if (
+                        p.controls.tipo.value === 'INTEIRO' || p.controls.tipo.value === 'DECIMAL'
+                      ) {
+                        <mat-form-field>
+                          <mat-label>Unidade</mat-label>
+                          <input
+                            matInput
+                            formControlName="unidade"
+                            maxlength="10"
+                            placeholder="m, mm, m³"
+                          />
+                        </mat-form-field>
+                      }
+                    </div>
+                  }
+
+                  @if (origens(i).length) {
+                    <div class="dupla">
+                      <mat-form-field>
+                        <mat-label>Mostrar só quando</mat-label>
+                        <mat-select
+                          formControlName="condicaoChave"
+                          (selectionChange)="p.controls.condicaoValor.setValue(null)"
+                        >
+                          <mat-option [value]="null">Sempre</mat-option>
+                          @for (o of origens(i); track o.chave) {
+                            <mat-option [value]="o.chave">{{ o.rotulo }}</mat-option>
+                          }
+                        </mat-select>
+                      </mat-form-field>
+                      @if (p.controls.condicaoChave.value) {
+                        <mat-form-field>
+                          <mat-label>For igual a</mat-label>
+                          <mat-select formControlName="condicaoValor">
+                            @for (v of valoresDe(p.controls.condicaoChave.value); track v.valor) {
+                              <mat-option [value]="v.valor">{{ v.rotulo }}</mat-option>
+                            }
+                          </mat-select>
+                        </mat-form-field>
+                      }
+                    </div>
+                  }
+
+                  <div class="rodape-parametro">
+                    <mat-slide-toggle formControlName="obrigatorio">Obrigatório</mat-slide-toggle>
+                    <span class="acoes-parametro">
+                      <button
+                        matIconButton
+                        type="button"
+                        [disabled]="i === 0"
+                        (click)="mover(i, -1)"
+                        [attr.aria-label]="'Subir ' + (p.controls.rotulo.value || 'parâmetro')"
+                      >
+                        <span class="material-symbols-rounded" aria-hidden="true"
+                          >arrow_upward</span
+                        >
+                      </button>
+                      <button
+                        matIconButton
+                        type="button"
+                        [disabled]="ultimo"
+                        (click)="mover(i, 1)"
+                        [attr.aria-label]="'Descer ' + (p.controls.rotulo.value || 'parâmetro')"
+                      >
+                        <span class="material-symbols-rounded" aria-hidden="true"
+                          >arrow_downward</span
+                        >
+                      </button>
+                      <button matButton type="button" class="remover" (click)="removerParametro(i)">
+                        <span class="material-symbols-rounded" aria-hidden="true">delete</span>
+                        Remover
+                      </button>
+                    </span>
+                  </div>
+                </div>
+              </mat-expansion-panel>
+            }
+          </mat-accordion>
+        } @else {
+          <p class="nota">Sem parâmetros: a equipe só informa a quantidade executada.</p>
+        }
+      </section>
+    </form>
+
+    <aside class="coluna-lateral">
+      <section class="cartao preview" aria-labelledby="sec-preview">
+        <h2 id="sec-preview">Como aparece no app</h2>
+        <p class="nota">Encerrar como executada · teste as condições escolhendo os valores.</p>
+        <div class="celular">
+          <div class="tela-app">
+            <p class="titulo-app">{{ form.controls.nome.value || 'Serviço' }}</p>
+            <div class="campo-app">
+              <span class="rotulo-app">Quantidade executada <b aria-hidden="true">*</b></span>
+              <span class="entrada-app">0 {{ unidadeCurta() }}</span>
+            </div>
+            @for (p of visiveisNoApp(); track p.chave) {
+              <div class="campo-app">
+                <span class="rotulo-app"
+                  >{{ p.rotulo }}
+                  @if (p.obrigatorio) {
+                    <b aria-hidden="true">*</b>
+                  }
+                </span>
+                @switch (p.tipo) {
+                  @case ('SIM_NAO') {
+                    <mat-button-toggle-group
+                      [value]="valoresPreview()[p.chave]"
+                      (change)="escolherNaPreview(p.chave, $event.value)"
+                      [attr.aria-label]="p.rotulo"
+                    >
+                      <mat-button-toggle value="true">Sim</mat-button-toggle>
+                      <mat-button-toggle value="false">Não</mat-button-toggle>
+                    </mat-button-toggle-group>
+                  }
+                  @case ('LISTA') {
+                    <mat-chip-listbox
+                      [value]="valoresPreview()[p.chave]"
+                      (change)="escolherNaPreview(p.chave, $event.value)"
+                      [attr.aria-label]="p.rotulo"
+                    >
+                      @for (o of p.opcoes ?? []; track o) {
+                        <mat-chip-option [value]="o">{{ o }}</mat-chip-option>
+                      }
+                    </mat-chip-listbox>
+                  }
+                  @case ('LISTA_MULTIPLA') {
+                    <mat-chip-listbox multiple [attr.aria-label]="p.rotulo">
+                      @for (o of p.opcoes ?? []; track o) {
+                        <mat-chip-option [value]="o">{{ o }}</mat-chip-option>
+                      }
+                    </mat-chip-listbox>
+                  }
+                  @case ('FOTO') {
+                    <span class="foto-app">
+                      <span class="material-symbols-rounded" aria-hidden="true">photo_camera</span>
+                      Tirar foto
+                    </span>
+                  }
+                  @default {
+                    <span class="entrada-app">
+                      <span class="material-symbols-rounded" aria-hidden="true">{{
+                        rotuloTipo[p.tipo].icone
+                      }}</span>
+                      {{ p.unidade ?? '' }}
+                    </span>
+                  }
+                }
+                @if (fmt.faixaDoParametro(p) || p.ajuda) {
+                  <span class="ajuda-app"
+                    >{{ p.ajuda }}{{ p.ajuda && fmt.faixaDoParametro(p) ? ' · ' : ''
+                    }}{{ fmt.faixaDoParametro(p) }}</span
+                  >
+                }
+                @if (rotuloCondicao(p); as c) {
+                  <span class="ajuda-app condicao">{{ c }}</span>
+                }
+              </div>
+            }
+            <span class="botao-app">Encerrar OS</span>
+          </div>
+        </div>
+      </section>
+
+      @if (!novo()) {
+        <section class="cartao" aria-labelledby="sec-versoes">
+          <h2 id="sec-versoes">Versões</h2>
+          @if (versoes.hasValue()) {
+            <ol class="versoes">
+              @for (v of versoes.value(); track v.versao) {
+                <li>
+                  <button type="button" class="item" (click)="verVersao(v)">
+                    <span class="nome-item">Versão {{ v.versao }}</span>
+                    <span class="detalhe"
+                      >{{ fmt.dataEHora(v.criadaEm) }} ·
+                      {{ v.criadaPor ?? 'catálogo inicial' }}</span
+                    >
+                  </button>
+                </li>
+              }
+            </ol>
+          } @else {
+            <div class="esqueleto pequeno" aria-busy="true" aria-label="Carregando versões"></div>
+          }
+        </section>
+      }
+    </aside>
+  </div>
+}
+
+<ng-template #modeloVersao>
+  @if (versaoAberta(); as v) {
+    <h2 mat-dialog-title>Versão {{ v.versao }}</h2>
+    <mat-dialog-content>
+      <p class="nota">{{ fmt.dataEHora(v.criadaEm) }} · {{ v.criadaPor ?? 'catálogo inicial' }}</p>
+      <dl class="definicao">
+        <dt>Nome</dt>
+        <dd>{{ v.definicao.nome }}</dd>
+        <dt>Tempo padrão</dt>
+        <dd>{{ fmt.tempoPadrao(v.definicao) }}</dd>
+        <dt>Prazos</dt>
+        <dd>{{ fmt.resumoDosPrazos(v.definicao) }}</dd>
+        <dt>Veículo e habilidade</dt>
+        <dd>
+          {{ nomeDe(veiculos(), v.definicao.tipoVeiculoId) }} ·
+          {{ nomeDe(habilidades(), v.definicao.habilidadeId) }}
+        </dd>
+        <dt>Parâmetros</dt>
+        <dd>
+          @for (p of v.definicao.parametros; track p.chave) {
+            <span class="linha-parametro"
+              >{{ p.rotulo }}
+              <span class="nota"
+                >· {{ rotuloTipo[p.tipo].rotulo }}{{ p.obrigatorio ? ' · obrigatório' : '' }}</span
+              ></span
+            >
+          } @empty {
+            Nenhum
+          }
+        </dd>
+      </dl>
+    </mat-dialog-content>
+    <mat-dialog-actions align="end">
+      <button matButton type="button" (click)="fecharVersao()">Fechar</button>
+    </mat-dialog-actions>
+  }
+</ng-template>

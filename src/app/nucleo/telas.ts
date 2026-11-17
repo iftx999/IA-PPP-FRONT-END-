@@ -37,6 +37,7 @@ export const SECOES: { titulo: string; telas: Tela[] }[] = [
       { rota: '/campanhas', rotulo: 'Campanhas', permissao: 'campanha:gerenciar' },
       { rota: '/equipes', rotulo: 'Equipes', permissao: 'campanha:gerenciar' },
       { rota: '/minhas-ordens', rotulo: 'Minhas OS', permissao: 'os:executar' },
+      { rota: '/servicos', rotulo: 'Catálogo de serviços', permissao: 'servico:gerenciar' },
     ],
   },
   {
@@ -52,10 +53,13 @@ export const SECOES: { titulo: string; telas: Tela[] }[] = [
 ];
 
 /** Seções com só as telas permitidas; seção vazia some. */
-export function secoesPermitidas(permissoes: readonly string[]): { titulo: string; telas: Tela[] }[] {
-  return SECOES.map((s) => ({ titulo: s.titulo, telas: s.telas.filter((t) => permissoes.includes(t.permissao)) })).filter(
-    (s) => s.telas.length > 0,
-  );
+export function secoesPermitidas(
+  permissoes: readonly string[],
+): { titulo: string; telas: Tela[] }[] {
+  return SECOES.map((s) => ({
+    titulo: s.titulo,
+    telas: s.telas.filter((t) => permissoes.includes(t.permissao)),
+  })).filter((s) => s.telas.length > 0);
 }
 
 /**

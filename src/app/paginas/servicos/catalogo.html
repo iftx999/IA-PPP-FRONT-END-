@@ -1,0 +1,369 @@
+<header class="cabecalho">
+  <div class="titulo">
+    <span class="rotulo">Serviços de campo</span>
+    <h1>Catálogo de serviços</h1>
+    <p class="orientacao">
+      O que as equipes executam, com tempo padrão, prazos por prioridade e os campos preenchidos no
+      app ao encerrar. Alterar um serviço cria uma nova versão; as OS já criadas mantêm a versão com
+      que nasceram.
+    </p>
+  </div>
+  @if (podeGerir() && aba() === 'servicos') {
+    <a matButton="filled" routerLink="/servicos/novo">
+      <span class="material-symbols-rounded" aria-hidden="true">add</span> Novo serviço
+    </a>
+  }
+</header>
+
+@if (!sessao.usuario()) {
+  <div class="esqueleto" aria-busy="true" aria-label="Carregando"></div>
+} @else if (!podeGerir()) {
+  <section class="cartao aviso" role="alert">
+    <p class="rotulo">Sem acesso</p>
+    <p>Seu perfil não permite gerenciar o catálogo de serviços.</p>
+  </section>
+} @else if (catalogo(); as c) {
+  <mat-tab-group
+    [selectedIndex]="indiceAba()"
+    (selectedIndexChange)="trocarAba($event)"
+    animationDuration="0ms"
+    mat-stretch-tabs="false"
+  >
+    <mat-tab [label]="'Serviços (' + fmt.numero(c.servicos.length) + ')'">
+      <div class="aba">
+        <div class="barra-filtros" role="search" aria-label="Filtros dos serviços">
+          <mat-form-field class="busca" subscriptSizing="dynamic">
+            <span matPrefix class="material-symbols-rounded prefixo" aria-hidden="true"
+              >search</span
+            >
+            <input
+              matInput
+              type="search"
+              [formControl]="busca"
+              placeholder="Buscar por nome ou código"
+              aria-label="Buscar serviço"
+            />
+          </mat-form-field>
+          <mat-form-field class="filtro" subscriptSizing="dynamic">
+            <mat-label>Grupo</mat-label>
+            <mat-select
+              [value]="filtroGrupo() ?? ''"
+              (selectionChange)="filtros.aplicar({ grupo: $event.value })"
+            >
+              <mat-option value="">Todos</mat-option>
+              @for (g of c.grupos; track g.id) {
+                <mat-option [value]="g.id">{{ g.nome }}</mat-option>
+              }
+            </mat-select>
+          </mat-form-field>
+          <mat-slide-toggle
+            [checked]="comInativos()"
+            (change)="filtros.aplicar({ inativos: $event.checked ? 'sim' : null })"
+            >Mostrar inativos</mat-slide-toggle
+          >
+          @if (filtrando()) {
+            <button matButton type="button" (click)="limparFiltros()">
+              <span class="material-symbols-rounded" aria-hidden="true">filter_alt_off</span> Limpar
+              filtros
+            </button>
+            <span class="contagem-filtro"
+              >{{ fmt.numero(visiveis().length) }} de {{ fmt.numero(c.servicos.length) }}</span
+            >
+          }
+        </div>
+
+        @for (bloco of porGrupo(); track bloco.grupo.id) {
+          <section class="grupo" [attr.aria-labelledby]="'grupo-' + bloco.grupo.id">
+            <h2 [id]="'grupo-' + bloco.grupo.id">
+              {{ bloco.grupo.nome }}
+              <span class="contagem">{{ fmt.numero(bloco.servicos.length) }}</span>
+            </h2>
+            <ul class="lista">
+              @for (s of bloco.servicos; track s.id) {
+                <li>
+                  <a class="cartao servico" [routerLink]="['/servicos', s.id]">
+                    <div class="topo">
+                      <div class="identificacao">
+                        <span class="nome">{{ s.definicao.nome }}</span>
+                        <span class="codigo">{{ s.codigo }} · versão {{ s.versao }}</span>
+                      </div>
+                      <aurora-selo [tom]="s.ativo ? 'ok' : 'neutro'">{{
+                        s.ativo ? 'Ativo' : 'Inativo'
+                      }}</aurora-selo>
+                    </div>
+                    <div class="metricas">
+                      <span
+                        ><span class="material-symbols-rounded" aria-hidden="true">location_on</span
+                        >{{ rotuloAlvo[s.definicao.alvo] }}</span
+                      >
+                      <span
+                        ><span class="material-symbols-rounded" aria-hidden="true">timer</span
+                        ><b>{{ fmt.tempoPadrao(s.definicao) }}</b></span
+                      >
+                      <span
+                        ><span class="material-symbols-rounded" aria-hidden="true">checklist</span
+                        ><b>{{ fmt.numero(s.definicao.parametros.length) }}</b>
+                        {{ s.definicao.parametros.length === 1 ? 'parâmetro' : 'parâmetros' }}</span
+                      >
+                      @if (s.definicao.conferidoPelaCarga) {
+                        <span
+                          ><span class="material-symbols-rounded" aria-hidden="true"
+                            >fact_check</span
+                          >Conferido pela carga</span
+                        >
+                      }
+                    </div>
+                    <span class="sub">{{ fmt.resumoDosPrazos(s.definicao) }}</span>
+                    @if (exigencias(s); as e) {
+                      <span class="sub">Exige: {{ e }}</span>
+                    }
+                  </a>
+                </li>
+              }
+            </ul>
+          </section>
+        } @empty {
+          <section class="cartao vazio">
+            <span class="material-symbols-rounded" aria-hidden="true">home_repair_service</span>
+            @if (filtrando()) {
+              <p>Nenhum serviço com esses filtros.</p>
+            } @else {
+              <p>Nenhum serviço cadastrado.</p>
+              <p class="nota">Cadastre os serviços que as equipes executam em campo.</p>
+            }
+          </section>
+        }
+      </div>
+    </mat-tab>
+
+    <mat-tab label="Motivos">
+      <div class="aba colunas">
+        @for (t of motivosPorTipo(); track t.valor) {
+          <section class="cartao bloco" [attr.aria-labelledby]="'motivos-' + t.valor">
+            <div class="topo">
+              <div class="identificacao">
+                <h2 [id]="'motivos-' + t.valor">{{ t.rotulo }}</h2>
+                <span class="sub">{{ t.descricao }}</span>
+              </div>
+              <button
+                matIconButton
+                type="button"
+                [attr.aria-label]="'Novo motivo de ' + t.rotulo.toLowerCase()"
+                (click)="abrir({ tipo: 'motivo', item: null, tipoMotivo: t.valor })"
+              >
+                <span class="material-symbols-rounded" aria-hidden="true">add</span>
+              </button>
+            </div>
+            <ul class="itens">
+              @for (m of t.motivos; track m.id) {
+                <li>
+                  <button
+                    type="button"
+                    class="item"
+                    [class.inativo]="!m.ativo"
+                    (click)="abrir({ tipo: 'motivo', item: m, tipoMotivo: t.valor })"
+                  >
+                    <span class="nome-item">{{ m.nome }}</span>
+                    <span class="detalhe">
+                      @if (m.exigeObservacao) {
+                        <span>Exige observação</span>
+                      }
+                      @if (nomeDoServico(m.servicoId); as s) {
+                        <span>Só em {{ s }}</span>
+                      }
+                      @if (!m.ativo) {
+                        <aurora-selo tom="neutro">Inativo</aurora-selo>
+                      }
+                    </span>
+                  </button>
+                </li>
+              }
+            </ul>
+          </section>
+        }
+      </div>
+    </mat-tab>
+
+    <mat-tab label="Grupos, veículos e habilidades">
+      <div class="aba colunas">
+        <section class="cartao bloco" aria-labelledby="apoio-grupos">
+          <div class="topo">
+            <div class="identificacao">
+              <h2 id="apoio-grupos">Grupos</h2>
+              <span class="sub">Organizam o catálogo e os indicadores.</span>
+            </div>
+            <button
+              matIconButton
+              type="button"
+              aria-label="Novo grupo"
+              (click)="abrir({ tipo: 'grupo', item: null })"
+            >
+              <span class="material-symbols-rounded" aria-hidden="true">add</span>
+            </button>
+          </div>
+          <ul class="itens">
+            @for (g of c.grupos; track g.id) {
+              <li>
+                <button
+                  type="button"
+                  class="item"
+                  [class.inativo]="!g.ativo"
+                  (click)="abrir({ tipo: 'grupo', item: g })"
+                >
+                  <span class="nome-item">{{ g.nome }}</span>
+                  <span class="detalhe">
+                    <span
+                      >{{ fmt.numero(g.servicos) }}
+                      {{ g.servicos === 1 ? 'serviço' : 'serviços' }}</span
+                    >
+                    @if (!g.ativo) {
+                      <aurora-selo tom="neutro">Inativo</aurora-selo>
+                    }
+                  </span>
+                </button>
+              </li>
+            }
+          </ul>
+        </section>
+
+        <section class="cartao bloco" aria-labelledby="apoio-veiculos">
+          <div class="topo">
+            <div class="identificacao">
+              <h2 id="apoio-veiculos">Tipos de veículo</h2>
+              <span class="sub">O perfil define as ruas por onde a rota pode passar.</span>
+            </div>
+            <button
+              matIconButton
+              type="button"
+              aria-label="Novo tipo de veículo"
+              (click)="abrir({ tipo: 'veiculo', item: null })"
+            >
+              <span class="material-symbols-rounded" aria-hidden="true">add</span>
+            </button>
+          </div>
+          <ul class="itens">
+            @for (v of c.veiculos; track v.id) {
+              <li>
+                <button
+                  type="button"
+                  class="item"
+                  [class.inativo]="!v.ativo"
+                  (click)="abrir({ tipo: 'veiculo', item: v })"
+                >
+                  <span class="nome-item">{{ v.nome }}</span>
+                  <span class="detalhe">
+                    <span>Rota de {{ rotuloPerfil[v.perfilRota].toLowerCase() }}</span>
+                    @if (!v.ativo) {
+                      <aurora-selo tom="neutro">Inativo</aurora-selo>
+                    }
+                  </span>
+                </button>
+              </li>
+            }
+          </ul>
+        </section>
+
+        <section class="cartao bloco" aria-labelledby="apoio-habilidades">
+          <div class="topo">
+            <div class="identificacao">
+              <h2 id="apoio-habilidades">Habilidades</h2>
+              <span class="sub">A OS só vai para equipe que tem a habilidade exigida.</span>
+            </div>
+            <button
+              matIconButton
+              type="button"
+              aria-label="Nova habilidade"
+              (click)="abrir({ tipo: 'habilidade', item: null })"
+            >
+              <span class="material-symbols-rounded" aria-hidden="true">add</span>
+            </button>
+          </div>
+          <ul class="itens">
+            @for (h of c.habilidades; track h.id) {
+              <li>
+                <button
+                  type="button"
+                  class="item"
+                  [class.inativo]="!h.ativo"
+                  (click)="abrir({ tipo: 'habilidade', item: h })"
+                >
+                  <span class="nome-item">{{ h.nome }}</span>
+                  @if (!h.ativo) {
+                    <span class="detalhe"><aurora-selo tom="neutro">Inativa</aurora-selo></span>
+                  }
+                </button>
+              </li>
+            }
+          </ul>
+        </section>
+      </div>
+    </mat-tab>
+  </mat-tab-group>
+} @else if (dados.error()) {
+  <section class="cartao aviso" role="alert">
+    <p class="rotulo">Não foi possível carregar o catálogo</p>
+    <button matButton type="button" (click)="dados.reload()">Tentar de novo</button>
+  </section>
+} @else {
+  <div class="esqueleto" aria-busy="true" aria-label="Carregando"></div>
+}
+
+<ng-template #modeloItem>
+  <h2 mat-dialog-title>{{ tituloEdicao() }}</h2>
+  <mat-dialog-content>
+    <form id="form-item" [formGroup]="form" (ngSubmit)="salvar()" class="formulario">
+      <mat-form-field>
+        <mat-label>Nome</mat-label>
+        <input matInput formControlName="nome" maxlength="80" />
+        <mat-error>Informe o nome (2 a 80 letras).</mat-error>
+      </mat-form-field>
+      <mat-form-field>
+        <mat-label>Código</mat-label>
+        <input matInput formControlName="codigo" maxlength="40" class="dado" />
+        <mat-hint>Em branco, vem do nome. Usado nas integrações.</mat-hint>
+      </mat-form-field>
+      @if (edicao()?.tipo === 'veiculo') {
+        <mat-form-field>
+          <mat-label>Perfil de rota</mat-label>
+          <mat-select formControlName="perfilRota">
+            @for (p of perfis; track p.valor) {
+              <mat-option [value]="p.valor">{{ p.rotulo }}</mat-option>
+            }
+          </mat-select>
+          <mat-hint>Caminhão evita ruas estreitas e limites de peso e altura.</mat-hint>
+        </mat-form-field>
+      }
+      @if (edicao()?.tipo === 'motivo') {
+        <mat-form-field>
+          <mat-label>Vale para</mat-label>
+          <mat-select formControlName="servicoId">
+            <mat-option [value]="null">Todos os serviços</mat-option>
+            @for (s of catalogo()?.servicos ?? []; track s.id) {
+              <mat-option [value]="s.id">{{ s.definicao.nome }}</mat-option>
+            }
+          </mat-select>
+        </mat-form-field>
+        <mat-slide-toggle formControlName="exigeObservacao"
+          >Exige observação do agente</mat-slide-toggle
+        >
+      }
+      @if (edicao()?.item) {
+        <mat-slide-toggle formControlName="ativo">Ativo</mat-slide-toggle>
+      }
+      @if (erro()) {
+        <p class="erro" role="alert">
+          <span class="material-symbols-rounded" aria-hidden="true">error</span>{{ erro() }}
+        </p>
+      }
+    </form>
+  </mat-dialog-content>
+  <mat-dialog-actions align="end">
+    <button matButton type="button" (click)="fechar()">Cancelar</button>
+    <button matButton="filled" type="submit" form="form-item" [disabled]="salvando()">
+      @if (salvando()) {
+        <mat-spinner diameter="18" />
+      }
+      Salvar
+    </button>
+  </mat-dialog-actions>
+</ng-template>

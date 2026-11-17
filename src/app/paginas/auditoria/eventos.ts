@@ -8,27 +8,75 @@ export interface InfoEvento {
 export const EVENTOS: Record<string, InfoEvento> = {
   LOGIN: { rotulo: 'Login', icone: 'login', grupo: 'Acesso e usuários' },
   LOGIN_FALHOU: { rotulo: 'Falha de login', icone: 'gpp_maybe', grupo: 'Acesso e usuários' },
-  CONTA_BLOQUEADA: { rotulo: 'Conta bloqueada por tentativas', icone: 'lock_person', grupo: 'Acesso e usuários' },
+  CONTA_BLOQUEADA: {
+    rotulo: 'Conta bloqueada por tentativas',
+    icone: 'lock_person',
+    grupo: 'Acesso e usuários',
+  },
   LOGOUT: { rotulo: 'Logout', icone: 'logout', grupo: 'Acesso e usuários' },
-  RETENCAO_AUDITORIA_ALTERADA: { rotulo: 'Prazo de retenção da trilha alterado', icone: 'history', grupo: 'Acesso e usuários' },
-  TRILHA_EXPURGADA: { rotulo: 'Eventos antigos removidos pelo prazo de retenção', icone: 'auto_delete', grupo: 'Acesso e usuários' },
-  SESSOES_ENCERRADAS: { rotulo: 'Sessões encerradas em todos os dispositivos', icone: 'devices_off', grupo: 'Acesso e usuários' },
-  USUARIO_CONVIDADO: { rotulo: 'Usuário convidado', icone: 'person_add', grupo: 'Acesso e usuários' },
-  CONVITE_REENVIADO: { rotulo: 'Convite reenviado', icone: 'forward_to_inbox', grupo: 'Acesso e usuários' },
+  RETENCAO_AUDITORIA_ALTERADA: {
+    rotulo: 'Prazo de retenção da trilha alterado',
+    icone: 'history',
+    grupo: 'Acesso e usuários',
+  },
+  TRILHA_EXPURGADA: {
+    rotulo: 'Eventos antigos removidos pelo prazo de retenção',
+    icone: 'auto_delete',
+    grupo: 'Acesso e usuários',
+  },
+  SESSOES_ENCERRADAS: {
+    rotulo: 'Sessões encerradas em todos os dispositivos',
+    icone: 'devices_off',
+    grupo: 'Acesso e usuários',
+  },
+  USUARIO_CONVIDADO: {
+    rotulo: 'Usuário convidado',
+    icone: 'person_add',
+    grupo: 'Acesso e usuários',
+  },
+  CONVITE_REENVIADO: {
+    rotulo: 'Convite reenviado',
+    icone: 'forward_to_inbox',
+    grupo: 'Acesso e usuários',
+  },
   CONVITE_ACEITO: { rotulo: 'Convite aceito', icone: 'how_to_reg', grupo: 'Acesso e usuários' },
   ACESSO_CONCEDIDO: { rotulo: 'Acesso concedido', icone: 'badge', grupo: 'Acesso e usuários' },
   ACESSO_ALTERADO: { rotulo: 'Acesso alterado', icone: 'badge', grupo: 'Acesso e usuários' },
-  USUARIO_DESATIVADO: { rotulo: 'Usuário desativado', icone: 'person_off', grupo: 'Acesso e usuários' },
-  USUARIO_REATIVADO: { rotulo: 'Usuário reativado', icone: 'person_check', grupo: 'Acesso e usuários' },
-  REDEFINICAO_SENHA_ENVIADA: { rotulo: 'Link de nova senha enviado', icone: 'lock_reset', grupo: 'Acesso e usuários' },
+  USUARIO_DESATIVADO: {
+    rotulo: 'Usuário desativado',
+    icone: 'person_off',
+    grupo: 'Acesso e usuários',
+  },
+  USUARIO_REATIVADO: {
+    rotulo: 'Usuário reativado',
+    icone: 'person_check',
+    grupo: 'Acesso e usuários',
+  },
+  REDEFINICAO_SENHA_ENVIADA: {
+    rotulo: 'Link de nova senha enviado',
+    icone: 'lock_reset',
+    grupo: 'Acesso e usuários',
+  },
   POLITICA_SEGUNDO_FATOR_ALTERADA: {
     rotulo: 'Política de verificação em duas etapas alterada',
     icone: 'phonelink_lock',
     grupo: 'Acesso e usuários',
   },
-  SEGUNDO_FATOR_REMOVIDO: { rotulo: 'Verificação em duas etapas removida', icone: 'phonelink_erase', grupo: 'Acesso e usuários' },
-  SSO_CONFIGURADO: { rotulo: 'SSO corporativo configurado', icone: 'corporate_fare', grupo: 'Acesso e usuários' },
-  SSO_REMOVIDO: { rotulo: 'SSO corporativo removido', icone: 'link_off', grupo: 'Acesso e usuários' },
+  SEGUNDO_FATOR_REMOVIDO: {
+    rotulo: 'Verificação em duas etapas removida',
+    icone: 'phonelink_erase',
+    grupo: 'Acesso e usuários',
+  },
+  SSO_CONFIGURADO: {
+    rotulo: 'SSO corporativo configurado',
+    icone: 'corporate_fare',
+    grupo: 'Acesso e usuários',
+  },
+  SSO_REMOVIDO: {
+    rotulo: 'SSO corporativo removido',
+    icone: 'link_off',
+    grupo: 'Acesso e usuários',
+  },
   PERFIL_CRIADO: { rotulo: 'Perfil criado', icone: 'shield', grupo: 'Perfis' },
   PERFIL_ALTERADO: { rotulo: 'Perfil alterado', icone: 'shield', grupo: 'Perfis' },
   PERFIL_REMOVIDO: { rotulo: 'Perfil removido', icone: 'shield', grupo: 'Perfis' },
@@ -36,32 +84,108 @@ export const EVENTOS: Record<string, InfoEvento> = {
   UNIDADE_ALTERADA: { rotulo: 'Unidade alterada', icone: 'account_tree', grupo: 'Unidades' },
   UNIDADE_MOVIDA: { rotulo: 'Unidade movida', icone: 'drive_file_move', grupo: 'Unidades' },
   UNIDADE_INATIVADA: { rotulo: 'Unidade inativada', icone: 'block', grupo: 'Unidades' },
-  UNIDADE_REATIVADA: { rotulo: 'Unidade reativada', icone: 'settings_backup_restore', grupo: 'Unidades' },
+  UNIDADE_REATIVADA: {
+    rotulo: 'Unidade reativada',
+    icone: 'settings_backup_restore',
+    grupo: 'Unidades',
+  },
   META_DEFINIDA: { rotulo: 'Meta definida', icone: 'flag', grupo: 'Metas' },
   META_ENCERRADA: { rotulo: 'Meta encerrada', icone: 'event_busy', grupo: 'Metas' },
   META_REMOVIDA: { rotulo: 'Meta removida', icone: 'flag', grupo: 'Metas' },
-  ARQUIVO_RECUSADO_PELO_ANTIVIRUS: { rotulo: 'Arquivo recusado pelo antivírus', icone: 'coronavirus', grupo: 'Contratos' },
-  RELATORIO_EXPORTADO: { rotulo: 'Exportação', icone: 'download', grupo: 'Exportações e dados pessoais' },
-  ACESSO_DADO_PESSOAL: { rotulo: 'Dado pessoal exibido', icone: 'visibility', grupo: 'Exportações e dados pessoais' },
-  DOCUMENTO_CONTRATO_ENVIADO: { rotulo: 'Documento de contrato enviado', icone: 'upload_file', grupo: 'Contratos' },
-  ITEM_CONTRATUAL_APROVADO: { rotulo: 'Item contratual aprovado', icone: 'task_alt', grupo: 'Contratos' },
-  ITEM_CONTRATUAL_REJEITADO: { rotulo: 'Item contratual rejeitado', icone: 'cancel', grupo: 'Contratos' },
-  PRAZO_CONTRATUAL_CUMPRIDO: { rotulo: 'Prazo contratual cumprido', icone: 'event_available', grupo: 'Contratos' },
-  PRAZO_CONTRATUAL_REABERTO: { rotulo: 'Prazo contratual reaberto', icone: 'event_repeat', grupo: 'Contratos' },
-  REGRA_DE_PENALIDADE_DEFINIDA: { rotulo: 'Cálculo de penalidade definido', icone: 'calculate', grupo: 'Contratos' },
-  REGRA_DE_PENALIDADE_REMOVIDA: { rotulo: 'Cálculo de penalidade removido', icone: 'calculate', grupo: 'Contratos' },
-  EQUIPE_CADASTRADA: { rotulo: 'Equipe de campo cadastrada', icone: 'group_add', grupo: 'Campanhas' },
+  ARQUIVO_RECUSADO_PELO_ANTIVIRUS: {
+    rotulo: 'Arquivo recusado pelo antivírus',
+    icone: 'coronavirus',
+    grupo: 'Contratos',
+  },
+  RELATORIO_EXPORTADO: {
+    rotulo: 'Exportação',
+    icone: 'download',
+    grupo: 'Exportações e dados pessoais',
+  },
+  ACESSO_DADO_PESSOAL: {
+    rotulo: 'Dado pessoal exibido',
+    icone: 'visibility',
+    grupo: 'Exportações e dados pessoais',
+  },
+  DOCUMENTO_CONTRATO_ENVIADO: {
+    rotulo: 'Documento de contrato enviado',
+    icone: 'upload_file',
+    grupo: 'Contratos',
+  },
+  ITEM_CONTRATUAL_APROVADO: {
+    rotulo: 'Item contratual aprovado',
+    icone: 'task_alt',
+    grupo: 'Contratos',
+  },
+  ITEM_CONTRATUAL_REJEITADO: {
+    rotulo: 'Item contratual rejeitado',
+    icone: 'cancel',
+    grupo: 'Contratos',
+  },
+  PRAZO_CONTRATUAL_CUMPRIDO: {
+    rotulo: 'Prazo contratual cumprido',
+    icone: 'event_available',
+    grupo: 'Contratos',
+  },
+  PRAZO_CONTRATUAL_REABERTO: {
+    rotulo: 'Prazo contratual reaberto',
+    icone: 'event_repeat',
+    grupo: 'Contratos',
+  },
+  REGRA_DE_PENALIDADE_DEFINIDA: {
+    rotulo: 'Cálculo de penalidade definido',
+    icone: 'calculate',
+    grupo: 'Contratos',
+  },
+  REGRA_DE_PENALIDADE_REMOVIDA: {
+    rotulo: 'Cálculo de penalidade removido',
+    icone: 'calculate',
+    grupo: 'Contratos',
+  },
+  EQUIPE_CADASTRADA: {
+    rotulo: 'Equipe de campo cadastrada',
+    icone: 'group_add',
+    grupo: 'Campanhas',
+  },
   EQUIPE_ALTERADA: { rotulo: 'Equipe de campo alterada', icone: 'groups', grupo: 'Campanhas' },
   CAMPANHA_CRIADA: { rotulo: 'Campanha criada', icone: 'campaign', grupo: 'Campanhas' },
   CAMPANHA_ENCERRADA: { rotulo: 'Campanha encerrada', icone: 'task_alt', grupo: 'Campanhas' },
   CAMPANHA_CANCELADA: { rotulo: 'Campanha cancelada', icone: 'cancel', grupo: 'Campanhas' },
   ORDENS_DISTRIBUIDAS: { rotulo: 'OS enviadas à equipe', icone: 'send', grupo: 'Campanhas' },
-  RESULTADO_DE_ORDEM_REGISTRADO: { rotulo: 'Resultado de OS registrado', icone: 'assignment_turned_in', grupo: 'Campanhas' },
+  RESULTADO_DE_ORDEM_REGISTRADO: {
+    rotulo: 'Resultado de OS registrado',
+    icone: 'assignment_turned_in',
+    grupo: 'Campanhas',
+  },
+  SERVICO_CADASTRADO: {
+    rotulo: 'Serviço cadastrado no catálogo',
+    icone: 'home_repair_service',
+    grupo: 'Catálogo de serviços',
+  },
+  SERVICO_ALTERADO: {
+    rotulo: 'Serviço do catálogo alterado',
+    icone: 'edit_note',
+    grupo: 'Catálogo de serviços',
+  },
+  ITEM_DO_CATALOGO_CADASTRADO: {
+    rotulo: 'Item do catálogo cadastrado',
+    icone: 'playlist_add',
+    grupo: 'Catálogo de serviços',
+  },
+  ITEM_DO_CATALOGO_ALTERADO: {
+    rotulo: 'Item do catálogo alterado',
+    icone: 'playlist_add_check',
+    grupo: 'Catálogo de serviços',
+  },
   FONTE_CRIADA: { rotulo: 'Fonte de dados criada', icone: 'database', grupo: 'Integrações' },
   CARGA_CONCLUIDA: { rotulo: 'Carga concluída', icone: 'cloud_done', grupo: 'Integrações' },
   MARCACAO_CRIADA: { rotulo: 'Marcação no mapa', icone: 'location_on', grupo: 'Mapa' },
   MARCACAO_REMOVIDA: { rotulo: 'Marcação removida', icone: 'location_off', grupo: 'Mapa' },
-  IMOVEIS_GEOCODIFICADOS: { rotulo: 'Localização de imóveis recebida', icone: 'pin_drop', grupo: 'Integrações' },
+  IMOVEIS_GEOCODIFICADOS: {
+    rotulo: 'Localização de imóveis recebida',
+    icone: 'pin_drop',
+    grupo: 'Integrações',
+  },
 };
 
 export function infoEvento(tipo: string): InfoEvento {
@@ -69,7 +193,9 @@ export function infoEvento(tipo: string): InfoEvento {
 }
 
 /** Tipos da API agrupados para o seletor, na ordem do catálogo acima. */
-export function gruposDeEventos(tipos: string[]): { grupo: string; tipos: { codigo: string; rotulo: string }[] }[] {
+export function gruposDeEventos(
+  tipos: string[],
+): { grupo: string; tipos: { codigo: string; rotulo: string }[] }[] {
   const ordem = Object.keys(EVENTOS);
   const posicao = (t: string) => (ordem.includes(t) ? ordem.indexOf(t) : ordem.length);
   const grupos = new Map<string, { codigo: string; rotulo: string }[]>();

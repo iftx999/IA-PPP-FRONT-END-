@@ -114,3 +114,20 @@ export type ResultadoOrdem = PedidoResultado['resultado'];
 export type MotivoResultado = NonNullable<PedidoResultado['motivo']>;
 export type PedidoDistribuicao = Esquemas['DistribuicaoRequest'];
 export type ResultadoDistribuicao = Esquemas['DistribuicaoResponse'];
+
+// Catálogo de serviços de campo (ADR 0042).
+export type CatalogoServicos = Esquemas['CatalogoResponse'];
+export type Servico = Esquemas['ServicoResponse'];
+export type PedidoServico = Esquemas['ServicoRequest'];
+export type DefinicaoServico = Esquemas['DefinicaoDto'];
+export type ParametroServico = Esquemas['ParametroDto'];
+export type TipoParametro = ParametroServico['tipo'];
+export type AlvoServico = DefinicaoServico['alvo'];
+export type UnidadeMedida = DefinicaoServico['unidadeMedida'];
+export type VersaoServico = Esquemas['VersaoResponse'];
+export type GrupoServico = Esquemas['GrupoResponse'];
+export type TipoVeiculo = Esquemas['VeiculoResponse'];
+export type PerfilRota = TipoVeiculo['perfilRota'];
+export type Habilidade = Esquemas['HabilidadeResponse'];
+export type MotivoCatalogo = Esquemas['MotivoDoCatalogoResponse'];
+export type TipoMotivo = MotivoCatalogo['tipo'];

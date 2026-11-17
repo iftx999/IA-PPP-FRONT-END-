@@ -7,8 +7,23 @@ import { entrar } from './login';
  * crítica reprova; as demais aparecem no relatório do teste.
  */
 const TELAS = [
-  '/painel', '/metas', '/sem-ligacao', '/mapa', '/alertas', '/contratos', '/simulador', '/campanhas', '/equipes', '/minhas-ordens', '/assistente',
-  '/admin/unidades', '/admin/usuarios', '/admin/perfis', '/admin/integracoes',
+  '/painel',
+  '/metas',
+  '/sem-ligacao',
+  '/mapa',
+  '/alertas',
+  '/contratos',
+  '/simulador',
+  '/campanhas',
+  '/equipes',
+  '/minhas-ordens',
+  '/servicos',
+  '/servicos/novo',
+  '/assistente',
+  '/admin/unidades',
+  '/admin/usuarios',
+  '/admin/perfis',
+  '/admin/integracoes',
 ];
 
 /** Violações sérias ou críticas da tela, uma por linha (tela, regra, elementos e o detalhe do axe). */
@@ -23,7 +38,10 @@ async function violacoes(page: Page, nome: string): Promise<string[]> {
   return resultado.violations
     .filter((v) => v.impact === 'serious' || v.impact === 'critical')
     .flatMap((v) =>
-      v.nodes.map((n) => `${nome} · ${v.id} · ${n.target.join(' ')} · ${(n.failureSummary ?? '').split('\n').slice(1).join(' ')}`),
+      v.nodes.map(
+        (n) =>
+          `${nome} · ${v.id} · ${n.target.join(' ')} · ${(n.failureSummary ?? '').split('\n').slice(1).join(' ')}`,
+      ),
     );
 }
 

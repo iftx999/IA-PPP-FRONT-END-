@@ -18,6 +18,8 @@ const telas: Routes = [
   { path: 'campanhas', title: 'Campanhas · Aurora', loadComponent: () => import('./paginas/campanhas/campanhas').then((m) => m.Campanhas) },
   { path: 'campanhas/:id', title: 'Campanha · Aurora', loadComponent: () => import('./paginas/campanhas/campanha').then((m) => m.CampanhaPagina) },
   { path: 'equipes', title: 'Equipes · Aurora', loadComponent: () => import('./paginas/campanhas/equipes').then((m) => m.Equipes) },
+  { path: 'servicos', title: 'Catálogo de serviços · Aurora', loadComponent: () => import('./paginas/servicos/catalogo').then((m) => m.Catalogo) },
+  { path: 'servicos/:id', title: 'Serviço · Aurora', loadComponent: () => import('./paginas/servicos/servico').then((m) => m.ServicoPagina) },
   { path: 'minhas-ordens', title: 'Minhas OS · Aurora', loadComponent: () => import('./paginas/campanhas/minhas-ordens').then((m) => m.MinhasOrdens) },
   { path: 'assistente', title: 'Assistente · Aurora', loadComponent: () => import('./paginas/assistente/assistente').then((m) => m.Assistente) },
   { path: 'admin/unidades', title: 'Unidades · Aurora', loadComponent: () => import('./paginas/unidades/unidades').then((m) => m.Unidades) },

@@ -276,6 +276,86 @@ export interface paths {
     patch?: never;
     trace?: never;
   };
+  '/api/v1/catalogo/veiculos/{id}': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put: operations['alterarVeiculo'];
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/api/v1/catalogo/servicos/{id}': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put: operations['alterar_5'];
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/api/v1/catalogo/motivos/{id}': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put: operations['alterarMotivo'];
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/api/v1/catalogo/habilidades/{id}': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put: operations['alterarHabilidade'];
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/api/v1/catalogo/grupos/{id}': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put: operations['alterarGrupo'];
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
   '/api/v1/campanhas/ordens/{ordem}/resultado': {
     parameters: {
       query?: never;
@@ -702,6 +782,86 @@ export interface paths {
     get?: never;
     put?: never;
     post: operations['reprocessar'];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/api/v1/catalogo/veiculos': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    post: operations['cadastrarVeiculo'];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/api/v1/catalogo/servicos': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    post: operations['cadastrar_1'];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/api/v1/catalogo/motivos': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    post: operations['cadastrarMotivo'];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/api/v1/catalogo/habilidades': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    post: operations['cadastrarHabilidade'];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/api/v1/catalogo/grupos': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    post: operations['cadastrarGrupo'];
     delete?: never;
     options?: never;
     head?: never;
@@ -1244,6 +1404,38 @@ export interface paths {
       cookie?: never;
     };
     get: operations['arquivo'];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/api/v1/catalogo': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get: operations['completo'];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/api/v1/catalogo/servicos/{id}/versoes': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get: operations['versoes'];
     put?: never;
     post?: never;
     delete?: never;
@@ -1865,6 +2057,137 @@ export interface components {
       /** Format: date-time */
       cumpridoEm: string;
       cumpridoPor: string | null;
+    };
+    VeiculoRequest: {
+      codigo: string | null;
+      nome: string;
+      /** @enum {string} */
+      perfilRota: 'MOTO' | 'CARRO' | 'CAMINHAO';
+      ativo: boolean;
+    };
+    VeiculoResponse: {
+      /** Format: uuid */
+      id: string;
+      codigo: string;
+      nome: string;
+      /** @enum {string} */
+      perfilRota: 'MOTO' | 'CARRO' | 'CAMINHAO';
+      ativo: boolean;
+    };
+    CondicaoDto: {
+      chave: string;
+      valor: string;
+    };
+    DefinicaoDto: {
+      nome: string;
+      descricao: string | null;
+      /** @enum {string} */
+      unidadeMedida: 'UN' | 'M' | 'M2' | 'M3';
+      /** @enum {string} */
+      alvo: 'IMOVEL' | 'TRECHO' | 'AMBOS';
+      tempoPadraoMin: number;
+      tempoPorUnidade: boolean;
+      prazos: components['schemas']['PrazosDto'];
+      /** Format: uuid */
+      tipoVeiculoId: string | null;
+      /** Format: uuid */
+      habilidadeId: string | null;
+      conferidoPelaCarga: boolean;
+      parametros: components['schemas']['ParametroDto'][];
+    };
+    ParametroDto: {
+      chave: string;
+      rotulo: string;
+      ajuda: string | null;
+      /** @enum {string} */
+      tipo:
+        | 'INTEIRO'
+        | 'DECIMAL'
+        | 'TEXTO'
+        | 'LISTA'
+        | 'LISTA_MULTIPLA'
+        | 'SIM_NAO'
+        | 'DATA_HORA'
+        | 'FOTO';
+      obrigatorio: boolean;
+      minimo: number | null;
+      maximo: number | null;
+      unidade: string | null;
+      opcoes: string[] | null;
+      condicao: components['schemas']['CondicaoDto'] | null;
+    };
+    PrazosDto: {
+      /** Format: int32 */
+      emergencialHoras: number;
+      /** Format: int32 */
+      altaDias: number;
+      /** Format: int32 */
+      mediaDias: number;
+      /** Format: int32 */
+      baixaDias: number;
+    };
+    ServicoRequest: {
+      /** Format: uuid */
+      grupoId: string;
+      codigo: string | null;
+      ativo: boolean;
+      definicao: components['schemas']['DefinicaoDto'];
+    };
+    ServicoResponse: {
+      /** Format: uuid */
+      id: string;
+      /** Format: uuid */
+      grupoId: string;
+      codigo: string;
+      ativo: boolean;
+      /** Format: int32 */
+      versao: number;
+      /** Format: date-time */
+      atualizadoEm: string;
+      definicao: components['schemas']['DefinicaoDto'];
+    };
+    MotivoRequest: {
+      /** @enum {string} */
+      tipo: 'PARALISACAO' | 'DEVOLUCAO' | 'NAO_EXECUCAO' | 'CANCELAMENTO';
+      codigo: string | null;
+      nome: string;
+      exigeObservacao: boolean;
+      /** Format: uuid */
+      servicoId: string | null;
+      ativo: boolean;
+    };
+    MotivoDoCatalogoResponse: {
+      /** Format: uuid */
+      id: string;
+      /** @enum {string} */
+      tipo: 'PARALISACAO' | 'DEVOLUCAO' | 'NAO_EXECUCAO' | 'CANCELAMENTO';
+      codigo: string;
+      nome: string;
+      exigeObservacao: boolean;
+      /** Format: uuid */
+      servicoId: string | null;
+      ativo: boolean;
+    };
+    ItemDoCatalogoRequest: {
+      codigo: string | null;
+      nome: string;
+      ativo: boolean;
+    };
+    HabilidadeResponse: {
+      /** Format: uuid */
+      id: string;
+      codigo: string;
+      nome: string;
+      ativo: boolean;
+    };
+    GrupoResponse: {
+      /** Format: uuid */
+      id: string;
+      codigo: string;
+      nome: string;
+      ativo: boolean;
+      /** Format: int64 */
+      servicos: number;
     };
     AvaliacaoRequest: {
       /** Format: int32 */
@@ -2896,6 +3219,21 @@ export interface components {
         | 'QUINQUENAL'
         | null;
     };
+    CatalogoResponse: {
+      grupos: components['schemas']['GrupoResponse'][];
+      servicos: components['schemas']['ServicoResponse'][];
+      motivos: components['schemas']['MotivoDoCatalogoResponse'][];
+      veiculos: components['schemas']['VeiculoResponse'][];
+      habilidades: components['schemas']['HabilidadeResponse'][];
+    };
+    VersaoResponse: {
+      /** Format: int32 */
+      versao: number;
+      /** Format: date-time */
+      criadaEm: string;
+      criadaPor: string | null;
+      definicao: components['schemas']['DefinicaoDto'];
+    };
     MotivoResponse: {
       /** @enum {string} */
       status:
@@ -3674,6 +4012,136 @@ export interface operations {
         };
         content: {
           '*/*': components['schemas']['AgendaResponse'];
+        };
+      };
+    };
+  };
+  alterarVeiculo: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        id: string;
+      };
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        'application/json': components['schemas']['VeiculoRequest'];
+      };
+    };
+    responses: {
+      /** @description OK */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          '*/*': components['schemas']['VeiculoResponse'];
+        };
+      };
+    };
+  };
+  alterar_5: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        id: string;
+      };
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        'application/json': components['schemas']['ServicoRequest'];
+      };
+    };
+    responses: {
+      /** @description OK */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          '*/*': components['schemas']['ServicoResponse'];
+        };
+      };
+    };
+  };
+  alterarMotivo: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        id: string;
+      };
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        'application/json': components['schemas']['MotivoRequest'];
+      };
+    };
+    responses: {
+      /** @description OK */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          '*/*': components['schemas']['MotivoDoCatalogoResponse'];
+        };
+      };
+    };
+  };
+  alterarHabilidade: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        id: string;
+      };
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        'application/json': components['schemas']['ItemDoCatalogoRequest'];
+      };
+    };
+    responses: {
+      /** @description OK */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          '*/*': components['schemas']['HabilidadeResponse'];
+        };
+      };
+    };
+  };
+  alterarGrupo: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        id: string;
+      };
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        'application/json': components['schemas']['ItemDoCatalogoRequest'];
+      };
+    };
+    responses: {
+      /** @description OK */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          '*/*': components['schemas']['GrupoResponse'];
         };
       };
     };
@@ -4588,6 +5056,126 @@ export interface operations {
       };
     };
   };
+  cadastrarVeiculo: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        'application/json': components['schemas']['VeiculoRequest'];
+      };
+    };
+    responses: {
+      /** @description Created */
+      201: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          '*/*': components['schemas']['VeiculoResponse'];
+        };
+      };
+    };
+  };
+  cadastrar_1: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        'application/json': components['schemas']['ServicoRequest'];
+      };
+    };
+    responses: {
+      /** @description Created */
+      201: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          '*/*': components['schemas']['ServicoResponse'];
+        };
+      };
+    };
+  };
+  cadastrarMotivo: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        'application/json': components['schemas']['MotivoRequest'];
+      };
+    };
+    responses: {
+      /** @description Created */
+      201: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          '*/*': components['schemas']['MotivoDoCatalogoResponse'];
+        };
+      };
+    };
+  };
+  cadastrarHabilidade: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        'application/json': components['schemas']['ItemDoCatalogoRequest'];
+      };
+    };
+    responses: {
+      /** @description Created */
+      201: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          '*/*': components['schemas']['HabilidadeResponse'];
+        };
+      };
+    };
+  };
+  cadastrarGrupo: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        'application/json': components['schemas']['ItemDoCatalogoRequest'];
+      };
+    };
+    responses: {
+      /** @description Created */
+      201: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          '*/*': components['schemas']['GrupoResponse'];
+        };
+      };
+    };
+  };
   listar_8: {
     parameters: {
       query?: {
@@ -5401,6 +5989,48 @@ export interface operations {
         };
         content: {
           '*/*': string;
+        };
+      };
+    };
+  };
+  completo: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description OK */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          '*/*': components['schemas']['CatalogoResponse'];
+        };
+      };
+    };
+  };
+  versoes: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        id: string;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description OK */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          '*/*': components['schemas']['VersaoResponse'][];
         };
       };
     };
