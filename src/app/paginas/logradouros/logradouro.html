@@ -27,9 +27,28 @@
         {{ d.logradouro.imoveis === 1 ? 'imóvel' : 'imóveis' }}
       </p>
     </div>
-    <button matButton="outlined" type="button" (click)="editarLogradouro()">
-      <span class="material-symbols-rounded" aria-hidden="true">edit</span> Corrigir nome
-    </button>
+    <div class="acoes-topo">
+      <button matButton="outlined" type="button" (click)="editarLogradouro()">
+        <span class="material-symbols-rounded" aria-hidden="true">edit</span> Corrigir nome
+      </button>
+      @if (sessao.pode('os:programar')) {
+        <a
+          matButton="outlined"
+          routerLink="/ordens"
+          [queryParams]="{ nova: 'trechos', logradouro: d.logradouro.id }"
+        >
+          <span class="material-symbols-rounded" aria-hidden="true">plumbing</span> OS de trecho
+        </a>
+        <a
+          matButton="filled"
+          routerLink="/ordens"
+          [queryParams]="{ nova: 'lote', logradouro: d.logradouro.id }"
+        >
+          <span class="material-symbols-rounded" aria-hidden="true">format_list_numbered</span> Lote
+          de OS na rua
+        </a>
+      }
+    </div>
   </header>
 
   <div class="grade">
@@ -110,7 +129,12 @@
         </p>
       }
     } @else {
-      <div class="esqueleto pequeno" role="status" aria-busy="true" aria-label="Carregando imóveis"></div>
+      <div
+        class="esqueleto pequeno"
+        role="status"
+        aria-busy="true"
+        aria-label="Carregando imóveis"
+      ></div>
     }
   </section>
 } @else {

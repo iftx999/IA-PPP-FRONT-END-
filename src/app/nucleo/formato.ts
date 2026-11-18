@@ -1,7 +1,10 @@
 /** Formatação pt-BR de números, percentuais e competências (docs/07: vírgula decimal, ponto de milhar). */
 
 const inteiro = new Intl.NumberFormat('pt-BR', { maximumFractionDigits: 0 });
-const umaCasa = new Intl.NumberFormat('pt-BR', { minimumFractionDigits: 1, maximumFractionDigits: 1 });
+const umaCasa = new Intl.NumberFormat('pt-BR', {
+  minimumFractionDigits: 1,
+  maximumFractionDigits: 1,
+});
 const mesCurto = new Intl.DateTimeFormat('pt-BR', { month: 'short', timeZone: 'UTC' });
 const mesLongo = new Intl.DateTimeFormat('pt-BR', { month: 'long', timeZone: 'UTC' });
 
@@ -44,13 +47,24 @@ export function competenciaLonga(competencia: string): string {
   return `${mes.charAt(0).toUpperCase()}${mes.slice(1)} de ${data.getUTCFullYear()}`;
 }
 
-const dataCurta = new Intl.DateTimeFormat('pt-BR', { day: '2-digit', month: '2-digit', year: 'numeric' });
+const dataCurta = new Intl.DateTimeFormat('pt-BR', {
+  day: '2-digit',
+  month: '2-digit',
+  year: 'numeric',
+});
 const dataHora = new Intl.DateTimeFormat('pt-BR', { dateStyle: 'short', timeStyle: 'short' });
 const relativo = new Intl.RelativeTimeFormat('pt-BR', { numeric: 'auto' });
 
-/** Instante ISO → "22/10/2026". */
+/**
+ * Instante ISO → "22/10/2026". Data sem hora ("2026-10-22", ex.: prazo, data programada) é o dia do calendário: lida
+ * no fuso local, não como meia-noite UTC (que no Brasil cairia no dia anterior).
+ */
 export function data(iso: string | null | undefined): string {
-  return iso ? dataCurta.format(new Date(iso)) : '—';
+  if (!iso) {
+    return '—';
+  }
+  const dia = /^(\d{4})-(\d{2})-(\d{2})$/.exec(iso);
+  return dataCurta.format(dia ? new Date(+dia[1], +dia[2] - 1, +dia[3]) : new Date(iso));
 }
 
 /** Instante ISO → "22/10/2026, 11:30" (para dicas com o valor exato). */
@@ -65,7 +79,11 @@ export function haQuantoTempo(iso: string | null | undefined, agora = new Date()
   }
   const segundos = (new Date(iso).getTime() - agora.getTime()) / 1000;
   const passos: [Intl.RelativeTimeFormatUnit, number][] = [
-    ['year', 31_536_000], ['month', 2_592_000], ['day', 86_400], ['hour', 3_600], ['minute', 60],
+    ['year', 31_536_000],
+    ['month', 2_592_000],
+    ['day', 86_400],
+    ['hour', 3_600],
+    ['minute', 60],
   ];
   for (const [unidade, tamanho] of passos) {
     if (Math.abs(segundos) >= tamanho) {

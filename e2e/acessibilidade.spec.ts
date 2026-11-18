@@ -16,6 +16,7 @@ const TELAS = [
   '/simulador',
   '/campanhas',
   '/equipes',
+  '/ordens',
   '/minhas-ordens',
   '/servicos',
   '/servicos/novo',

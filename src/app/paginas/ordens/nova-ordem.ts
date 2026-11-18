@@ -1,7 +1,13 @@
 import { HttpClient, httpResource } from '@angular/common/http';
-import { Component, computed, inject, signal } from '@angular/core';
+import { Component, computed, effect, inject, signal } from '@angular/core';
 import { takeUntilDestroyed, toSignal } from '@angular/core/rxjs-interop';
-import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
+import {
+  type AbstractControl,
+  FormControl,
+  FormGroup,
+  ReactiveFormsModule,
+  Validators,
+} from '@angular/forms';
 import { MatAutocompleteModule } from '@angular/material/autocomplete';
 import { MatButtonModule } from '@angular/material/button';
 import { MatButtonToggleModule } from '@angular/material/button-toggle';
@@ -119,13 +125,25 @@ export class NovaOrdemDialogo {
   protected readonly erro = signal<string | null>(null);
 
   constructor() {
+    // Aberto a partir do logradouro: o campo mostra o nome dele.
+    effect(() => {
+      const d = this.detalhe.value();
+      if (d && !this.buscaLogradouro.value) {
+        this.buscaLogradouro.setValue(nomeCompleto(d.logradouro), { emitEvent: false });
+      }
+    });
     this.buscaLogradouro.valueChanges
       .pipe(debounceTime(250), takeUntilDestroyed())
       .subscribe((v) => this.termo.set(v.trim()));
-    this.form.valueChanges.pipe(takeUntilDestroyed()).subscribe(() => {
-      this.previa.set(null);
-      this.erro.set(null);
-    });
+    // A prévia vale para o serviço e a faixa escolhidos; prioridade e instruções não a mudam.
+    const { servico, numeroInicial, numeroFinal, lado } = this.form.controls;
+    const campos: AbstractControl[] = [servico, numeroInicial, numeroFinal, lado];
+    for (const campo of campos) {
+      campo.valueChanges.pipe(takeUntilDestroyed()).subscribe(() => {
+        this.previa.set(null);
+        this.erro.set(null);
+      });
+    }
   }
 
   protected trocarModo(modo: ModoNovaOrdem): void {

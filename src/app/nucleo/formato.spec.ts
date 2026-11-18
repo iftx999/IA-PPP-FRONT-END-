@@ -1,6 +1,19 @@
-import { competenciaCurta, competenciaLonga, numero, percentual, pontosPercentuais } from './formato';
+import {
+  competenciaCurta,
+  competenciaLonga,
+  data,
+  numero,
+  percentual,
+  pontosPercentuais,
+} from './formato';
 
 describe('formato pt-BR', () => {
+  it('data sem hora é o dia do calendário, em qualquer fuso', () => {
+    expect(data('2026-11-18')).toBe('18/11/2026');
+    expect(data('2026-01-01')).toBe('01/01/2026');
+    expect(data(null)).toBe('—');
+  });
+
   it('formata os números do demo', () => {
     expect(percentual(76.8509)).toBe('76,9%');
     expect(numero(11400)).toBe('11.400');

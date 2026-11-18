@@ -4,8 +4,8 @@ import { entrar } from './login';
 const EQUIPE = 'Equipe E2E Centro';
 
 /**
- * ADR 0036: equipe, campanha a partir de um setor com prévia e impacto na meta, envio à equipe, resultado em "Minhas OS"
- * e cancelamento (que libera os imóveis para a próxima execução).
+ * ADR 0036, 0044: equipe, campanha a partir de um setor com prévia e impacto na meta, programação para a equipe,
+ * encerramento como não executada em "Minhas OS" e cancelamento (que libera os imóveis para a próxima execução).
  */
 test.describe('Campanhas de ligação', () => {
   test('da equipe ao resultado de campo', async ({ page }) => {
@@ -43,36 +43,43 @@ test.describe('Campanhas de ligação', () => {
     await nova.getByLabel('Nome da campanha').fill(`Religação Centro E2E ${Date.now()}`);
     await nova.getByRole('button', { name: /^Criar \d+ OS$/ }).click();
 
-    // Painel da campanha: envia 2 OS à equipe.
+    // Painel da campanha: programa 2 OS para a equipe (hoje).
     await expect(page).toHaveURL(/\/campanhas\/[0-9a-f-]{36}/);
     await expect(page.getByRole('heading', { name: 'Funil' })).toBeVisible();
-    await page.getByRole('button', { name: 'Enviar à equipe' }).click();
-    const envio = page.getByRole('dialog', { name: 'Enviar à equipe' });
+    await page.getByRole('button', { name: 'Programar para a equipe' }).click();
+    const envio = page.getByRole('dialog', { name: 'Programar para a equipe' });
     await envio.getByLabel('Equipe').click();
     await page.getByRole('option', { name: new RegExp(EQUIPE) }).click();
     await envio.getByLabel('Quantas (opcional)').fill('2');
-    await envio.getByRole('button', { name: 'Enviar' }).click();
-    await expect(page.getByText('2 OS enviadas.')).toBeVisible();
+    await envio.getByRole('button', { name: 'Programar' }).click();
+    await expect(page.getByText('2 OS programadas.')).toBeVisible();
     const painel = page.url();
     await page.screenshot({ path: 'e2e/capturas/campanha.png', fullPage: true });
 
-    // Minhas OS: registra uma recusa com motivo.
+    // Minhas OS: encerra uma como não executada, com motivo do catálogo.
     await page.goto('/minhas-ordens');
     await expect(page.getByRole('heading', { level: 1 })).toHaveText('Minhas OS');
-    await page.getByRole('button', { name: 'Registrar resultado' }).first().click();
-    const resultado = page.getByRole('dialog', { name: /OS \d+ · Religação/ });
-    await resultado.getByRole('radio', { name: 'Recusada pelo morador' }).click();
-    await resultado.getByRole('button', { name: 'Registrar' }).click();
+    await page
+      .getByRole('listitem')
+      .filter({ hasText: 'Religação' })
+      .getByRole('button', { name: 'Encerrar' })
+      .first()
+      .click();
+    const resultado = page.getByRole('dialog', { name: /Encerrar OS \d+ · Religação/ });
+    await resultado.getByRole('radio', { name: 'Não executada' }).click();
+    await resultado.getByRole('button', { name: 'Encerrar' }).click();
     await expect(resultado.getByText('Escolha o motivo.')).toBeVisible();
     await resultado.getByLabel('Motivo').click();
-    await page.getByRole('option', { name: 'Sem interesse' }).click();
-    await resultado.getByRole('button', { name: 'Registrar' }).click();
-    await expect(page.getByText(/OS \d+: recusada\./)).toBeVisible();
+    await page.getByRole('option', { name: 'Morador sem interesse' }).click();
+    await resultado.getByRole('button', { name: 'Encerrar' }).click();
+    await expect(page.getByText(/OS \d+: encerrada\./)).toBeVisible();
     await page.screenshot({ path: 'e2e/capturas/minhas-ordens.png', fullPage: true });
 
     // De volta ao painel: o motivo aparece; cancelar libera os imóveis.
     await page.goto(painel);
-    await expect(page.getByRole('heading', { name: 'Motivos de recusa e inviabilidade' })).toBeVisible();
+    await expect(
+      page.getByRole('heading', { name: 'Motivos de não execução e devolução' }),
+    ).toBeVisible();
     await page.getByRole('button', { name: 'Cancelar campanha' }).click();
     await page.getByRole('button', { name: 'Confirmar' }).click();
     await expect(page.getByText('Campanha cancelada.')).toBeVisible();
