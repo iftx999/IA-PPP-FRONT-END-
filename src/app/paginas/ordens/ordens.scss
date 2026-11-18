@@ -51,3 +51,19 @@
   color: var(--danger);
   font-size: var(--fs-small);
 }
+.acoes-topo .com-pendencia {
+  border-color: var(--danger);
+}
+.contador {
+  display: inline-grid;
+  place-items: center;
+  min-width: 1.5rem;
+  height: 1.5rem;
+  margin-left: var(--space-1);
+  padding: 0 6px;
+  border-radius: 999px;
+  background: var(--danger);
+  color: var(--bg-2);
+  font-family: var(--font-data);
+  font-size: var(--fs-small);
+}

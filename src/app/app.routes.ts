@@ -23,6 +23,7 @@ const telas: Routes = [
   { path: 'logradouros', title: 'Logradouros · Aurora', loadComponent: () => import('./paginas/logradouros/logradouros').then((m) => m.Logradouros) },
   { path: 'logradouros/:id', title: 'Logradouro · Aurora', loadComponent: () => import('./paginas/logradouros/logradouro').then((m) => m.LogradouroPagina) },
   { path: 'ordens', title: 'Programação de OS · Aurora', loadComponent: () => import('./paginas/ordens/ordens').then((m) => m.Ordens) },
+  { path: 'celulares', title: 'Celulares do app · Aurora', loadComponent: () => import('./paginas/dispositivos/dispositivos').then((m) => m.Dispositivos) },
   { path: 'minhas-ordens', title: 'Minhas OS · Aurora', loadComponent: () => import('./paginas/campanhas/minhas-ordens').then((m) => m.MinhasOrdens) },
   { path: 'assistente', title: 'Assistente · Aurora', loadComponent: () => import('./paginas/assistente/assistente').then((m) => m.Assistente) },
   { path: 'admin/unidades', title: 'Unidades · Aurora', loadComponent: () => import('./paginas/unidades/unidades').then((m) => m.Unidades) },

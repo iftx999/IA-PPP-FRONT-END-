@@ -1,0 +1,128 @@
+<header class="cabecalho">
+  <div class="titulo">
+    <span class="rotulo">Serviços de campo</span>
+    <h1>Celulares do app</h1>
+    <p class="orientacao">
+      Celulares cadastrados no app de campo. Bloqueie um celular perdido ou trocado: ele perde o
+      acesso e apaga os dados da equipe na próxima conexão, depois de enviar o que estava na fila.
+    </p>
+  </div>
+</header>
+
+@if (!sessao.usuario()) {
+  <div class="esqueleto" role="status" aria-busy="true" aria-label="Carregando"></div>
+} @else if (!podeGerir()) {
+  <section class="cartao aviso" role="alert">
+    <p class="rotulo">Sem acesso</p>
+    <p>Seu perfil não permite gerenciar os celulares do app.</p>
+  </section>
+} @else {
+  <mat-button-toggle-group
+    class="filtro"
+    [value]="filtro()"
+    (change)="filtro.set($event.value)"
+    aria-label="Quais celulares mostrar"
+    hideSingleSelectionIndicator
+  >
+    <mat-button-toggle value="EM_USO">Em uso</mat-button-toggle>
+    <mat-button-toggle value="BLOQUEADOS">Bloqueados</mat-button-toggle>
+    <mat-button-toggle value="TODOS">Todos</mat-button-toggle>
+  </mat-button-toggle-group>
+
+  @if (dados.hasValue()) {
+    @if (lista().length) {
+      <section class="cartao tabela" aria-label="Celulares">
+        <table>
+          <thead>
+            <tr>
+              <th scope="col">Pessoa</th>
+              <th scope="col">Celular</th>
+              <th scope="col">App</th>
+              <th scope="col">Último contato</th>
+              <th scope="col">Situação</th>
+              <th scope="col"><span class="cdk-visually-hidden">Ações</span></th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (d of lista(); track d.id) {
+              <tr>
+                <td>{{ d.usuarioNome }}</td>
+                <td>
+                  {{ d.modelo }}
+                  <span class="nota bloco">{{ d.sistema }}</span>
+                </td>
+                <td class="dado">{{ d.versaoApp }}</td>
+                <td>
+                  {{ fmt.dataEHora(d.ultimoContato) }}
+                  <span class="nota bloco">desde {{ fmt.dataEHora(d.cadastradoEm) }}</span>
+                </td>
+                <td>
+                  <aurora-selo [tom]="situacao(d).tom">{{ situacao(d).texto }}</aurora-selo>
+                  @if (d.revogadoEm) {
+                    <span class="nota bloco"
+                      >por {{ d.revogadoPor }} em {{ fmt.dataEHora(d.revogadoEm) }}</span
+                    >
+                  }
+                </td>
+                <td class="acoes-linha">
+                  @if (!d.revogado) {
+                    <button matButton type="button" class="perigo" (click)="bloquear(d)">
+                      Bloquear
+                    </button>
+                  }
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </section>
+    } @else {
+      <section class="cartao vazio">
+        <span class="material-symbols-rounded" aria-hidden="true">smartphone</span>
+        @if (dados.value().length) {
+          <p>Nenhum celular nesta situação.</p>
+        } @else {
+          <p>Nenhum celular cadastrado ainda.</p>
+          <p class="nota">O celular aparece aqui no primeiro login no app de campo.</p>
+        }
+      </section>
+    }
+  } @else if (dados.error()) {
+    <section class="cartao aviso" role="alert">
+      <p>Não foi possível carregar os celulares.</p>
+    </section>
+  } @else {
+    <div class="esqueleto" role="status" aria-busy="true" aria-label="Carregando"></div>
+  }
+}
+
+<ng-template #modeloBloqueio>
+  <h2 mat-dialog-title>Bloquear o celular?</h2>
+  <mat-dialog-content>
+    @if (escolhido(); as d) {
+      <p>
+        O {{ d.modelo }} de <strong>{{ d.usuarioNome }}</strong> perde o acesso ao app. Na próxima
+        conexão ele envia o que estiver na fila e apaga os dados locais.
+      </p>
+      <p class="nota">Não dá para desfazer: para voltar a usar, a pessoa cadastra outro celular.</p>
+    }
+    @if (erro()) {
+      <p class="erro" role="alert">{{ erro() }}</p>
+    }
+  </mat-dialog-content>
+  <mat-dialog-actions align="end">
+    <button matButton type="button" (click)="fechar()">Cancelar</button>
+    <button
+      matButton="filled"
+      type="button"
+      class="perigo"
+      [disabled]="salvando()"
+      (click)="confirmarBloqueio()"
+    >
+      @if (salvando()) {
+        <mat-spinner diameter="18" />
+      }
+      Bloquear
+    </button>
+  </mat-dialog-actions>
+</ng-template>

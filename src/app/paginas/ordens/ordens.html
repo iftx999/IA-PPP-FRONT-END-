@@ -12,6 +12,26 @@
       <button
         matButton="outlined"
         type="button"
+        [class.com-pendencia]="conflitosAbertos() > 0"
+        (click)="abrirConflitos()"
+      >
+        <span class="material-symbols-rounded" aria-hidden="true">sync_problem</span>
+        Conflitos de campo
+        @if (conflitosAbertos()) {
+          <span class="contador">{{ fmt.numero(conflitosAbertos()) }}</span>
+        }
+      </button>
+      <button
+        matButton="outlined"
+        type="button"
+        [attr.aria-pressed]="filtros.valor('status') === 'DEVOLVIDA'"
+        (click)="verDevolvidas()"
+      >
+        <span class="material-symbols-rounded" aria-hidden="true">undo</span> Devolvidas
+      </button>
+      <button
+        matButton="outlined"
+        type="button"
         [disabled]="!selecionadas()"
         (click)="abrirProgramacao()"
       >
@@ -220,6 +240,17 @@
                     }
                   </td>
                   <td class="acoes-linha">
+                    @if (o.status !== 'PLANEJADA') {
+                      <button
+                        matIconButton
+                        type="button"
+                        (click)="registros(o)"
+                        [attr.aria-label]="'Registros do campo da OS ' + o.numero"
+                        matTooltip="Registros do campo"
+                      >
+                        <span class="material-symbols-rounded" aria-hidden="true">history</span>
+                      </button>
+                    }
                     @if (regras.podeEncerrar(o.status)) {
                       <button matButton type="button" (click)="encerrar(o)">Encerrar</button>
                     }

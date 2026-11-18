@@ -40,6 +40,7 @@ export const SECOES: { titulo: string; telas: Tela[] }[] = [
       { rota: '/minhas-ordens', rotulo: 'Minhas OS', permissao: 'os:executar' },
       { rota: '/servicos', rotulo: 'Catálogo de serviços', permissao: 'servico:gerenciar' },
       { rota: '/logradouros', rotulo: 'Logradouros', permissao: 'logradouro:gerenciar' },
+      { rota: '/celulares', rotulo: 'Celulares do app', permissao: 'dispositivo:gerenciar' },
     ],
   },
   {

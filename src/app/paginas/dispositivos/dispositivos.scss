@@ -1,0 +1,20 @@
+.filtro {
+  margin-bottom: var(--space-4);
+}
+.tabela .bloco {
+  display: block;
+}
+.acoes-linha {
+  white-space: nowrap;
+  text-align: right;
+}
+.erro {
+  color: var(--danger);
+}
+.perigo {
+  color: var(--danger);
+}
+button.perigo[matButton='filled'] {
+  --mat-button-filled-container-color: var(--danger);
+  --mat-button-filled-label-text-color: var(--bg-2);
+}

@@ -1,0 +1,148 @@
+<h2 mat-dialog-title>OS {{ dados.ordem.numero }} · {{ dados.ordem.servicoNome }}</h2>
+<mat-dialog-content>
+  <p class="resumo">
+    <span class="dado">{{ alvo }}</span>
+    <aurora-selo [tom]="rotulos.status[dados.ordem.status].tom">{{
+      rotulos.status[dados.ordem.status].texto
+    }}</aurora-selo>
+    @if (dados.ordem.equipeNome) {
+      <span class="nota">{{ dados.ordem.equipeNome }}</span>
+    }
+  </p>
+
+  @if (execucao.hasValue()) {
+    @if (execucao.value(); as x) {
+      @for (c of x.conflitos; track c.id) {
+        <section class="conflito" [class.decidido]="c.decididoEm" aria-label="Conflito de campo">
+          <span class="material-symbols-rounded" aria-hidden="true">{{
+            c.decididoEm ? 'check_circle' : 'warning'
+          }}</span>
+          <div>
+            <p class="rotulo">{{ rotulos.conflito[c.tipo] }}</p>
+            <p>{{ c.descricao }}</p>
+            @if (c.decisao) {
+              <p class="nota">
+                Decisão de {{ c.decididoPor }} em {{ fmt.dataEHora(c.decididoEm) }}: {{ c.decisao }}
+              </p>
+            } @else {
+              <p class="nota">Aguardando a decisão do programador.</p>
+            }
+          </div>
+        </section>
+      }
+
+      @if (encerramento(); as e) {
+        <section aria-labelledby="titulo-valores">
+          <h3 id="titulo-valores">Encerramento</h3>
+          <dl class="valores">
+            <div>
+              <dt>Resultado</dt>
+              <dd>{{ e.resultado === 'NAO_EXECUTADA' ? 'Não executada' : 'Executada' }}</dd>
+            </div>
+            @if (e.quantidade != null) {
+              <div>
+                <dt>Quantidade</dt>
+                <dd>{{ fmt.numero(e.quantidade) }} {{ dados.ordem.unidadeMedida }}</dd>
+              </div>
+            }
+            @for (v of valores(); track v.rotulo) {
+              <div>
+                <dt>{{ v.rotulo }}</dt>
+                <dd>{{ v.valor }}</dd>
+              </div>
+            }
+          </dl>
+        </section>
+      }
+
+      @if (fotos().length || fotosPendentes() || fotosRecusadas().length) {
+        <section aria-labelledby="titulo-fotos">
+          <h3 id="titulo-fotos">Fotos</h3>
+          @if (fotos().length) {
+            <ul class="fotos">
+              @for (f of fotos(); track f.id) {
+                <li>
+                  <aurora-foto-da-ordem
+                    [ordem]="dados.ordem.id"
+                    [anexo]="f.id"
+                    [descricao]="f.descricao"
+                  />
+                </li>
+              }
+            </ul>
+          }
+          @if (fotosPendentes()) {
+            <p class="nota">
+              {{ fotosPendentes() }}
+              {{ fotosPendentes() === 1 ? 'foto ainda chegando' : 'fotos ainda chegando' }}
+              do celular.
+            </p>
+          }
+          @for (r of fotosRecusadas(); track r.id) {
+            <p class="nota alerta">Foto recusada: {{ r.recusa }}.</p>
+          }
+        </section>
+      }
+
+      <section aria-labelledby="titulo-eventos">
+        <h3 id="titulo-eventos">Registros do app</h3>
+        @if (x.eventos.length) {
+          <ol class="linha-do-tempo">
+            @for (e of x.eventos; track e.id) {
+              <li [class.fora]="e.situacao !== 'APLICADO'">
+                <span class="material-symbols-rounded marcador" aria-hidden="true">{{
+                  rotulos.acao[e.tipo].icone
+                }}</span>
+                <div>
+                  <p>
+                    <strong>{{ rotulos.acao[e.tipo].texto }}</strong>
+                    @if (e.tipo === 'ENCERRAR' && e.resultado === 'NAO_EXECUTADA') {
+                      sem executar
+                    }
+                    · {{ fmt.dataEHora(e.ocorridoEm) }}
+                    @if (e.situacao !== 'APLICADO') {
+                      <aurora-selo [tom]="rotulos.situacao[e.situacao]?.tom ?? 'neutro'">{{
+                        rotulos.situacao[e.situacao]?.texto ?? e.situacao
+                      }}</aurora-selo>
+                    }
+                  </p>
+                  <p class="nota">
+                    {{ e.usuarioNome }} · {{ e.equipeNome }}
+                    @if (e.distanciaM != null) {
+                      · a {{ fmt.distancia(e.distanciaM) }} do local
+                    }
+                  </p>
+                  @if (e.motivoNome || e.observacao) {
+                    <p>
+                      {{ e.motivoNome }}{{ e.motivoNome && e.observacao ? ': ' : ''
+                      }}{{ e.observacao }}
+                    </p>
+                  }
+                  @if (e.mensagem && e.situacao !== 'APLICADO') {
+                    <p class="nota">{{ e.mensagem }}</p>
+                  }
+                  @if (e.avisos.length) {
+                    <ul class="avisos" aria-label="Avisos">
+                      @for (a of e.avisos; track a) {
+                        <li>{{ rotulos.aviso[a] ?? a }}</li>
+                      }
+                    </ul>
+                  }
+                </div>
+              </li>
+            }
+          </ol>
+        } @else {
+          <p class="nota">Nenhum registro do app nesta OS.</p>
+        }
+      </section>
+    }
+  } @else if (execucao.error()) {
+    <p class="erro" role="alert">Não foi possível carregar os registros do campo.</p>
+  } @else {
+    <div class="esqueleto" role="status" aria-busy="true" aria-label="Carregando"></div>
+  }
+</mat-dialog-content>
+<mat-dialog-actions align="end">
+  <button matButton type="button" mat-dialog-close>Fechar</button>
+</mat-dialog-actions>

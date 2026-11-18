@@ -20,6 +20,7 @@ import type {
   OpcoesDasOrdens,
   OrdemServico,
   OrigemOrdem,
+  PaginaConflitos,
   PaginaOrdensGeral,
   PedidoProgramacao,
   Prioridade,
@@ -49,6 +50,8 @@ import {
   podeProgramar,
   quantidadeComUnidade,
 } from '../campanhas/textos';
+import { ConflitosDialogo } from './conflitos';
+import { ExecucaoOrdemDialogo, type DadosExecucao } from './execucao-ordem';
 import { NovaOrdemDialogo, type DadosNovaOrdem } from './nova-ordem';
 import type { ModoNovaOrdem } from './textos';
 
@@ -57,7 +60,8 @@ const TAMANHO = 50;
 /**
  * Programação das OS (J4, J5; ADR 0044): todas as OS do escopo com filtros na URL, criação
  * (imóveis, trechos, lote por logradouro), programação das selecionadas para uma equipe numa
- * data (RN-23: só as da área da equipe), cancelamento e encerramento pelo gestor.
+ * data (RN-23: só as da área da equipe), cancelamento e encerramento pelo gestor; registros do
+ * app, caixa de devolvidas e de conflitos de campo (J11; ADR 0045).
  */
 @Component({
   selector: 'aurora-ordens',
@@ -149,6 +153,15 @@ export class Ordens {
     }
     return { url: '/api/v1/ordens', params };
   });
+  /** J11: conflitos de campo à espera de decisão. */
+  protected readonly conflitos = httpResource<PaginaConflitos>(() =>
+    this.podeProgramar()
+      ? { url: '/api/v1/ordens/conflitos', params: { abertos: true } }
+      : undefined,
+  );
+  protected readonly conflitosAbertos = computed(() =>
+    this.conflitos.hasValue() ? this.conflitos.value().abertos : 0,
+  );
   protected readonly itens = computed(() =>
     this.lista.hasValue() ? this.lista.value().itens : [],
   );
@@ -334,6 +347,33 @@ export class Ordens {
         this.lista.reload();
       }
     });
+  }
+
+  // ----- Execução no campo (ADR 0045) -----
+  protected registros(ordem: OrdemServico): void {
+    this.dialogos.open<ExecucaoOrdemDialogo, DadosExecucao>(ExecucaoOrdemDialogo, {
+      data: { ordem },
+      width: '44rem',
+      maxWidth: 'calc(100vw - 2rem)',
+      autoFocus: 'dialog',
+    });
+  }
+
+  protected abrirConflitos(): void {
+    this.dialogos
+      .open(ConflitosDialogo, { width: '44rem', maxWidth: 'calc(100vw - 2rem)' })
+      .afterClosed()
+      .subscribe((alterou?: boolean) => {
+        if (alterou) {
+          this.conflitos.reload();
+          this.lista.reload();
+        }
+      });
+  }
+
+  /** Atalho da caixa de devolvidas (J11). */
+  protected verDevolvidas(): void {
+    this.filtrar({ status: this.filtros.valor('status') === 'DEVOLVIDA' ? null : 'DEVOLVIDA' });
   }
 
   protected rotuloStatus(s: StatusOrdem): string {

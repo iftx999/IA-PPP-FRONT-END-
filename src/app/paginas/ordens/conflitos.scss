@@ -1,0 +1,53 @@
+mat-button-toggle-group {
+  margin-block: var(--space-2) var(--space-4);
+}
+
+.lista {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+
+  > li {
+    padding-block: var(--space-3);
+    border-top: var(--border);
+  }
+
+  p {
+    margin: var(--space-1) 0;
+  }
+}
+
+.cabeca {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.decisao {
+  display: grid;
+  gap: var(--space-2);
+  margin-block: var(--space-2);
+
+  mat-form-field {
+    width: 100%;
+  }
+}
+
+.botoes {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: var(--space-2);
+}
+
+.vazio {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  color: var(--text-2);
+}
+
+.erro {
+  color: var(--danger);
+}

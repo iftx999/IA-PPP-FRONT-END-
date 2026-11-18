@@ -1,0 +1,102 @@
+<h2 mat-dialog-title>Conflitos de campo</h2>
+<mat-dialog-content>
+  <p class="nota">
+    O campo trabalhou numa OS que a programação já tinha mudado. Vale o que o campo fez: ajuste a OS
+    se preciso e registre a decisão.
+  </p>
+  <mat-button-toggle-group
+    [value]="abertos()"
+    (change)="abertos.set($event.value)"
+    aria-label="Quais conflitos mostrar"
+    hideSingleSelectionIndicator
+  >
+    <mat-button-toggle [value]="true">Abertos</mat-button-toggle>
+    <mat-button-toggle [value]="false">Todos</mat-button-toggle>
+  </mat-button-toggle-group>
+
+  @if (pagina.hasValue()) {
+    @if (pagina.value(); as p) {
+      @if (p.itens.length) {
+        <ul class="lista">
+          @for (c of p.itens; track c.id) {
+            <li>
+              <div class="cabeca">
+                <aurora-selo [tom]="c.decididoEm ? 'neutro' : 'perigo'">{{
+                  rotulos.conflito[c.tipo]
+                }}</aurora-selo>
+                <span class="dado">OS {{ c.osNumero }}</span>
+                <span>{{ c.servicoNome }}</span>
+                <aurora-selo [tom]="rotulos.status[c.osStatus].tom">{{
+                  rotulos.status[c.osStatus].texto
+                }}</aurora-selo>
+              </div>
+              <p>{{ c.descricao }}</p>
+              <p class="nota">
+                {{ rotulos.acao[c.acao].texto }} em {{ fmt.dataEHora(c.ocorridoEm) }} ·
+                {{ c.agente }}
+                @if (c.equipeNome) {
+                  · {{ c.equipeNome }}
+                }
+              </p>
+              @if (c.decisao) {
+                <p class="nota">
+                  Decisão de {{ c.decididoPor }} em {{ fmt.dataEHora(c.decididoEm) }}:
+                  {{ c.decisao }}
+                </p>
+              } @else if (decidindo() === c.id) {
+                <div class="decisao">
+                  <mat-form-field subscriptSizing="dynamic">
+                    <mat-label>Decisão</mat-label>
+                    <textarea
+                      matInput
+                      [formControl]="decisao"
+                      rows="2"
+                      maxlength="500"
+                      placeholder="Ex.: mantida com a equipe que executou"
+                    ></textarea>
+                    <mat-error>Descreva a decisão (de 3 a 500 caracteres).</mat-error>
+                  </mat-form-field>
+                  @if (erro()) {
+                    <p class="erro" role="alert">{{ erro() }}</p>
+                  }
+                  <div class="botoes">
+                    <button matButton type="button" (click)="desistir()">Cancelar</button>
+                    <button
+                      matButton="filled"
+                      type="button"
+                      [disabled]="salvando()"
+                      (click)="registrar(c)"
+                    >
+                      @if (salvando()) {
+                        <mat-spinner diameter="18" />
+                      }
+                      Registrar decisão
+                    </button>
+                  </div>
+                </div>
+              }
+              <div class="botoes">
+                <button matButton type="button" (click)="verOrdem(c)">Ver registros da OS</button>
+                @if (!c.decisao && decidindo() !== c.id) {
+                  <button matButton="tonal" type="button" (click)="decidir(c)">Decidir</button>
+                }
+              </div>
+            </li>
+          }
+        </ul>
+      } @else {
+        <p class="vazio">
+          <span class="material-symbols-rounded" aria-hidden="true">task_alt</span>
+          {{ abertos() ? 'Nenhum conflito aberto.' : 'Nenhum conflito registrado.' }}
+        </p>
+      }
+    }
+  } @else if (pagina.error()) {
+    <p class="erro" role="alert">Não foi possível carregar os conflitos.</p>
+  } @else {
+    <div class="esqueleto" role="status" aria-busy="true" aria-label="Carregando"></div>
+  }
+</mat-dialog-content>
+<mat-dialog-actions align="end">
+  <button matButton type="button" [mat-dialog-close]="alterou">Fechar</button>
+</mat-dialog-actions>

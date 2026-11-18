@@ -134,6 +134,18 @@ export type PedidoProgramacao = Esquemas['ProgramacaoRequest'];
 export type ResultadoProgramacao = Esquemas['ProgramacaoResponse'];
 export type Feriado = Esquemas['FeriadoResponse'];
 
+// Execução de campo (ADR 0045).
+export type ExecucaoDaOrdem = Esquemas['ExecucaoDaOrdemResponse'];
+export type EventoDaOrdem = Esquemas['EventoDaOrdemResponse'];
+export type AcaoDeCampo = EventoDaOrdem['tipo'];
+export type AnexoDaOrdem = Esquemas['AnexoDaOrdemResponse'];
+export type ParametroDaExecucao = Esquemas['ParametroDaExecucaoResponse'];
+export type ConflitoDeCampo = Esquemas['ConflitoResponse'];
+export type TipoConflito = ConflitoDeCampo['tipo'];
+export type PaginaConflitos = Esquemas['PaginaConflitosResponse'];
+export type PedidoDecisao = Esquemas['DecisaoRequest'];
+export type Dispositivo = Esquemas['DispositivoResponse'];
+
 // Catálogo de serviços de campo (ADR 0042).
 export type CatalogoServicos = Esquemas['CatalogoResponse'];
 export type Servico = Esquemas['ServicoResponse'];
