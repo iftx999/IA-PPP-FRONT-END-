@@ -1,0 +1,332 @@
+<header class="cabecalho">
+  <div class="titulo">
+    <span class="rotulo">Serviços de campo</span>
+    <h1>Programação de OS</h1>
+    <p class="orientacao">
+      Crie OS para imóveis, trechos de rede ou uma rua inteira; escolha as planejadas e programe
+      para uma equipe numa data. Só seguem as OS dentro da área da equipe.
+    </p>
+  </div>
+  @if (podeProgramar()) {
+    <div class="acoes-topo">
+      <button
+        matButton="outlined"
+        type="button"
+        [disabled]="!selecionadas()"
+        (click)="abrirProgramacao()"
+      >
+        <span class="material-symbols-rounded" aria-hidden="true">event_available</span>
+        {{ selecionadas() ? 'Programar ' + fmt.numero(selecionadas()) : 'Programar selecionadas' }}
+      </button>
+      <button
+        matButton="filled"
+        type="button"
+        [disabled]="!opcoes.hasValue()"
+        (click)="novaOrdem()"
+      >
+        <span class="material-symbols-rounded" aria-hidden="true">add</span> Nova OS
+      </button>
+    </div>
+  }
+</header>
+
+@if (!sessao.usuario()) {
+  <div class="esqueleto" role="status" aria-busy="true" aria-label="Carregando"></div>
+} @else if (!podeProgramar()) {
+  <section class="cartao aviso" role="alert">
+    <p class="rotulo">Sem acesso</p>
+    <p>Seu perfil não permite programar ordens de serviço.</p>
+  </section>
+} @else {
+  <div class="barra-filtros" role="search" aria-label="Filtros das OS">
+    <mat-form-field class="busca" subscriptSizing="dynamic">
+      <span matPrefix class="material-symbols-rounded prefixo" aria-hidden="true">search</span>
+      <input
+        matInput
+        type="search"
+        [formControl]="busca"
+        placeholder="Número da OS ou matrícula"
+        aria-label="Buscar OS"
+      />
+    </mat-form-field>
+    <mat-form-field class="filtro" subscriptSizing="dynamic">
+      <mat-label>Situação</mat-label>
+      <mat-select
+        [value]="filtros.valor('status') ?? ''"
+        (selectionChange)="filtrar({ status: $event.value })"
+      >
+        <mat-option value="">Todas</mat-option>
+        @for (s of statusFiltro; track s) {
+          <mat-option [value]="s">{{ rotulos.status[s].texto }}</mat-option>
+        }
+      </mat-select>
+    </mat-form-field>
+    <mat-form-field class="filtro" subscriptSizing="dynamic">
+      <mat-label>Serviço</mat-label>
+      <mat-select
+        [value]="filtros.valor('servico') ?? ''"
+        (selectionChange)="filtrar({ servico: $event.value })"
+      >
+        <mat-option value="">Todos</mat-option>
+        @for (s of opcoes.value()?.servicos ?? []; track s.id) {
+          <mat-option [value]="s.id">{{ s.nome }}</mat-option>
+        }
+      </mat-select>
+    </mat-form-field>
+    <mat-form-field class="filtro" subscriptSizing="dynamic">
+      <mat-label>Equipe</mat-label>
+      <mat-select
+        [value]="filtros.valor('equipe') ?? ''"
+        (selectionChange)="filtrar({ equipe: $event.value })"
+      >
+        <mat-option value="">Todas</mat-option>
+        @for (e of equipes.value() ?? []; track e.id) {
+          <mat-option [value]="e.id">{{ e.nome }}</mat-option>
+        }
+      </mat-select>
+    </mat-form-field>
+    <mat-form-field class="filtro curto" subscriptSizing="dynamic">
+      <mat-label>Prioridade</mat-label>
+      <mat-select
+        [value]="filtros.valor('prioridade') ?? ''"
+        (selectionChange)="filtrar({ prioridade: $event.value })"
+      >
+        <mat-option value="">Todas</mat-option>
+        @for (p of prioridades; track p) {
+          <mat-option [value]="p">{{ rotulos.prioridade[p].texto }}</mat-option>
+        }
+      </mat-select>
+    </mat-form-field>
+    <mat-form-field class="filtro curto" subscriptSizing="dynamic">
+      <mat-label>Origem</mat-label>
+      <mat-select
+        [value]="filtros.valor('origem') ?? ''"
+        (selectionChange)="filtrar({ origem: $event.value, lote: null })"
+      >
+        <mat-option value="">Todas</mat-option>
+        @for (o of origens; track o) {
+          <mat-option [value]="o">{{ rotulos.origem[o] }}</mat-option>
+        }
+      </mat-select>
+    </mat-form-field>
+    <mat-form-field class="filtro curto" subscriptSizing="dynamic">
+      <mat-label>Programada para</mat-label>
+      <input
+        matInput
+        [matDatepicker]="calFiltro"
+        [value]="dataFiltro()"
+        (dateChange)="filtrarData($event.value)"
+        placeholder="dd/mm/aaaa"
+      />
+      <mat-datepicker-toggle matIconSuffix [for]="calFiltro" />
+      <mat-datepicker #calFiltro />
+    </mat-form-field>
+    <mat-slide-toggle
+      [checked]="filtros.valor('atrasadas') === 'true'"
+      (change)="filtrar({ atrasadas: $event.checked ? 'true' : null })"
+      >Só atrasadas</mat-slide-toggle
+    >
+    @if (filtros.ativos()) {
+      <button matButton type="button" (click)="limparFiltros()">Limpar filtros</button>
+    }
+  </div>
+  @if (filtros.valor('lote')) {
+    <p class="nota filtro-lote">
+      <span class="material-symbols-rounded" aria-hidden="true">filter_alt</span>
+      Mostrando as OS de um lote.
+      <button matButton type="button" (click)="filtrar({ lote: null })">Ver todas</button>
+    </p>
+  }
+
+  @if (lista.hasValue()) {
+    @if (lista.value(); as p) {
+      @if (p.itens.length) {
+        <section class="cartao tabela" aria-label="Ordens de serviço">
+          <table>
+            <thead>
+              <tr>
+                <th scope="col" class="selecao">
+                  <mat-checkbox
+                    [checked]="todasSelecionadas()"
+                    [indeterminate]="selecionadas() > 0 && !todasSelecionadas()"
+                    [disabled]="!selecionaveis().length"
+                    (change)="alternarTodas()"
+                    aria-label="Selecionar as que podem ser programadas"
+                  />
+                </th>
+                <th scope="col">OS</th>
+                <th scope="col">Serviço</th>
+                <th scope="col">Onde</th>
+                <th scope="col">Prioridade e prazo</th>
+                <th scope="col">Equipe</th>
+                <th scope="col">Situação</th>
+                <th scope="col"><span class="cdk-visually-hidden">Ações</span></th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (o of p.itens; track o.id) {
+                <tr [class.selecionada]="selecao.isSelected(o.id)">
+                  <td class="selecao">
+                    @if (regras.podeProgramar(o.status)) {
+                      <mat-checkbox
+                        [checked]="selecao.isSelected(o.id)"
+                        (change)="selecao.toggle(o.id)"
+                        [attr.aria-label]="'Selecionar OS ' + o.numero"
+                      />
+                    }
+                  </td>
+                  <td class="dado">
+                    {{ o.numero }}
+                    <span class="nota bloco">{{ rotulos.origem[o.origem] }}</span>
+                  </td>
+                  <td>
+                    {{ o.servicoNome }}
+                    <span class="nota bloco"
+                      >{{ fmt.quantidade(o.quantidadePrevista, o.unidadeMedida) }}
+                      @if (o.campanhaNome) {
+                        · {{ o.campanhaNome }}
+                      }
+                    </span>
+                  </td>
+                  <td>
+                    <span class="dado">{{ alvo(o) }}</span>
+                    <span class="nota bloco">{{ o.unidadeNome }}</span>
+                  </td>
+                  <td>
+                    <aurora-selo [tom]="rotulos.prioridade[o.prioridade].tom">{{
+                      rotulos.prioridade[o.prioridade].texto
+                    }}</aurora-selo>
+                    <span class="nota bloco" [class.alerta]="o.atrasada"
+                      >{{ fmt.dataEHora(o.prazoEm) }}{{ o.atrasada ? ' · atrasada' : '' }}</span
+                    >
+                  </td>
+                  <td>
+                    {{ o.equipeNome ?? '—' }}
+                    @if (o.dataProgramada) {
+                      <span class="nota bloco">{{ fmt.data(o.dataProgramada) }}</span>
+                    }
+                  </td>
+                  <td>
+                    <aurora-selo [tom]="rotulos.status[o.status].tom">{{
+                      rotulos.status[o.status].texto
+                    }}</aurora-selo>
+                    @if (o.motivoNome) {
+                      <span
+                        class="nota bloco"
+                        [matTooltip]="o.observacao ?? ''"
+                        [matTooltipDisabled]="!o.observacao"
+                        >{{ o.motivoNome }}</span
+                      >
+                    }
+                  </td>
+                  <td class="acoes-linha">
+                    @if (regras.podeEncerrar(o.status)) {
+                      <button matButton type="button" (click)="encerrar(o)">Encerrar</button>
+                    }
+                    @if (regras.podeCancelar(o.status)) {
+                      <button matButton type="button" (click)="cancelar(o)">Cancelar</button>
+                    }
+                  </td>
+                </tr>
+              }
+            </tbody>
+          </table>
+          <nav class="paginacao" aria-label="Páginas">
+            <span class="sub"
+              >{{ fmt.numero(p.total) }} OS · página {{ p.pagina + 1 }} de {{ paginas() }}</span
+            >
+            <button
+              matIconButton
+              type="button"
+              aria-label="Página anterior"
+              [disabled]="p.pagina === 0"
+              (click)="irParaPagina(p.pagina - 1)"
+            >
+              <span class="material-symbols-rounded" aria-hidden="true">chevron_left</span>
+            </button>
+            <button
+              matIconButton
+              type="button"
+              aria-label="Próxima página"
+              [disabled]="p.pagina + 1 >= paginas()"
+              (click)="irParaPagina(p.pagina + 1)"
+            >
+              <span class="material-symbols-rounded" aria-hidden="true">chevron_right</span>
+            </button>
+          </nav>
+        </section>
+      } @else {
+        <section class="cartao vazio">
+          <span class="material-symbols-rounded" aria-hidden="true">assignment</span>
+          @if (filtros.ativos()) {
+            <p>Nenhuma OS com estes filtros.</p>
+          } @else {
+            <p>Nenhuma OS ainda.</p>
+            <p class="nota">Use “Nova OS” para criar OS de imóveis, de trechos ou de uma rua.</p>
+          }
+        </section>
+      }
+    }
+  } @else if (lista.error()) {
+    <section class="cartao aviso" role="alert"><p>Não foi possível carregar as OS.</p></section>
+  } @else {
+    <div class="esqueleto" role="status" aria-busy="true" aria-label="Carregando"></div>
+  }
+}
+
+<ng-template #modeloProgramacao>
+  <h2 mat-dialog-title>Programar {{ fmt.numero(selecionadas()) }} OS</h2>
+  <mat-dialog-content>
+    <form
+      id="form-programacao"
+      [formGroup]="formProgramacao"
+      (ngSubmit)="programar()"
+      class="formulario"
+    >
+      <p class="nota">
+        As já programadas mudam de equipe e data. Só seguem as OS dentro da área onde a equipe atua.
+      </p>
+      <mat-form-field>
+        <mat-label>Equipe</mat-label>
+        <mat-select formControlName="equipe">
+          @for (e of equipes.value() ?? []; track e.id) {
+            <mat-option [value]="e.id"
+              >{{ e.nome }} · {{ e.unidadeNome }} · {{ fmt.numero(e.ordensEmCampo) }} com a
+              equipe</mat-option
+            >
+          }
+        </mat-select>
+        <mat-error>Escolha a equipe.</mat-error>
+      </mat-form-field>
+      <mat-form-field>
+        <mat-label>Data</mat-label>
+        <input
+          matInput
+          [matDatepicker]="calProgramacao"
+          formControlName="data"
+          [min]="hoje"
+          [max]="limite"
+          placeholder="dd/mm/aaaa"
+        />
+        <mat-datepicker-toggle matIconSuffix [for]="calProgramacao" />
+        <mat-datepicker #calProgramacao />
+        <mat-error>Informe uma data de hoje até 180 dias.</mat-error>
+      </mat-form-field>
+      @if (erroProgramacao()) {
+        <p class="erro" role="alert">
+          <span class="material-symbols-rounded" aria-hidden="true">error</span
+          >{{ erroProgramacao() }}
+        </p>
+      }
+    </form>
+  </mat-dialog-content>
+  <mat-dialog-actions align="end">
+    <button matButton type="button" (click)="fecharProgramacao()">Cancelar</button>
+    <button matButton="filled" type="submit" form="form-programacao" [disabled]="programando()">
+      @if (programando()) {
+        <mat-spinner diameter="18" />
+      }
+      Programar
+    </button>
+  </mat-dialog-actions>
+</ng-template>

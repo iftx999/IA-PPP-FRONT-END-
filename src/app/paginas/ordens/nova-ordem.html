@@ -1,0 +1,216 @@
+<h2 mat-dialog-title>Nova OS</h2>
+<mat-dialog-content>
+  @if (resultado(); as r) {
+    <section class="resultado" role="status">
+      <p class="resultado-titulo">
+        <span class="material-symbols-rounded" aria-hidden="true">task_alt</span>
+        {{ fmt.numero(r.criadas) }} {{ r.criadas === 1 ? 'OS criada' : 'OS criadas' }}
+        @if (r.totalIgnoradas) {
+          · {{ fmt.numero(r.totalIgnoradas) }} de fora
+        }
+      </p>
+      @if (r.ignoradas.length) {
+        <ul class="ignoradas" aria-label="Ficaram de fora">
+          @for (i of r.ignoradas; track i.alvo) {
+            <li>
+              <span class="dado">{{ i.alvo }}</span> <span class="nota">{{ i.motivo }}</span>
+            </li>
+          }
+        </ul>
+        @if (r.totalIgnoradas > r.ignoradas.length) {
+          <p class="nota">E mais {{ fmt.numero(r.totalIgnoradas - r.ignoradas.length) }}.</p>
+        }
+      }
+      <p class="nota">As OS novas ficam planejadas: escolha-as na lista para programar.</p>
+    </section>
+  } @else {
+    <form id="form-nova-ordem" [formGroup]="form" (ngSubmit)="criar()" class="formulario">
+      @if (dados.comLogradouros) {
+        <mat-button-toggle-group
+          [value]="modo()"
+          (change)="trocarModo($event.value)"
+          aria-label="Para onde é a OS"
+          class="modos"
+        >
+          <mat-button-toggle value="IMOVEIS">Imóveis</mat-button-toggle>
+          <mat-button-toggle value="TRECHOS">Trechos de rede</mat-button-toggle>
+          <mat-button-toggle value="LOTE">Lote por logradouro</mat-button-toggle>
+        </mat-button-toggle-group>
+      }
+
+      <div class="linha">
+        <mat-form-field class="largo">
+          <mat-label>Serviço</mat-label>
+          <mat-select formControlName="servico">
+            @for (s of servicosDoModo(); track s.id) {
+              <mat-option [value]="s.id">{{ s.nome }} · {{ s.grupoNome }}</mat-option>
+            }
+          </mat-select>
+          <mat-error>Escolha o serviço.</mat-error>
+        </mat-form-field>
+        <mat-form-field>
+          <mat-label>Prioridade</mat-label>
+          <mat-select formControlName="prioridade">
+            @for (p of prioridades; track p) {
+              <mat-option [value]="p">{{ rotuloPrioridade[p].texto }}</mat-option>
+            }
+          </mat-select>
+          @if (prazo(); as prazo) {
+            <mat-hint>Prazo: {{ prazo }}</mat-hint>
+          }
+        </mat-form-field>
+      </div>
+
+      @switch (modo()) {
+        @case ('IMOVEIS') {
+          <mat-form-field>
+            <mat-label>Matrículas</mat-label>
+            <textarea
+              matInput
+              formControlName="matriculas"
+              rows="4"
+              placeholder="Uma por linha, ou separadas por vírgula"
+            ></textarea>
+            <mat-hint>{{ fmt.numero(matriculas().length) }} de até 500</mat-hint>
+          </mat-form-field>
+        }
+        @default {
+          <mat-form-field>
+            <mat-label>Logradouro</mat-label>
+            <span matPrefix class="material-symbols-rounded prefixo" aria-hidden="true"
+              >signpost</span
+            >
+            <input
+              matInput
+              [formControl]="buscaLogradouro"
+              [matAutocomplete]="sugestao"
+              placeholder="Nome ou código"
+            />
+            <mat-autocomplete
+              #sugestao="matAutocomplete"
+              [displayWith]="nomeDoLogradouro"
+              (optionSelected)="escolherLogradouro($event.option.value)"
+            >
+              @for (l of sugestoes.value()?.itens ?? []; track l.id) {
+                <mat-option [value]="l">
+                  {{ fmt.nomeCompleto(l) }}
+                  <span class="nota"
+                    >· {{ l.bairro ?? l.unidadeNome }} · {{ fmt.numero(l.imoveis) }} imóveis</span
+                  >
+                </mat-option>
+              }
+            </mat-autocomplete>
+          </mat-form-field>
+        }
+      }
+
+      @if (modo() === 'TRECHOS' && detalhe.value(); as d) {
+        <fieldset class="trechos">
+          <legend>
+            Trechos de {{ fmt.nomeCompleto(d.logradouro) }}
+            <button matButton type="button" (click)="todosOsTrechos()">
+              {{ trechos().size === d.trechos.length ? 'Nenhum' : 'Todos' }}
+            </button>
+          </legend>
+          @for (t of d.trechos; track t.id) {
+            <mat-checkbox [checked]="trechos().has(t.id)" (change)="alternarTrecho(t.id)">
+              <span class="dado">{{ t.codigo }}</span> · {{ fmt.extensao(t.extensaoM) }} ·
+              {{ fmt.faixa(t) }}
+            </mat-checkbox>
+          } @empty {
+            <p class="nota">Este logradouro não tem trechos importados.</p>
+          }
+        </fieldset>
+      }
+
+      @if (modo() === 'LOTE') {
+        <div class="linha">
+          <mat-form-field>
+            <mat-label>Do número</mat-label>
+            <input
+              matInput
+              type="number"
+              min="0"
+              formControlName="numeroInicial"
+              placeholder="Início"
+            />
+          </mat-form-field>
+          <mat-form-field>
+            <mat-label>Até o número</mat-label>
+            <input matInput type="number" min="0" formControlName="numeroFinal" placeholder="Fim" />
+          </mat-form-field>
+          <mat-form-field>
+            <mat-label>Lado</mat-label>
+            <mat-select formControlName="lado">
+              <mat-option value="AMBOS">Pares e ímpares</mat-option>
+              <mat-option value="PAR">Só pares</mat-option>
+              <mat-option value="IMPAR">Só ímpares</mat-option>
+            </mat-select>
+          </mat-form-field>
+        </div>
+        <p class="nota">Sem faixa, entra o logradouro inteiro, inclusive os imóveis sem número.</p>
+        @if (previa(); as p) {
+          <dl class="numeros" aria-label="Prévia do lote">
+            <div>
+              <dt>Imóveis na faixa</dt>
+              <dd class="dado">{{ fmt.numero(p.imoveis) }}</dd>
+            </div>
+            <div>
+              <dt>Já têm OS aberta do serviço</dt>
+              <dd class="dado">{{ fmt.numero(p.comOsAberta) }}</dd>
+            </div>
+            <div>
+              <dt>OS novas</dt>
+              <dd class="dado destaque">{{ fmt.numero(p.novas) }}</dd>
+            </div>
+          </dl>
+          @if (p.novas > p.limite) {
+            <p class="erro" role="alert">
+              Acima do limite de {{ fmt.numero(p.limite) }} OS por lote: divida por faixa de
+              numeração.
+            </p>
+          }
+        }
+      }
+
+      <mat-form-field>
+        <mat-label>Instruções para a equipe (opcional)</mat-label>
+        <textarea matInput formControlName="instrucoes" rows="2" maxlength="500"></textarea>
+        <mat-hint align="end">{{ valores().instrucoes?.length ?? 0 }}/500</mat-hint>
+      </mat-form-field>
+
+      @if (erro()) {
+        <p class="erro" role="alert">
+          <span class="material-symbols-rounded" aria-hidden="true">error</span>{{ erro() }}
+        </p>
+      }
+    </form>
+  }
+</mat-dialog-content>
+<mat-dialog-actions align="end">
+  @if (resultado()) {
+    <button matButton="filled" type="button" [mat-dialog-close]="resultado()">Concluir</button>
+  } @else {
+    <button matButton type="button" mat-dialog-close>Cancelar</button>
+    @if (modo() === 'LOTE' && !previa()) {
+      <button matButton="filled" type="submit" form="form-nova-ordem" [disabled]="salvando()">
+        @if (salvando()) {
+          <mat-spinner diameter="18" />
+        }
+        Ver prévia
+      </button>
+    } @else {
+      <button
+        matButton="filled"
+        type="submit"
+        form="form-nova-ordem"
+        [disabled]="salvando() || (previa() !== null && previa()!.novas > previa()!.limite)"
+      >
+        @if (salvando()) {
+          <mat-spinner diameter="18" />
+        }
+        {{ modo() === 'LOTE' ? 'Gerar ' + fmt.numero(previa()?.novas ?? 0) + ' OS' : 'Criar OS' }}
+      </button>
+    }
+  }
+</mat-dialog-actions>

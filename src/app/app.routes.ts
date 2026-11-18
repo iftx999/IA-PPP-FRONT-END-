@@ -22,6 +22,7 @@ const telas: Routes = [
   { path: 'servicos/:id', title: 'Serviço · Aurora', loadComponent: () => import('./paginas/servicos/servico').then((m) => m.ServicoPagina) },
   { path: 'logradouros', title: 'Logradouros · Aurora', loadComponent: () => import('./paginas/logradouros/logradouros').then((m) => m.Logradouros) },
   { path: 'logradouros/:id', title: 'Logradouro · Aurora', loadComponent: () => import('./paginas/logradouros/logradouro').then((m) => m.LogradouroPagina) },
+  { path: 'ordens', title: 'Programação de OS · Aurora', loadComponent: () => import('./paginas/ordens/ordens').then((m) => m.Ordens) },
   { path: 'minhas-ordens', title: 'Minhas OS · Aurora', loadComponent: () => import('./paginas/campanhas/minhas-ordens').then((m) => m.MinhasOrdens) },
   { path: 'assistente', title: 'Assistente · Aurora', loadComponent: () => import('./paginas/assistente/assistente').then((m) => m.Assistente) },
   { path: 'admin/unidades', title: 'Unidades · Aurora', loadComponent: () => import('./paginas/unidades/unidades').then((m) => m.Unidades) },

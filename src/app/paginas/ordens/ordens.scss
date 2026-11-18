@@ -1,0 +1,53 @@
+.barra-filtros {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2) var(--space-3);
+  margin-bottom: var(--space-4);
+  .busca {
+    flex: 1 1 240px;
+  }
+  .filtro {
+    width: 200px;
+  }
+  .filtro.curto {
+    width: 160px;
+  }
+}
+.filtro-lote {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  margin: 0 0 var(--space-3);
+}
+.tabela {
+  .selecao {
+    width: 48px;
+    padding-right: 0;
+  }
+  tr.selecionada td {
+    background: var(--accent-soft, color-mix(in srgb, var(--accent) 8%, transparent));
+  }
+  .bloco {
+    display: block;
+  }
+  .alerta {
+    color: var(--danger);
+  }
+}
+.acoes-linha {
+  white-space: nowrap;
+  text-align: right;
+}
+.formulario {
+  display: grid;
+  gap: var(--space-2);
+}
+.erro {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin: 0;
+  color: var(--danger);
+  font-size: var(--fs-small);
+}
