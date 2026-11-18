@@ -140,7 +140,8 @@ export function quantidadeComUnidade(valor: number | null | undefined, unidade: 
     return '—';
   }
   const simbolo: Record<string, string> = { UN: 'un.', M: 'm', M2: 'm²', M3: 'm³' };
-  return `${numero(valor)} ${simbolo[unidade] ?? unidade}`;
+  const texto = valor.toLocaleString('pt-BR', { maximumFractionDigits: 2 });
+  return `${texto} ${simbolo[unidade] ?? unidade}`;
 }
 
 /** Etapas do funil (I4), com a fração de cada uma sobre as planejadas. */
