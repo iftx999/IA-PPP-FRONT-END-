@@ -175,7 +175,7 @@
     <button matButton="outlined" type="button" (click)="dados.reload()">Tentar de novo</button>
   </section>
 } @else {
-  <div class="esqueleto" aria-busy="true" aria-label="Carregando as metas"></div>
+  <div class="esqueleto" role="status" aria-busy="true" aria-label="Carregando as metas"></div>
 }
 
 <ng-template #modeloNova>

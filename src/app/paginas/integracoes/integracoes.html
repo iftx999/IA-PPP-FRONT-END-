@@ -18,7 +18,7 @@
 </header>
 
 @if (!sessao.usuario()) {
-  <div class="esqueleto" aria-busy="true" aria-label="Carregando"></div>
+  <div class="esqueleto" role="status" aria-busy="true" aria-label="Carregando"></div>
 } @else if (!sessao.pode('integracao:gerenciar')) {
   <section class="cartao aviso" role="alert">
     <p class="rotulo">Sem acesso</p>
@@ -120,7 +120,7 @@
     <button matButton="outlined" type="button" (click)="dados.reload()">Tentar de novo</button>
   </section>
 } @else {
-  <div class="esqueleto" aria-busy="true" aria-label="Carregando as integrações"></div>
+  <div class="esqueleto" role="status" aria-busy="true" aria-label="Carregando as integrações"></div>
 }
 
 <ng-template #modeloFonte>

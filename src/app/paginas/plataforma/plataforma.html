@@ -46,7 +46,7 @@
       <p>{{ mensagemDeErro(clientes.error()) }}</p>
     </section>
   } @else if (!clientes.hasValue()) {
-    <div class="esqueleto" aria-busy="true" aria-label="Carregando"></div>
+    <div class="esqueleto" role="status" aria-busy="true" aria-label="Carregando"></div>
   } @else {
     <div class="barra-filtros" role="search" aria-label="Filtros dos clientes">
       <mat-form-field class="busca" subscriptSizing="dynamic">

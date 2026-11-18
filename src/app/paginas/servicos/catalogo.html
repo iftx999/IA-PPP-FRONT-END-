@@ -16,7 +16,7 @@
 </header>
 
 @if (!sessao.usuario()) {
-  <div class="esqueleto" aria-busy="true" aria-label="Carregando"></div>
+  <div class="esqueleto" role="status" aria-busy="true" aria-label="Carregando"></div>
 } @else if (!podeGerir()) {
   <section class="cartao aviso" role="alert">
     <p class="rotulo">Sem acesso</p>
@@ -305,7 +305,7 @@
     <button matButton type="button" (click)="dados.reload()">Tentar de novo</button>
   </section>
 } @else {
-  <div class="esqueleto" aria-busy="true" aria-label="Carregando"></div>
+  <div class="esqueleto" role="status" aria-busy="true" aria-label="Carregando"></div>
 }
 
 <ng-template #modeloItem>

@@ -185,7 +185,7 @@
         </ul>
       }
     } @else {
-      <div class="esqueleto pequeno" aria-busy="true" aria-label="Carregando os itens"></div>
+      <div class="esqueleto pequeno" role="status" aria-busy="true" aria-label="Carregando os itens"></div>
     }
   </section>
 } @else if (dados.error()) {
@@ -194,7 +194,7 @@
     <a matButton="outlined" routerLink="/contratos">Voltar para contratos</a>
   </section>
 } @else {
-  <div class="esqueleto" aria-busy="true" aria-label="Carregando o contrato"></div>
+  <div class="esqueleto" role="status" aria-busy="true" aria-label="Carregando o contrato"></div>
 }
 
 <ng-template #modeloRevisao>
