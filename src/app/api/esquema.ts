@@ -196,6 +196,38 @@ export interface paths {
     patch?: never;
     trace?: never;
   };
+  '/api/v1/logradouros/{id}': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get: operations['detalhe'];
+    put: operations['corrigir'];
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/api/v1/logradouros/trechos/{id}': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put: operations['corrigirTrecho'];
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
   '/api/v1/integracoes/fontes/{id}': {
     parameters: {
       query?: never;
@@ -590,6 +622,38 @@ export interface paths {
     get?: never;
     put?: never;
     post: operations['exportar'];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/api/v1/logradouros/importacoes/trechos': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    post: operations['importarTrechos'];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/api/v1/logradouros/importacoes/enderecos': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    post: operations['importarEnderecos'];
     delete?: never;
     options?: never;
     head?: never;
@@ -1268,6 +1332,70 @@ export interface paths {
     patch?: never;
     trace?: never;
   };
+  '/api/v1/logradouros': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get: operations['buscar_1'];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/api/v1/logradouros/{id}/imoveis': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get: operations['imoveis_1'];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/api/v1/logradouros/importacoes': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get: operations['importacoes'];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/api/v1/logradouros/cobertura': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get: operations['cobertura'];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
   '/api/v1/integracoes/fontes/{id}/execucoes': {
     parameters: {
       query?: never;
@@ -1909,6 +2037,54 @@ export interface components {
       /** Format: double */
       longitude: number | null;
     };
+    LogradouroRequest: {
+      tipo: string | null;
+      nome: string;
+      bairro: string | null;
+    };
+    DetalheLogradouroResponse: {
+      logradouro: components['schemas']['LogradouroResponse'];
+      trechos: components['schemas']['TrechoResponse'][];
+    };
+    LogradouroResponse: {
+      /** Format: uuid */
+      id: string;
+      /** Format: uuid */
+      unidadeId: string;
+      unidadeNome: string;
+      codigo: string;
+      tipo: string | null;
+      nome: string;
+      bairro: string | null;
+      /** Format: int64 */
+      trechos: number;
+      extensaoM: number;
+      /** Format: int64 */
+      imoveis: number;
+    };
+    TrechoResponse: {
+      /** Format: uuid */
+      id: string;
+      codigo: string;
+      extensaoM: number;
+      /** Format: int32 */
+      numeroInicial: number | null;
+      /** Format: int32 */
+      numeroFinal: number | null;
+      /** @enum {string} */
+      lado: 'PAR' | 'IMPAR' | 'AMBOS';
+      /** Format: int64 */
+      imoveis: number;
+      coordenadas: number[][];
+    };
+    TrechoRequest: {
+      /** Format: int32 */
+      numeroInicial: number | null;
+      /** Format: int32 */
+      numeroFinal: number | null;
+      /** @enum {string} */
+      lado: 'PAR' | 'IMPAR' | 'AMBOS';
+    };
     FonteRequest: {
       nome: string;
       /** @enum {string} */
@@ -2300,6 +2476,31 @@ export interface components {
       imoveis: components['schemas']['CamadaImoveis'] | null;
       marcacoes: boolean;
       imagemPng: string | null;
+    };
+    RejeicaoResponse: {
+      /** Format: int32 */
+      posicao: number;
+      motivo: string;
+    };
+    ResultadoImportacaoResponse: {
+      /** @enum {string} */
+      tipo: 'TRECHOS' | 'ENDERECOS';
+      simulacao: boolean;
+      /** Format: int32 */
+      lidos: number;
+      /** Format: int32 */
+      novos: number;
+      /** Format: int32 */
+      atualizados: number;
+      /** Format: int32 */
+      inalterados: number;
+      /** Format: int32 */
+      rejeitados: number;
+      rejeicoes: components['schemas']['RejeicaoResponse'][];
+      /** Format: int32 */
+      semTrecho: number;
+      /** Format: int32 */
+      ausentes: number;
     };
     FonteCriada: {
       /** Format: uuid */
@@ -2992,6 +3193,51 @@ export interface components {
       geometria: {
         [key: string]: unknown;
       };
+    };
+    PaginaLogradourosResponse: {
+      itens: components['schemas']['LogradouroResponse'][];
+      /** Format: int64 */
+      total: number;
+      /** Format: int32 */
+      pagina: number;
+      /** Format: int32 */
+      tamanho: number;
+    };
+    ImovelDoLogradouroResponse: {
+      matricula: string;
+      numero: string | null;
+      complemento: string | null;
+      trecho: string | null;
+      precisao: string | null;
+    };
+    ImportacaoResponse: {
+      /** Format: uuid */
+      id: string;
+      /** @enum {string} */
+      tipo: 'TRECHOS' | 'ENDERECOS';
+      unidadeNome: string | null;
+      arquivo: string;
+      /** Format: int32 */
+      lidos: number;
+      /** Format: int32 */
+      novos: number;
+      /** Format: int32 */
+      atualizados: number;
+      /** Format: int32 */
+      rejeitados: number;
+      feitaPor: string;
+      /** Format: date-time */
+      feitaEm: string;
+    };
+    CoberturaResponse: {
+      /** Format: int64 */
+      imoveis: number;
+      /** Format: int64 */
+      comEndereco: number;
+      /** Format: int64 */
+      comTrecho: number;
+      /** Format: int64 */
+      aproximados: number;
     };
     FonteResponse: {
       /** Format: uuid */
@@ -3870,6 +4116,80 @@ export interface operations {
       };
     };
   };
+  detalhe: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        id: string;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description OK */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          '*/*': components['schemas']['DetalheLogradouroResponse'];
+        };
+      };
+    };
+  };
+  corrigir: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        id: string;
+      };
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        'application/json': components['schemas']['LogradouroRequest'];
+      };
+    };
+    responses: {
+      /** @description OK */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          '*/*': components['schemas']['DetalheLogradouroResponse'];
+        };
+      };
+    };
+  };
+  corrigirTrecho: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        id: string;
+      };
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        'application/json': components['schemas']['TrechoRequest'];
+      };
+    };
+    responses: {
+      /** @description OK */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          '*/*': components['schemas']['DetalheLogradouroResponse'];
+        };
+      };
+    };
+  };
   alterar_3: {
     parameters: {
       query?: never;
@@ -4635,6 +4955,65 @@ export interface operations {
         };
         content: {
           '*/*': string;
+        };
+      };
+    };
+  };
+  importarTrechos: {
+    parameters: {
+      query: {
+        unidade: string;
+        simular?: boolean;
+      };
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: {
+      content: {
+        'multipart/form-data': {
+          /** Format: binary */
+          arquivo: string;
+        };
+      };
+    };
+    responses: {
+      /** @description OK */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          '*/*': components['schemas']['ResultadoImportacaoResponse'];
+        };
+      };
+    };
+  };
+  importarEnderecos: {
+    parameters: {
+      query?: {
+        simular?: boolean;
+      };
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: {
+      content: {
+        'multipart/form-data': {
+          /** Format: binary */
+          arquivo: string;
+        };
+      };
+    };
+    responses: {
+      /** @description OK */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          '*/*': components['schemas']['ResultadoImportacaoResponse'];
         };
       };
     };
@@ -5784,6 +6163,94 @@ export interface operations {
         };
         content: {
           '*/*': components['schemas']['CamadasMapa'];
+        };
+      };
+    };
+  };
+  buscar_1: {
+    parameters: {
+      query?: {
+        unidade?: string;
+        busca?: string;
+        pagina?: number;
+      };
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description OK */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          '*/*': components['schemas']['PaginaLogradourosResponse'];
+        };
+      };
+    };
+  };
+  imoveis_1: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        id: string;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description OK */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          '*/*': components['schemas']['ImovelDoLogradouroResponse'][];
+        };
+      };
+    };
+  };
+  importacoes: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description OK */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          '*/*': components['schemas']['ImportacaoResponse'][];
+        };
+      };
+    };
+  };
+  cobertura: {
+    parameters: {
+      query: {
+        unidade: string;
+      };
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description OK */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          '*/*': components['schemas']['CoberturaResponse'];
         };
       };
     };

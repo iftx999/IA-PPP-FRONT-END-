@@ -1,0 +1,206 @@
+<nav class="trilha"><a routerLink="/logradouros">← Logradouros e trechos</a></nav>
+
+@if (!sessao.usuario()) {
+  <div class="esqueleto" role="status" aria-busy="true" aria-label="Carregando"></div>
+} @else if (!podeGerir()) {
+  <section class="cartao aviso" role="alert">
+    <p class="rotulo">Sem acesso</p>
+    <p>Seu perfil não permite gerenciar logradouros.</p>
+  </section>
+} @else if (detalhe.error()) {
+  <section class="cartao aviso" role="alert">
+    <p class="rotulo">Logradouro não encontrado</p>
+    <a matButton routerLink="/logradouros">Voltar à lista</a>
+  </section>
+} @else if (detalhe.value(); as d) {
+  <header class="cabecalho">
+    <div class="titulo">
+      <span class="rotulo"
+        >{{ d.logradouro.unidadeNome
+        }}{{ d.logradouro.bairro ? ' · ' + d.logradouro.bairro : '' }}</span
+      >
+      <h1>{{ fmt.nomeCompleto(d.logradouro) }}</h1>
+      <p class="orientacao">
+        <span class="dado">{{ d.logradouro.codigo }}</span> · {{ fmt.numero(d.logradouro.trechos) }}
+        {{ d.logradouro.trechos === 1 ? 'trecho' : 'trechos' }} ·
+        {{ fmt.extensao(d.logradouro.extensaoM) }} · {{ fmt.numero(d.logradouro.imoveis) }}
+        {{ d.logradouro.imoveis === 1 ? 'imóvel' : 'imóveis' }}
+      </p>
+    </div>
+    <button matButton="outlined" type="button" (click)="editarLogradouro()">
+      <span class="material-symbols-rounded" aria-hidden="true">edit</span> Corrigir nome
+    </button>
+  </header>
+
+  <div class="grade">
+    <section class="cartao mapa-cartao" aria-label="Mapa dos trechos">
+      <div #mapa class="mapa"></div>
+    </section>
+
+    <section class="cartao tabela" aria-labelledby="titulo-trechos">
+      <h2 id="titulo-trechos">Trechos</h2>
+      <table>
+        <thead>
+          <tr>
+            <th scope="col">Trecho</th>
+            <th scope="col">Numeração</th>
+            <th scope="col" class="numero">Extensão</th>
+            <th scope="col" class="numero">Imóveis</th>
+            <th scope="col"><span class="sr-only">Ações</span></th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (t of d.trechos; track t.id) {
+            <tr [class.selecionado]="selecionado() === t.id" (mouseenter)="selecionado.set(t.id)">
+              <td class="dado">{{ t.codigo }}</td>
+              <td>{{ fmt.faixaDoTrecho(t) }}</td>
+              <td class="numero dado">{{ fmt.extensao(t.extensaoM) }}</td>
+              <td class="numero dado">{{ fmt.numero(t.imoveis) }}</td>
+              <td class="numero">
+                <button
+                  matIconButton
+                  type="button"
+                  [attr.aria-label]="'Corrigir a numeração do trecho ' + t.codigo"
+                  (click)="editarTrecho(t)"
+                >
+                  <span class="material-symbols-rounded" aria-hidden="true">edit</span>
+                </button>
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </section>
+  </div>
+
+  <section class="cartao tabela" aria-labelledby="titulo-imoveis">
+    <h2 id="titulo-imoveis">Imóveis na ordem da numeração</h2>
+    @if (imoveis.hasValue()) {
+      @if (imoveis.value().length) {
+        <table>
+          <thead>
+            <tr>
+              <th scope="col">Número</th>
+              <th scope="col">Complemento</th>
+              <th scope="col">Matrícula</th>
+              <th scope="col">Trecho</th>
+              <th scope="col">Localização</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (i of imoveis.value(); track i.matricula + $index) {
+              <tr>
+                <td class="dado">{{ i.numero ?? 'S/N' }}</td>
+                <td>{{ i.complemento ?? '—' }}</td>
+                <td class="dado">{{ i.matricula }}</td>
+                <td class="dado" [class.alerta]="!i.trecho">{{ i.trecho ?? 'Sem trecho' }}</td>
+                <td [class.alerta]="i.precisao !== 'ENDERECO' && i.precisao !== 'MANUAL'">
+                  {{ rotuloPrecisao(i.precisao) }}
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
+        @if (imoveis.value().length >= 2000) {
+          <p class="nota rodape">Mostrando os 2.000 primeiros.</p>
+        }
+      } @else {
+        <p class="nota rodape">
+          Nenhum imóvel vinculado. Importe os endereços (CSV) na lista de logradouros.
+        </p>
+      }
+    } @else {
+      <div class="esqueleto pequeno" role="status" aria-busy="true" aria-label="Carregando imóveis"></div>
+    }
+  </section>
+} @else {
+  <div class="esqueleto" role="status" aria-busy="true" aria-label="Carregando"></div>
+}
+
+<ng-template #modeloLogradouro>
+  <h2 mat-dialog-title>Corrigir logradouro</h2>
+  <mat-dialog-content>
+    <form
+      id="form-logradouro"
+      [formGroup]="formLogradouro"
+      (ngSubmit)="salvarLogradouro()"
+      class="formulario"
+    >
+      <p class="nota">
+        A próxima importação da concessionária volta ao nome dela; corrija também na origem.
+      </p>
+      <div class="dupla">
+        <mat-form-field>
+          <mat-label>Tipo</mat-label>
+          <input matInput formControlName="tipo" maxlength="30" placeholder="Rua, Avenida…" />
+        </mat-form-field>
+        <mat-form-field>
+          <mat-label>Bairro</mat-label>
+          <input matInput formControlName="bairro" maxlength="80" />
+        </mat-form-field>
+      </div>
+      <mat-form-field>
+        <mat-label>Nome</mat-label>
+        <input matInput formControlName="nome" maxlength="120" />
+        <mat-error>Informe o nome.</mat-error>
+      </mat-form-field>
+      @if (erro()) {
+        <p class="erro" role="alert">
+          <span class="material-symbols-rounded" aria-hidden="true">error</span>{{ erro() }}
+        </p>
+      }
+    </form>
+  </mat-dialog-content>
+  <mat-dialog-actions align="end">
+    <button matButton type="button" (click)="fechar()">Cancelar</button>
+    <button matButton="filled" type="submit" form="form-logradouro" [disabled]="salvando()">
+      @if (salvando()) {
+        <mat-spinner diameter="18" />
+      }
+      Salvar
+    </button>
+  </mat-dialog-actions>
+</ng-template>
+
+<ng-template #modeloTrecho>
+  <h2 mat-dialog-title>Numeração do trecho {{ trechoEmEdicao()?.codigo }}</h2>
+  <mat-dialog-content>
+    <form id="form-trecho" [formGroup]="formTrecho" (ngSubmit)="salvarTrecho()" class="formulario">
+      <p class="nota">
+        Ao salvar, o trecho de cada imóvel do município é escolhido de novo pela faixa.
+      </p>
+      <div class="dupla">
+        <mat-form-field>
+          <mat-label>Número inicial</mat-label>
+          <input matInput type="number" min="0" formControlName="numeroInicial" />
+        </mat-form-field>
+        <mat-form-field>
+          <mat-label>Número final</mat-label>
+          <input matInput type="number" min="0" formControlName="numeroFinal" />
+        </mat-form-field>
+      </div>
+      <mat-form-field>
+        <mat-label>Lado</mat-label>
+        <mat-select formControlName="lado">
+          @for (l of lados; track l.valor) {
+            <mat-option [value]="l.valor">{{ l.rotulo }}</mat-option>
+          }
+        </mat-select>
+      </mat-form-field>
+      @if (erro()) {
+        <p class="erro" role="alert">
+          <span class="material-symbols-rounded" aria-hidden="true">error</span>{{ erro() }}
+        </p>
+      }
+    </form>
+  </mat-dialog-content>
+  <mat-dialog-actions align="end">
+    <button matButton type="button" (click)="fechar()">Cancelar</button>
+    <button matButton="filled" type="submit" form="form-trecho" [disabled]="salvando()">
+      @if (salvando()) {
+        <mat-spinner diameter="18" />
+      }
+      Salvar
+    </button>
+  </mat-dialog-actions>
+</ng-template>

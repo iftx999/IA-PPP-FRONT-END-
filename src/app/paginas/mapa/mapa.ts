@@ -16,7 +16,7 @@ import { MatTooltipModule } from '@angular/material/tooltip';
 import { Router, RouterLink } from '@angular/router';
 import {
   type GeoJSONSource, Map as MapaLibre, type MapGeoJSONFeature, type MapMouseEvent, NavigationControl, ScaleControl,
-  type VectorTileSource, setWorkerUrl,
+  type VectorTileSource,
 } from 'maplibre-gl';
 import type { Point } from 'geojson';
 import { OidcSecurityService } from 'angular-auth-oidc-client';
@@ -29,6 +29,7 @@ import { mensagemDeErro } from '../../nucleo/erro-api';
 import { competenciaLonga, data, percentual } from '../../nucleo/formato';
 import { FUNDO_DO_MAPA } from '../../nucleo/fundo-mapa';
 import { SessaoService } from '../../nucleo/sessao';
+import { prepararMaplibre } from '../../nucleo/maplibre';
 import { TemaService } from '../../nucleo/tema';
 import { SeloSituacao } from '../../ui/selo-situacao';
 import {
@@ -322,8 +323,7 @@ export class Mapa {
   // ----- Mapa -----
 
   private criarMapa(recipiente: HTMLElement): void {
-    garantirEstilosDoMapa();
-    setWorkerUrl(new URL('/maplibre/maplibre-gl-worker.mjs', window.location.origin).href);
+    prepararMaplibre();
     const [lon, lat, zoom] = [this.lon(), this.lat(), this.zoom()];
     const vistaPedida = lon != null && lat != null && Math.abs(lon) <= 180 && Math.abs(lat) <= 90;
     this.enquadrado = vistaPedida;
@@ -605,16 +605,6 @@ export class Mapa {
       });
       mapa.triggerRepaint();
     });
-  }
-}
-
-function garantirEstilosDoMapa(): void {
-  if (!document.querySelector('link[data-maplibre]')) {
-    const link = document.createElement('link');
-    link.rel = 'stylesheet';
-    link.href = 'maplibre.css';
-    link.dataset['maplibre'] = '';
-    document.head.appendChild(link);
   }
 }
 

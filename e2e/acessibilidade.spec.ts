@@ -19,6 +19,7 @@ const TELAS = [
   '/minhas-ordens',
   '/servicos',
   '/servicos/novo',
+  '/logradouros',
   '/assistente',
   '/admin/unidades',
   '/admin/usuarios',

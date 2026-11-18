@@ -1,0 +1,145 @@
+.barra-filtros .filtro {
+  width: 240px;
+}
+
+.indicadores {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: var(--space-3);
+  margin-bottom: var(--space-4);
+}
+.indicador {
+  display: grid;
+  align-content: start;
+  gap: 2px;
+}
+.valor {
+  font: 600 24px var(--font-display);
+  color: var(--text-1);
+}
+.esqueleto.pequeno {
+  min-height: 92px;
+}
+
+.tabela {
+  padding: 0;
+  overflow-x: auto;
+  margin-bottom: var(--space-4);
+  h2 {
+    margin: 0;
+    padding: var(--space-4) var(--space-4) var(--space-2);
+    font: 600 16px var(--font-display);
+  }
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: var(--fs-small);
+  }
+  th {
+    text-align: left;
+    font-weight: 500;
+    color: var(--text-2);
+    padding: 10px var(--space-4);
+    border-bottom: var(--border);
+    white-space: nowrap;
+  }
+  td {
+    padding: 10px var(--space-4);
+    border-bottom: var(--border);
+    vertical-align: top;
+  }
+  .numero {
+    text-align: right;
+  }
+}
+.nome-logradouro {
+  display: block;
+  color: var(--text-1);
+  font-weight: 500;
+  text-decoration: none;
+  &:hover,
+  &:focus-visible {
+    color: var(--accent);
+    text-decoration: underline;
+  }
+}
+.codigo {
+  color: var(--text-3);
+  font: 500 var(--fs-label) var(--font-data);
+}
+.dado {
+  font-family: var(--font-data);
+}
+.paginacao {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: var(--space-2);
+  padding: var(--space-2) var(--space-4);
+  .sub {
+    margin-right: auto;
+  }
+}
+
+.formulario .nota {
+  margin: 0;
+  color: var(--text-2);
+  font-size: var(--fs-small);
+}
+.arquivo {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2);
+}
+.resultado {
+  padding: var(--space-3);
+  border: var(--border);
+  border-radius: var(--radius-m);
+  display: grid;
+  gap: var(--space-3);
+}
+.resultado-titulo {
+  margin: 0;
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  font-weight: 600;
+  .material-symbols-rounded {
+    color: var(--accent);
+  }
+}
+.numeros {
+  margin: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2) var(--space-5);
+  dt {
+    color: var(--text-3);
+    font-size: var(--fs-label);
+  }
+  dd {
+    margin: 0;
+    color: var(--text-1);
+  }
+}
+.rejeitados {
+  color: var(--warn);
+}
+.tabela-rejeicoes {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: var(--fs-small);
+  th {
+    text-align: left;
+    font-weight: 500;
+    color: var(--text-2);
+    padding: 8px;
+    border-bottom: var(--border);
+  }
+  td {
+    padding: 8px;
+    border-bottom: var(--border);
+    vertical-align: top;
+  }
+}

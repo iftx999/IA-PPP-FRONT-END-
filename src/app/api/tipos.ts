@@ -131,3 +131,14 @@ export type PerfilRota = TipoVeiculo['perfilRota'];
 export type Habilidade = Esquemas['HabilidadeResponse'];
 export type MotivoCatalogo = Esquemas['MotivoDoCatalogoResponse'];
 export type TipoMotivo = MotivoCatalogo['tipo'];
+
+// Logradouros e trechos (ADR 0043).
+export type PaginaLogradouros = Esquemas['PaginaLogradourosResponse'];
+export type LogradouroResumo = Esquemas['LogradouroResponse'];
+export type DetalheLogradouro = Esquemas['DetalheLogradouroResponse'];
+export type TrechoLogradouro = Esquemas['TrechoResponse'];
+export type LadoTrecho = TrechoLogradouro['lado'];
+export type ImovelDoLogradouro = Esquemas['ImovelDoLogradouroResponse'];
+export type CoberturaEnderecos = Esquemas['CoberturaResponse'];
+export type ResultadoImportacaoLogradouro = Esquemas['ResultadoImportacaoResponse'];
+export type ImportacaoLogradouro = Esquemas['ImportacaoResponse'];

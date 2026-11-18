@@ -1,0 +1,325 @@
+<header class="cabecalho">
+  <div class="titulo">
+    <span class="rotulo">Serviços de campo</span>
+    <h1>Logradouros e trechos</h1>
+    <p class="orientacao">
+      Ruas e trechos do cadastro da concessionária e o endereço de cada imóvel: a base para
+      programar por logradouro e levar a equipe até a porta. Cada importação é simulada antes de
+      gravar.
+    </p>
+  </div>
+  @if (podeGerir()) {
+    <div class="acoes-topo">
+      <button matButton="outlined" type="button" (click)="abrirImportacao('ENDERECOS')">
+        <span class="material-symbols-rounded" aria-hidden="true">home_pin</span> Importar endereços
+      </button>
+      <button matButton="filled" type="button" (click)="abrirImportacao('TRECHOS')">
+        <span class="material-symbols-rounded" aria-hidden="true">route</span> Importar trechos
+      </button>
+    </div>
+  }
+</header>
+
+@if (!sessao.usuario()) {
+  <div class="esqueleto" role="status" aria-busy="true" aria-label="Carregando"></div>
+} @else if (!podeGerir()) {
+  <section class="cartao aviso" role="alert">
+    <p class="rotulo">Sem acesso</p>
+    <p>Seu perfil não permite gerenciar logradouros.</p>
+  </section>
+} @else {
+  <div class="barra-filtros" role="search" aria-label="Filtros dos logradouros">
+    <mat-form-field class="filtro" subscriptSizing="dynamic">
+      <mat-label>Município</mat-label>
+      <mat-select [value]="unidade() ?? ''" (selectionChange)="escolherMunicipio($event.value)">
+        <mat-option value="">Todos do escopo</mat-option>
+        @for (m of municipios(); track m.id) {
+          <mat-option [value]="m.id">{{ m.nome }}</mat-option>
+        }
+      </mat-select>
+    </mat-form-field>
+    <mat-form-field class="busca" subscriptSizing="dynamic">
+      <span matPrefix class="material-symbols-rounded prefixo" aria-hidden="true">search</span>
+      <input
+        matInput
+        type="search"
+        [formControl]="busca"
+        placeholder="Nome do logradouro ou código"
+        aria-label="Buscar logradouro"
+      />
+    </mat-form-field>
+  </div>
+
+  @if (unidade()) {
+    <section
+      class="indicadores"
+      [attr.aria-label]="'Cobertura do cadastro em ' + (nomeDoMunicipio() ?? 'município')"
+    >
+      @for (i of indicadores(); track i.rotulo) {
+        <div class="cartao indicador">
+          <span class="rotulo">{{ i.rotulo }}</span>
+          <span class="valor">{{ i.valor }}</span>
+          <span class="sub">{{ i.detalhe }}</span>
+        </div>
+      } @empty {
+        @if (cobertura.isLoading()) {
+          <div class="esqueleto pequeno" role="status" aria-busy="true" aria-label="Carregando cobertura"></div>
+        }
+      }
+    </section>
+  }
+
+  @if (lista.hasValue()) {
+    @if (lista.value(); as p) {
+      @if (p.itens.length) {
+        <section class="cartao tabela" aria-label="Logradouros">
+          <table>
+            <thead>
+              <tr>
+                <th scope="col">Logradouro</th>
+                <th scope="col">Bairro</th>
+                <th scope="col">Município</th>
+                <th scope="col" class="numero">Trechos</th>
+                <th scope="col" class="numero">Extensão</th>
+                <th scope="col" class="numero">Imóveis</th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (l of p.itens; track l.id) {
+                <tr>
+                  <td>
+                    <a [routerLink]="['/logradouros', l.id]" class="nome-logradouro">{{
+                      fmt.nomeCompleto(l)
+                    }}</a>
+                    <span class="codigo">{{ l.codigo }}</span>
+                  </td>
+                  <td>{{ l.bairro ?? '—' }}</td>
+                  <td>{{ l.unidadeNome }}</td>
+                  <td class="numero dado">{{ fmt.numero(l.trechos) }}</td>
+                  <td class="numero dado">{{ fmt.extensao(l.extensaoM) }}</td>
+                  <td class="numero dado">{{ fmt.numero(l.imoveis) }}</td>
+                </tr>
+              }
+            </tbody>
+          </table>
+          <nav class="paginacao" aria-label="Páginas">
+            <span class="sub"
+              >{{ fmt.numero(p.total) }} logradouros · página {{ p.pagina + 1 }} de
+              {{ paginas() }}</span
+            >
+            <button
+              matIconButton
+              type="button"
+              aria-label="Página anterior"
+              [disabled]="p.pagina === 0"
+              (click)="irParaPagina(p.pagina - 1)"
+            >
+              <span class="material-symbols-rounded" aria-hidden="true">chevron_left</span>
+            </button>
+            <button
+              matIconButton
+              type="button"
+              aria-label="Próxima página"
+              [disabled]="p.pagina + 1 >= paginas()"
+              (click)="irParaPagina(p.pagina + 1)"
+            >
+              <span class="material-symbols-rounded" aria-hidden="true">chevron_right</span>
+            </button>
+          </nav>
+        </section>
+      } @else {
+        <section class="cartao vazio">
+          <span class="material-symbols-rounded" aria-hidden="true">signpost</span>
+          @if (filtros.valor('busca')) {
+            <p>Nenhum logradouro com essa busca.</p>
+          } @else {
+            <p>Nenhum logradouro importado.</p>
+            <p class="nota">
+              Importe os trechos do município (GeoJSON) e depois os endereços dos imóveis (CSV).
+            </p>
+          }
+        </section>
+      }
+    }
+  } @else {
+    <div class="esqueleto" role="status" aria-busy="true" aria-label="Carregando"></div>
+  }
+
+  @if (historico.hasValue() && historico.value().length) {
+    <section class="cartao tabela historico" aria-labelledby="titulo-historico">
+      <h2 id="titulo-historico">Importações recentes</h2>
+      <table>
+        <thead>
+          <tr>
+            <th scope="col">Quando</th>
+            <th scope="col">Tipo</th>
+            <th scope="col">Arquivo</th>
+            <th scope="col" class="numero">Novos</th>
+            <th scope="col" class="numero">Atualizados</th>
+            <th scope="col" class="numero">Recusados</th>
+            <th scope="col">Por</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (i of historico.value(); track i.id) {
+            <tr>
+              <td>{{ fmt.dataEHora(i.feitaEm) }}</td>
+              <td>{{ i.tipo === 'TRECHOS' ? 'Trechos · ' + i.unidadeNome : 'Endereços' }}</td>
+              <td class="dado">{{ i.arquivo }}</td>
+              <td class="numero dado">{{ fmt.numero(i.novos) }}</td>
+              <td class="numero dado">{{ fmt.numero(i.atualizados) }}</td>
+              <td class="numero dado">{{ fmt.numero(i.rejeitados) }}</td>
+              <td>{{ i.feitaPor }}</td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </section>
+  }
+}
+
+<ng-template #modeloImportacao>
+  <h2 mat-dialog-title>{{ tipo() === 'TRECHOS' ? 'Importar trechos' : 'Importar endereços' }}</h2>
+  <mat-dialog-content>
+    <div class="formulario">
+      @if (tipo() === 'TRECHOS') {
+        <p class="nota">
+          GeoJSON (FeatureCollection) em graus, uma linha por trecho, com as propriedades
+          <span class="dado">codigo_logradouro</span>, <span class="dado">nome</span>,
+          <span class="dado">codigo_trecho</span> e, opcionais, <span class="dado">tipo</span>,
+          <span class="dado">bairro</span>, <span class="dado">numero_inicial</span>,
+          <span class="dado">numero_final</span> e <span class="dado">lado</span> (PAR, IMPAR ou
+          AMBOS). Reimportar atualiza pelo código; nada é apagado.
+        </p>
+        <mat-form-field>
+          <mat-label>Município</mat-label>
+          <mat-select [formControl]="municipioDaImportacao">
+            @for (m of municipios(); track m.id) {
+              <mat-option [value]="m.id">{{ m.nome }}</mat-option>
+            }
+          </mat-select>
+        </mat-form-field>
+      } @else {
+        <p class="nota">
+          CSV (UTF-8, separado por ";" ou ",") com
+          <span class="dado">matricula;codigo_logradouro;numero;complemento</span>. O logradouro
+          precisa existir no município do imóvel. O trecho de cada imóvel é escolhido pela faixa de
+          numeração ou, sem ela, pelo ponto do imóvel no mapa.
+        </p>
+      }
+      <div class="arquivo">
+        <button matButton="outlined" type="button" (click)="seletor.click()">
+          <span class="material-symbols-rounded" aria-hidden="true">attach_file</span>
+          {{ arquivo()?.name ?? 'Escolher arquivo' }}
+        </button>
+        <input
+          #seletor
+          type="file"
+          [accept]="
+            tipo() === 'TRECHOS'
+              ? '.geojson,.json,application/geo+json,application/json'
+              : '.csv,text/csv'
+          "
+          hidden
+          (change)="escolherArquivo($event)"
+          aria-label="Arquivo da importação"
+        />
+        <button matButton type="button" (click)="baixarModelo()">Baixar modelo</button>
+      </div>
+
+      @if (resultado(); as r) {
+        <div class="resultado" role="status">
+          <p class="resultado-titulo">
+            <span class="material-symbols-rounded" aria-hidden="true">{{
+              r.simulacao ? 'science' : 'task_alt'
+            }}</span>
+            {{ r.simulacao ? 'Simulação: nada foi gravado' : 'Importação concluída' }}
+          </p>
+          <dl class="numeros">
+            <div>
+              <dt>Lidos</dt>
+              <dd class="dado">{{ fmt.numero(r.lidos) }}</dd>
+            </div>
+            <div>
+              <dt>Novos</dt>
+              <dd class="dado">{{ fmt.numero(r.novos) }}</dd>
+            </div>
+            <div>
+              <dt>Atualizados</dt>
+              <dd class="dado">{{ fmt.numero(r.atualizados) }}</dd>
+            </div>
+            <div>
+              <dt>Sem mudança</dt>
+              <dd class="dado">{{ fmt.numero(r.inalterados) }}</dd>
+            </div>
+            <div>
+              <dt>Recusados</dt>
+              <dd class="dado" [class.rejeitados]="r.rejeitados">{{ fmt.numero(r.rejeitados) }}</dd>
+            </div>
+            <div>
+              <dt>Imóveis sem trecho</dt>
+              <dd class="dado">{{ fmt.numero(r.semTrecho) }}</dd>
+            </div>
+            @if (r.tipo === 'TRECHOS') {
+              <div>
+                <dt>Trechos fora do arquivo</dt>
+                <dd class="dado">{{ fmt.numero(r.ausentes) }}</dd>
+              </div>
+            }
+          </dl>
+          @if (r.rejeicoes.length) {
+            <table class="tabela-rejeicoes" aria-label="Itens recusados">
+              <thead>
+                <tr>
+                  <th scope="col">{{ r.tipo === 'TRECHOS' ? 'Trecho nº' : 'Linha' }}</th>
+                  <th scope="col">Motivo</th>
+                </tr>
+              </thead>
+              <tbody>
+                @for (rej of r.rejeicoes; track $index) {
+                  <tr>
+                    <td class="dado">{{ rej.posicao }}</td>
+                    <td>{{ rej.motivo }}</td>
+                  </tr>
+                }
+              </tbody>
+            </table>
+            @if (r.rejeitados > r.rejeicoes.length) {
+              <p class="nota">
+                Mostrando os {{ r.rejeicoes.length }} primeiros de
+                {{ fmt.numero(r.rejeitados) }} recusados.
+              </p>
+            }
+          }
+        </div>
+      }
+      @if (erro()) {
+        <p class="erro" role="alert">
+          <span class="material-symbols-rounded" aria-hidden="true">error</span>{{ erro() }}
+        </p>
+      }
+    </div>
+  </mat-dialog-content>
+  <mat-dialog-actions align="end">
+    <button matButton type="button" (click)="fechar()">Fechar</button>
+    <button
+      matButton="outlined"
+      type="button"
+      [disabled]="enviando() || !arquivo()"
+      (click)="enviar(true)"
+    >
+      @if (enviando()) {
+        <mat-spinner diameter="18" />
+      }
+      Simular
+    </button>
+    <button
+      matButton="filled"
+      type="button"
+      [disabled]="enviando() || !arquivo() || !simulado()"
+      (click)="enviar(false)"
+    >
+      Importar
+    </button>
+  </mat-dialog-actions>
+</ng-template>

@@ -177,6 +177,26 @@ export const EVENTOS: Record<string, InfoEvento> = {
     icone: 'playlist_add_check',
     grupo: 'Catálogo de serviços',
   },
+  LOGRADOUROS_IMPORTADOS: {
+    rotulo: 'Trechos de logradouros importados',
+    icone: 'route',
+    grupo: 'Logradouros',
+  },
+  ENDERECOS_IMPORTADOS: {
+    rotulo: 'Endereços dos imóveis importados',
+    icone: 'home_pin',
+    grupo: 'Logradouros',
+  },
+  LOGRADOURO_CORRIGIDO: {
+    rotulo: 'Logradouro corrigido',
+    icone: 'edit_road',
+    grupo: 'Logradouros',
+  },
+  TRECHO_CORRIGIDO: {
+    rotulo: 'Numeração de trecho corrigida',
+    icone: 'edit_road',
+    grupo: 'Logradouros',
+  },
   FONTE_CRIADA: { rotulo: 'Fonte de dados criada', icone: 'database', grupo: 'Integrações' },
   CARGA_CONCLUIDA: { rotulo: 'Carga concluída', icone: 'cloud_done', grupo: 'Integrações' },
   MARCACAO_CRIADA: { rotulo: 'Marcação no mapa', icone: 'location_on', grupo: 'Mapa' },
