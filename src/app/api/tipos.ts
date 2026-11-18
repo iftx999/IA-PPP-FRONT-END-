@@ -105,15 +105,34 @@ export type PainelCampanha = Esquemas['PainelCampanhaResponse'];
 export type ProdutividadeEquipe = Esquemas['ProdutividadeResponse'];
 export type OrdemServico = Esquemas['OrdemServicoResponse'];
 export type PaginaOrdens = Esquemas['PaginaOrdensResponse'];
-export type TipoOrdem = OrdemServico['tipo'];
 export type StatusOrdem = OrdemServico['status'];
 export type Prioridade = OrdemServico['prioridade'];
 export type Conferencia = OrdemServico['conferencia'];
+export type AlvoOrdem = OrdemServico['alvo'];
+export type OrigemOrdem = OrdemServico['origem'];
 export type PedidoResultado = Esquemas['ResultadoRequest'];
 export type ResultadoOrdem = PedidoResultado['resultado'];
-export type MotivoResultado = NonNullable<PedidoResultado['motivo']>;
+export type PedidoJustificativa = Esquemas['JustificativaRequest'];
+export type MotivoDaOrdem = Esquemas['MotivoDaOrdemResponse'];
 export type PedidoDistribuicao = Esquemas['DistribuicaoRequest'];
 export type ResultadoDistribuicao = Esquemas['DistribuicaoResponse'];
+export type MotivoNaCampanha = Esquemas['MotivoResponse'];
+
+// Programação das OS (ADR 0044).
+export type OpcoesDasOrdens = Esquemas['OpcoesResponse'];
+export type ServicoParaOrdem = Esquemas['ServicoParaOrdemResponse'];
+export type PaginaOrdensGeral = Esquemas['PaginaResponse'];
+export type EquipeParaProgramar = Esquemas['EquipeParaProgramarResponse'];
+export type PedidoOrdensParaImoveis = Esquemas['ParaImoveisRequest'];
+export type PedidoOrdensParaTrechos = Esquemas['ParaTrechosRequest'];
+export type PedidoFaixa = Esquemas['FaixaRequest'];
+export type LadoDaFaixa = PedidoFaixa['lado'];
+export type PedidoLote = Esquemas['LoteRequest'];
+export type PreviaLote = Esquemas['PreviaLoteResponse'];
+export type ResultadoCriacaoOrdens = Esquemas['CriacaoResponse'];
+export type PedidoProgramacao = Esquemas['ProgramacaoRequest'];
+export type ResultadoProgramacao = Esquemas['ProgramacaoResponse'];
+export type Feriado = Esquemas['FeriadoResponse'];
 
 // Catálogo de serviços de campo (ADR 0042).
 export type CatalogoServicos = Esquemas['CatalogoResponse'];

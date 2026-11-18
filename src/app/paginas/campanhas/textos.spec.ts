@@ -1,11 +1,28 @@
-import type { FunilCampanha, ImpactoNaMeta } from '../../api/tipos';
+import type { FunilCampanha, ImpactoNaMeta, MotivoDaOrdem, StatusOrdem } from '../../api/tipos';
 import {
+  STATUS_DA_OS,
+  alvoDaOrdem,
+  comEquipe,
   etapasDoFunil,
   frasesDoImpacto,
   linkDoPonto,
   motivosPara,
+  podeCancelar,
+  podeEncerrar,
+  podeProgramar,
+  quantidadeComUnidade,
   variacaoDesdeACriacao,
 } from './textos';
+
+const motivo = (parcial: Partial<MotivoDaOrdem>): MotivoDaOrdem => ({
+  id: 'm',
+  tipo: 'DEVOLUCAO',
+  codigo: 'OUTRO',
+  nome: 'Outro',
+  exigeObservacao: true,
+  servicoId: null,
+  ...parcial,
+});
 
 const impacto = (parcial: Partial<ImpactoNaMeta>): ImpactoNaMeta => ({
   unidadeId: 'u',
@@ -21,16 +38,59 @@ const impacto = (parcial: Partial<ImpactoNaMeta>): ImpactoNaMeta => ({
 });
 
 describe('textos das campanhas', () => {
-  it('motivos combinam com o resultado', () => {
-    expect(motivosPara('RECUSADA')).toContain('SEM_INTERESSE');
-    expect(motivosPara('RECUSADA')).not.toContain('SEM_REDE_NA_RUA');
-    expect(motivosPara('INVIAVEL')).toEqual([
-      'SEM_REDE_NA_RUA',
-      'IMOVEL_ABAIXO_DA_REDE',
-      'IMOVEL_DESOCUPADO',
-      'OUTRO',
-    ]);
-    expect(motivosPara('EXECUTADA')).toEqual([]);
+  it('motivos do tipo pedido, gerais ou do serviço', () => {
+    const lista = [
+      motivo({ id: 'geral' }),
+      motivo({ id: 'do-servico', servicoId: 's1' }),
+      motivo({ id: 'de-outro', servicoId: 's2' }),
+      motivo({ id: 'cancelamento', tipo: 'CANCELAMENTO' }),
+    ];
+    expect(motivosPara(lista, 'DEVOLUCAO', 's1').map((m) => m.id)).toEqual(['geral', 'do-servico']);
+    expect(motivosPara(lista, 'CANCELAMENTO', 's1').map((m) => m.id)).toEqual(['cancelamento']);
+  });
+
+  it('ações permitidas em cada situação (doc 10, 10.6)', () => {
+    const quais = (f: (s: StatusOrdem) => boolean) => STATUS_DA_OS.filter(f);
+    expect(quais(podeProgramar)).toEqual(['PLANEJADA', 'PROGRAMADA', 'DEVOLVIDA']);
+    expect(quais(podeCancelar)).toEqual(['PLANEJADA', 'PROGRAMADA', 'DEVOLVIDA']);
+    expect(quais(comEquipe)).toEqual(['PROGRAMADA', 'EM_EXECUCAO', 'PARALISADA']);
+    expect(quais(podeEncerrar)).toEqual(['PROGRAMADA', 'EM_EXECUCAO']);
+  });
+
+  it('alvo da OS numa linha', () => {
+    const base = {
+      complemento: null,
+      numeroImovel: null,
+      logradouroNome: null,
+      trechoCodigo: null,
+    };
+    expect(alvoDaOrdem({ ...base, alvo: 'IMOVEL', matricula: '2001002' })).toBe(
+      'Matrícula 2001002',
+    );
+    expect(
+      alvoDaOrdem({
+        ...base,
+        alvo: 'IMOVEL',
+        matricula: '2001002',
+        logradouroNome: 'Rua das Flores',
+        numeroImovel: '12A',
+      }),
+    ).toBe('Matrícula 2001002 · Rua das Flores, 12A');
+    expect(
+      alvoDaOrdem({
+        ...base,
+        alvo: 'TRECHO',
+        matricula: null,
+        trechoCodigo: 'T-1',
+        logradouroNome: 'Rua das Flores',
+      }),
+    ).toBe('Trecho T-1 · Rua das Flores');
+  });
+
+  it('quantidade com a unidade do serviço', () => {
+    expect(quantidadeComUnidade(120.5, 'M')).toBe('120,5 m');
+    expect(quantidadeComUnidade(3, 'M2')).toBe('3 m²');
+    expect(quantidadeComUnidade(null, 'UN')).toBe('—');
   });
 
   it('impacto diz quanto da distância até a meta a campanha cobre', () => {

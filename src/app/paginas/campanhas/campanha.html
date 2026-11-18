@@ -115,10 +115,10 @@
             >{{ fmt.numero(c.funil.pendentesDeConferencia) }} executadas aguardam a carga.</span
           >
         }
-        @if (c.funil.recusadas || c.funil.inviaveis) {
+        @if (c.funil.naoExecutadas || c.funil.devolvidas) {
           <span class="nota"
-            >{{ fmt.numero(c.funil.recusadas) }} recusadas ·
-            {{ fmt.numero(c.funil.inviaveis) }} inviáveis</span
+            >{{ fmt.numero(c.funil.naoExecutadas) }} não executadas ·
+            {{ fmt.numero(c.funil.devolvidas) }} devolvidas</span
           >
         }
       </div>
@@ -182,8 +182,8 @@
               <th>Em campo</th>
               <th>Executadas</th>
               <th>Confirmadas</th>
-              <th>Recusadas</th>
-              <th>Inviáveis</th>
+              <th>Não executadas</th>
+              <th>Devolvidas</th>
               <th>Atrasadas</th>
             </tr>
           </thead>
@@ -204,8 +204,8 @@
                 <td class="dado">{{ fmt.numero(e.emCampo) }}</td>
                 <td class="dado">{{ fmt.numero(e.executadas) }}</td>
                 <td class="dado">{{ fmt.numero(e.confirmadas) }}</td>
-                <td class="dado">{{ fmt.numero(e.recusadas) }}</td>
-                <td class="dado">{{ fmt.numero(e.inviaveis) }}</td>
+                <td class="dado">{{ fmt.numero(e.naoExecutadas) }}</td>
+                <td class="dado">{{ fmt.numero(e.devolvidas) }}</td>
                 <td class="dado" [class.alerta]="e.atrasadas > 0">{{ fmt.numero(e.atrasadas) }}</td>
               </tr>
             }
@@ -216,14 +216,14 @@
 
     @if (p.motivos.length) {
       <section class="cartao motivos" aria-labelledby="titulo-motivos">
-        <h2 id="titulo-motivos">Motivos de recusa e inviabilidade</h2>
+        <h2 id="titulo-motivos">Motivos de não execução e devolução</h2>
         <ul>
-          @for (m of p.motivos; track m.status + m.motivo) {
+          @for (m of p.motivos; track m.tipo + m.codigo) {
             <li>
               <span
-                >{{ rotulos.motivo[m.motivo] }}
+                >{{ m.nome }}
                 <span class="nota"
-                  >· {{ m.status === 'RECUSADA' ? 'recusa' : 'inviável' }}</span
+                  >· {{ m.tipo === 'DEVOLUCAO' ? 'devolução' : 'não executada' }}</span
                 ></span
               >
               <b class="dado">{{ fmt.numero(m.quantidade) }}</b>
@@ -287,7 +287,11 @@
           [matTooltip]="equipesAtivas().length ? '' : 'Cadastre uma equipe antes de enviar OS'"
         >
           <span class="material-symbols-rounded" aria-hidden="true">send</span>
-          {{ selecionadas() ? 'Enviar ' + selecionadas() + ' selecionadas' : 'Enviar à equipe' }}
+          {{
+            selecionadas()
+              ? 'Programar ' + selecionadas() + ' selecionadas'
+              : 'Programar para a equipe'
+          }}
         </button>
       }
     </div>
@@ -318,15 +322,15 @@
           <td mat-cell *matCellDef="let o" class="dado">{{ o.numero }}</td>
         </ng-container>
         <ng-container matColumnDef="matricula">
-          <th mat-header-cell *matHeaderCellDef>Matrícula</th>
+          <th mat-header-cell *matHeaderCellDef>Imóvel</th>
           <td mat-cell *matCellDef="let o">
-            <span class="dado">{{ o.matricula }}</span>
+            <span class="dado">{{ alvo(os(o)) }}</span>
             <span class="nota bloco">{{ o.unidadeNome }}</span>
           </td>
         </ng-container>
-        <ng-container matColumnDef="tipo">
-          <th mat-header-cell *matHeaderCellDef>Tipo</th>
-          <td mat-cell *matCellDef="let o">{{ rotulos.tipo[os(o).tipo] }}</td>
+        <ng-container matColumnDef="servico">
+          <th mat-header-cell *matHeaderCellDef>Serviço</th>
+          <td mat-cell *matCellDef="let o">{{ o.servicoNome }}</td>
         </ng-container>
         <ng-container matColumnDef="prioridade">
           <th mat-header-cell *matHeaderCellDef>Prioridade</th>
@@ -338,7 +342,12 @@
         </ng-container>
         <ng-container matColumnDef="equipe">
           <th mat-header-cell *matHeaderCellDef>Equipe</th>
-          <td mat-cell *matCellDef="let o">{{ o.equipeNome ?? '—' }}</td>
+          <td mat-cell *matCellDef="let o">
+            {{ o.equipeNome ?? '—' }}
+            @if (o.dataProgramada) {
+              <span class="nota bloco">{{ fmt.data(o.dataProgramada) }}</span>
+            }
+          </td>
         </ng-container>
         <ng-container matColumnDef="status">
           <th mat-header-cell *matHeaderCellDef>Situação</th>
@@ -349,11 +358,8 @@
             @if (o.atrasada) {
               <span class="nota bloco alerta">Atrasada</span>
             }
-            @if (os(o).motivo; as m) {
-              <span class="nota bloco">{{ rotulos.motivo[m] }}</span>
-            }
-            @if (o.reagendadaPara) {
-              <span class="nota bloco">para {{ fmt.data(o.reagendadaPara) }}</span>
+            @if (o.motivoNome) {
+              <span class="nota bloco">{{ o.motivoNome }}</span>
             }
           </td>
         </ng-container>
@@ -379,8 +385,8 @@
         <ng-container matColumnDef="acoes">
           <th mat-header-cell *matHeaderCellDef><span class="cdk-visually-hidden">Ações</span></th>
           <td mat-cell *matCellDef="let o">
-            @if (ativa() && (o.status === 'EM_CAMPO' || o.status === 'REAGENDADA')) {
-              <button matButton type="button" (click)="registrar(o)">Resultado</button>
+            @if (ativa() && podeEncerrar(o.status)) {
+              <button matButton type="button" (click)="registrar(o)">Encerrar</button>
             }
           </td>
         </ng-container>
@@ -411,14 +417,15 @@
 }
 
 <ng-template #modeloEnvio>
-  <h2 mat-dialog-title>Enviar à equipe</h2>
+  <h2 mat-dialog-title>Programar para a equipe</h2>
   <mat-dialog-content>
     <form id="form-envio" [formGroup]="formEnvio" (ngSubmit)="enviar()" class="formulario">
       <p class="nota">
         @if (selecionadas()) {
-          {{ fmt.numero(selecionadas()) }} OS selecionadas (as já em campo trocam de equipe).
+          {{ fmt.numero(selecionadas()) }} OS selecionadas (as já programadas mudam de equipe e
+          data).
         } @else {
-          OS sem equipe, na ordem de prioridade e prazo.
+          OS planejadas e devolvidas, na ordem de prioridade e prazo.
         }
         Só seguem as de imóveis dentro da área da equipe.
       </p>
@@ -433,6 +440,20 @@
           }
         </mat-select>
         <mat-error>Escolha a equipe.</mat-error>
+      </mat-form-field>
+      <mat-form-field>
+        <mat-label>Data</mat-label>
+        <input
+          matInput
+          [matDatepicker]="calEnvio"
+          formControlName="data"
+          [min]="hoje"
+          [max]="limiteProgramacao"
+          placeholder="dd/mm/aaaa"
+        />
+        <mat-datepicker-toggle matIconSuffix [for]="calEnvio" />
+        <mat-datepicker #calEnvio />
+        <mat-error>Informe uma data de hoje até 180 dias.</mat-error>
       </mat-form-field>
       @if (!selecionadas()) {
         <div class="linha">
@@ -472,7 +493,7 @@
       @if (enviando()) {
         <mat-spinner diameter="18" />
       }
-      Enviar
+      Programar
     </button>
   </mat-dialog-actions>
 </ng-template>

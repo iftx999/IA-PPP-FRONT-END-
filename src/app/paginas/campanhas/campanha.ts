@@ -14,6 +14,7 @@ import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angula
 import { MatButtonModule } from '@angular/material/button';
 import { MatButtonToggleModule } from '@angular/material/button-toggle';
 import { MatCheckboxModule } from '@angular/material/checkbox';
+import { MatDatepickerModule } from '@angular/material/datepicker';
 import { MatDialog, MatDialogModule, MatDialogRef } from '@angular/material/dialog';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
@@ -29,6 +30,7 @@ import type {
   Campanha,
   Conferencia,
   Equipe,
+  MotivoDaOrdem,
   OrdemServico,
   PaginaOrdens,
   PainelCampanha,
@@ -37,6 +39,7 @@ import type {
   ResultadoDistribuicao,
   StatusOrdem,
 } from '../../api/tipos';
+import { paraIso } from '../../nucleo/datas';
 import { mensagemDeErro } from '../../nucleo/erro-api';
 import {
   competenciaLonga,
@@ -52,13 +55,15 @@ import { ResultadoOrdemDialogo, type DadosResultado } from './resultado-ordem';
 import {
   ROTULO_ACAO,
   ROTULO_CONFERENCIA,
-  ROTULO_MOTIVO,
   ROTULO_ORIGEM,
   ROTULO_PRIORIDADE,
   ROTULO_STATUS,
   ROTULO_STATUS_CAMPANHA,
-  ROTULO_TIPO,
+  STATUS_DA_OS,
+  alvoDaOrdem,
   etapasDoFunil,
+  podeEncerrar,
+  podeProgramar,
   variacaoDesdeACriacao,
 } from './textos';
 
@@ -99,6 +104,7 @@ function paginadorEmPortugues(): MatPaginatorIntl {
     MatSelectModule,
     MatTableModule,
     MatTooltipModule,
+    MatDatepickerModule,
     Selo,
   ],
   providers: [{ provide: MatPaginatorIntl, useFactory: paginadorEmPortugues }],
@@ -183,31 +189,28 @@ export class CampanhaPagina {
     statusCampanha: ROTULO_STATUS_CAMPANHA,
     prioridade: ROTULO_PRIORIDADE,
     conferencia: ROTULO_CONFERENCIA,
-    tipo: ROTULO_TIPO,
-    motivo: ROTULO_MOTIVO,
   };
   protected readonly etapas = etapasDoFunil;
+  protected readonly alvo = alvoDaOrdem;
   protected readonly tamanho = TAMANHO;
   protected readonly colunas = computed(() => [
     ...(this.ativa() ? ['selecao'] : []),
     'numero',
     'matricula',
-    'tipo',
+    'servico',
     'prioridade',
     'equipe',
     'status',
     'conferencia',
     'acoes',
   ]);
-  protected readonly statusFiltro: StatusOrdem[] = [
-    'PLANEJADA',
-    'EM_CAMPO',
-    'REAGENDADA',
-    'EXECUTADA',
-    'RECUSADA',
-    'INVIAVEL',
-    'CANCELADA',
-  ];
+  protected readonly statusFiltro: StatusOrdem[] = STATUS_DA_OS;
+  protected readonly podeEncerrar = podeEncerrar;
+  private readonly motivos = httpResource<MotivoDaOrdem[]>(() =>
+    this.podeGerir() ? '/api/v1/campanhas/motivos' : undefined,
+  );
+  protected readonly hoje = new Date();
+  protected readonly limiteProgramacao = new Date(Date.now() + 180 * 86_400_000);
 
   // ----- Envio às equipes -----
   private readonly modeloEnvio = viewChild.required<TemplateRef<unknown>>('modeloEnvio');
@@ -218,6 +221,7 @@ export class CampanhaPagina {
     equipe: new FormControl<string | null>(null, Validators.required),
     prioridade: new FormControl<Prioridade | ''>('', { nonNullable: true }),
     quantidade: new FormControl<number | null>(null, [Validators.min(1), Validators.max(5000)]),
+    data: new FormControl<Date | null>(null, Validators.required),
   });
 
   // ----- Encerrar / cancelar -----
@@ -264,7 +268,7 @@ export class CampanhaPagina {
   }
 
   protected selecionavel(o: OrdemServico): boolean {
-    return ['PLANEJADA', 'EM_CAMPO', 'REAGENDADA'].includes(o.status);
+    return podeProgramar(o.status);
   }
 
   protected todasSelecionadas(): boolean {
@@ -286,7 +290,7 @@ export class CampanhaPagina {
 
   protected abrirEnvio(): void {
     this.erroEnvio.set(null);
-    this.formEnvio.reset({ equipe: null, prioridade: '', quantidade: null });
+    this.formEnvio.reset({ equipe: null, prioridade: '', quantidade: null, data: new Date() });
     this.dialogoEnvio = this.dialogos.open(this.modeloEnvio(), {
       width: '520px',
       maxWidth: '96vw',
@@ -306,6 +310,7 @@ export class CampanhaPagina {
     const lista = this.selecao.selected;
     const pedido: PedidoDistribuicao = {
       equipeId: v.equipe!,
+      data: paraIso(v.data)!,
       ordens: lista,
       prioridade: lista.length || !v.prioridade ? null : v.prioridade,
       quantidade: lista.length ? null : v.quantidade,
@@ -320,7 +325,12 @@ export class CampanhaPagina {
       const fora = r.foraDaArea
         ? ` ${numero(r.foraDaArea)} ficaram de fora: o imóvel não está na área da equipe.`
         : '';
-      this.avisos.open(`${numero(r.enviadas)} OS enviadas.${fora}`, 'Ok', { duration: 6000 });
+      const ignoradas = r.ignoradas
+        ? ` ${numero(r.ignoradas)} já estavam em execução ou encerradas.`
+        : '';
+      this.avisos.open(`${numero(r.enviadas)} OS programadas.${fora}${ignoradas}`, 'Ok', {
+        duration: 6000,
+      });
       this.recarregar();
     } catch (falha) {
       this.erroEnvio.set(mensagemDeErro(falha));
@@ -330,7 +340,11 @@ export class CampanhaPagina {
   }
 
   protected registrar(ordem: OrdemServico): void {
-    const dados: DadosResultado = { ordem, base: '/api/v1/campanhas/ordens' };
+    const dados: DadosResultado = {
+      ordem,
+      base: '/api/v1/campanhas/ordens',
+      motivos: this.motivos.value() ?? [],
+    };
     this.dialogos
       .open(ResultadoOrdemDialogo, { data: dados, width: '560px', maxWidth: '96vw' })
       .afterClosed()
@@ -365,7 +379,7 @@ export class CampanhaPagina {
   }
 
   protected abertas(c: Campanha): number {
-    return c.funil.planejadas - c.funil.executadas - c.funil.recusadas - c.funil.inviaveis;
+    return c.funil.planejadas - c.funil.executadas - c.funil.naoExecutadas;
   }
 
   private recarregar(): void {

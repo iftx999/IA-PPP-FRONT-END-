@@ -3,25 +3,19 @@ import type {
   Conferencia,
   FunilCampanha,
   ImpactoNaMeta,
-  MotivoResultado,
+  MotivoDaOrdem,
   OrdemServico,
   OrigemCampanha,
+  OrigemOrdem,
   Prioridade,
   ResultadoOrdem,
   StatusCampanha,
   StatusOrdem,
-  TipoOrdem,
 } from '../../api/tipos';
 import type { Tom } from '../../ui/selo';
 import { numero, percentual } from '../../nucleo/formato';
 
-/** Rótulos das campanhas e ordens de serviço (ADR 0036). */
-export const ROTULO_TIPO: Record<TipoOrdem, string> = {
-  VISTORIA: 'Vistoria',
-  LIGACAO_NOVA: 'Ligação nova',
-  RELIGACAO: 'Religação',
-  NOTIFICACAO: 'Notificação',
-};
+/** Rótulos das campanhas e ordens de serviço (ADR 0036, 0044). */
 
 export const ROTULO_ACAO: Record<AcaoCampanha, { titulo: string; descricao: string }> = {
   LIGACAO: {
@@ -47,17 +41,43 @@ export const ROTULO_STATUS_CAMPANHA: Record<StatusCampanha, { texto: string; tom
   CANCELADA: { texto: 'Cancelada', tom: 'neutro' },
 };
 
+/** Ciclo da OS (doc 10, 10.6). */
 export const ROTULO_STATUS: Record<StatusOrdem, { texto: string; tom: Tom }> = {
-  PLANEJADA: { texto: 'Sem equipe', tom: 'neutro' },
-  EM_CAMPO: { texto: 'Em campo', tom: 'atencao' },
-  REAGENDADA: { texto: 'Reagendada', tom: 'atencao' },
-  EXECUTADA: { texto: 'Executada', tom: 'ok' },
-  RECUSADA: { texto: 'Recusada', tom: 'perigo' },
-  INVIAVEL: { texto: 'Inviável', tom: 'perigo' },
+  PLANEJADA: { texto: 'Planejada', tom: 'neutro' },
+  PROGRAMADA: { texto: 'Programada', tom: 'atencao' },
+  EM_EXECUCAO: { texto: 'Em execução', tom: 'atencao' },
+  PARALISADA: { texto: 'Paralisada', tom: 'perigo' },
+  DEVOLVIDA: { texto: 'Devolvida', tom: 'perigo' },
+  ENCERRADA: { texto: 'Encerrada', tom: 'ok' },
   CANCELADA: { texto: 'Cancelada', tom: 'neutro' },
 };
 
+export const STATUS_DA_OS: StatusOrdem[] = [
+  'PLANEJADA',
+  'PROGRAMADA',
+  'EM_EXECUCAO',
+  'PARALISADA',
+  'DEVOLVIDA',
+  'ENCERRADA',
+  'CANCELADA',
+];
+
+/** O que a tabela do doc 10 (10.6) permite em cada situação (o servidor confere o mesmo). */
+export const podeProgramar = (s: StatusOrdem): boolean =>
+  s === 'PLANEJADA' || s === 'PROGRAMADA' || s === 'DEVOLVIDA';
+export const podeCancelar = podeProgramar;
+export const comEquipe = (s: StatusOrdem): boolean =>
+  s === 'PROGRAMADA' || s === 'EM_EXECUCAO' || s === 'PARALISADA';
+export const podeEncerrar = (s: StatusOrdem): boolean => s === 'PROGRAMADA' || s === 'EM_EXECUCAO';
+
+export const ROTULO_ORIGEM_OS: Record<OrigemOrdem, string> = {
+  CAMPANHA: 'Campanha',
+  AVULSA: 'Avulsa',
+  LOTE: 'Lote por logradouro',
+};
+
 export const ROTULO_PRIORIDADE: Record<Prioridade, { texto: string; tom: Tom }> = {
+  EMERGENCIAL: { texto: 'Emergencial', tom: 'perigo' },
   ALTA: { texto: 'Alta', tom: 'perigo' },
   MEDIA: { texto: 'Média', tom: 'atencao' },
   BAIXA: { texto: 'Baixa', tom: 'neutro' },
@@ -84,31 +104,43 @@ export const ROTULO_CONFERENCIA: Record<Conferencia, { texto: string; tom: Tom; 
 
 export const ROTULO_RESULTADO: Record<ResultadoOrdem, string> = {
   EXECUTADA: 'Executada',
-  RECUSADA: 'Recusada pelo morador',
-  REAGENDADA: 'Reagendar',
-  INVIAVEL: 'Inviável',
+  NAO_EXECUTADA: 'Não executada',
 };
 
-export const ROTULO_MOTIVO: Record<MotivoResultado, string> = {
-  SEM_INTERESSE: 'Sem interesse',
-  CUSTO_DA_LIGACAO: 'Custo da ligação',
-  SOLUCAO_PROPRIA: 'Tem solução própria (fossa)',
-  DEBITO_PENDENTE: 'Débito pendente',
-  SEM_REDE_NA_RUA: 'Sem rede na rua',
-  IMOVEL_ABAIXO_DA_REDE: 'Imóvel abaixo da rede',
-  IMOVEL_DESOCUPADO: 'Imóvel desocupado',
-  OUTRO: 'Outro (descreva)',
-};
+/** Motivos do catálogo do tipo pedido que valem para o serviço (RN-22; o servidor confere o mesmo). */
+export function motivosPara(
+  motivos: readonly MotivoDaOrdem[],
+  tipo: MotivoDaOrdem['tipo'],
+  servicoId: string,
+): MotivoDaOrdem[] {
+  return motivos.filter(
+    (m) => m.tipo === tipo && (m.servicoId == null || m.servicoId === servicoId),
+  );
+}
 
-/** Motivos que combinam com cada resultado (o servidor confere o mesmo). */
-export function motivosPara(resultado: ResultadoOrdem): MotivoResultado[] {
-  if (resultado === 'RECUSADA') {
-    return ['SEM_INTERESSE', 'CUSTO_DA_LIGACAO', 'SOLUCAO_PROPRIA', 'DEBITO_PENDENTE', 'OUTRO'];
+/** Onde a OS acontece, numa linha: matrícula (e endereço) ou trecho do logradouro. */
+export function alvoDaOrdem(
+  o: Pick<
+    OrdemServico,
+    'alvo' | 'matricula' | 'trechoCodigo' | 'logradouroNome' | 'numeroImovel' | 'complemento'
+  >,
+): string {
+  if (o.alvo === 'TRECHO') {
+    return [`Trecho ${o.trechoCodigo ?? ''}`.trim(), o.logradouroNome].filter(Boolean).join(' · ');
   }
-  if (resultado === 'INVIAVEL') {
-    return ['SEM_REDE_NA_RUA', 'IMOVEL_ABAIXO_DA_REDE', 'IMOVEL_DESOCUPADO', 'OUTRO'];
+  const endereco = o.logradouroNome
+    ? [o.logradouroNome, o.numeroImovel, o.complemento].filter(Boolean).join(', ')
+    : null;
+  return [`Matrícula ${o.matricula ?? ''}`.trim(), endereco].filter(Boolean).join(' · ');
+}
+
+/** Quantidade com a unidade do serviço (UN, M, M2, M3). */
+export function quantidadeComUnidade(valor: number | null | undefined, unidade: string): string {
+  if (valor == null) {
+    return '—';
   }
-  return [];
+  const simbolo: Record<string, string> = { UN: 'un.', M: 'm', M2: 'm²', M3: 'm³' };
+  return `${numero(valor)} ${simbolo[unidade] ?? unidade}`;
 }
 
 /** Etapas do funil (I4), com a fração de cada uma sobre as planejadas. */
