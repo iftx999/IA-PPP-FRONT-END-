@@ -370,6 +370,18 @@
         </section>
       </div>
       <div class="rodape-acoes">
+        @if (hoje()) {
+          <button
+            matButton="outlined"
+            type="button"
+            [disabled]="ocupado() || !equipesEscolhidas().size"
+            matTooltip="Recalcula as OS de hoje das equipes escolhidas a partir de onde cada uma está; as em execução ficam no começo"
+            (click)="reotimizar()"
+          >
+            <span class="material-symbols-rounded" aria-hidden="true">my_location</span>
+            Reotimizar a partir da posição atual
+          </button>
+        }
         <button
           matButton="filled"
           type="button"

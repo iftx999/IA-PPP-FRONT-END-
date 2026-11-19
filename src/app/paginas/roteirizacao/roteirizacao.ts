@@ -116,6 +116,7 @@ export class Roteirizacao {
   });
   protected readonly data = computed(() => this.filtros.valor('data') ?? paraIso(new Date())!);
   protected readonly campoData = new FormControl<Date | null>(new Date());
+  protected readonly hoje = computed(() => this.data() === paraIso(new Date()));
 
   protected readonly candidatas = httpResource<CandidatasDaRota>(() => {
     const unidade = this.unidade();
@@ -217,6 +218,16 @@ export class Roteirizacao {
         data: this.data(),
         equipes: [...this.equipesEscolhidas()],
         ordens: [...this.ordensEscolhidas()],
+      }),
+    );
+  }
+
+  /** J7: hoje, das equipes escolhidas, a partir da última posição; OS em execução ficam fixas. */
+  protected async reotimizar(): Promise<void> {
+    await this.pedir(() =>
+      this.http.post<DadosRoteirizacao>('/api/v1/roteirizacoes/reotimizar', {
+        unidadeId: this.unidade(),
+        equipes: [...this.equipesEscolhidas()],
       }),
     );
   }
