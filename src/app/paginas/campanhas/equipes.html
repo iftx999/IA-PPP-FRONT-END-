@@ -28,11 +28,7 @@
       <ul class="lista">
         @for (e of lista; track e.id) {
           <li>
-            <button
-              type="button"
-              class="cartao campanha equipe"
-              (click)="abrir(e)"
-            >
+            <button type="button" class="cartao campanha equipe" (click)="abrir(e)">
               <div class="topo">
                 <div class="identificacao">
                   <span class="nome">{{ e.nome }}</span>
@@ -53,6 +49,12 @@
                 <span
                   ><b>{{ fmt.numero(e.ordensEmCampo) }}</b> OS em campo</span
                 >
+                <span
+                  ><b>{{ jornada(e) }}</b> · {{ veiculo(e) }}</span
+                >
+                @if (!e.operacao.base) {
+                  <aurora-selo tom="atencao">Sem base</aurora-selo>
+                }
               </div>
               @if (e.membros.length) {
                 <span class="sub">{{ nomes(e) }}</span>
@@ -153,6 +155,57 @@
           na campanha.</mat-hint
         >
       </mat-form-field>
+      <h3 class="secao-form">Operação</h3>
+      <p class="nota">
+        A roteirização usa estes dados: a OS só vai para a equipe que tem a habilidade e o veículo
+        exigidos pelo serviço, e a rota precisa caber na jornada.
+      </p>
+      <div class="linha-campos">
+        <mat-form-field>
+          <mat-label>Início da jornada</mat-label>
+          <input matInput formControlName="jornadaInicio" [matTimepicker]="relogioInicio" />
+          <mat-timepicker-toggle matIconSuffix [for]="relogioInicio" />
+          <mat-timepicker #relogioInicio interval="30min" />
+          <mat-error>Informe a hora (HH:mm).</mat-error>
+        </mat-form-field>
+        <mat-form-field>
+          <mat-label>Fim da jornada</mat-label>
+          <input matInput formControlName="jornadaFim" [matTimepicker]="relogioFim" />
+          <mat-timepicker-toggle matIconSuffix [for]="relogioFim" />
+          <mat-timepicker #relogioFim interval="30min" />
+          <mat-error>Informe a hora (HH:mm).</mat-error>
+        </mat-form-field>
+        <mat-form-field>
+          <mat-label>Pausa</mat-label>
+          <input matInput type="number" formControlName="pausaMin" min="0" max="240" />
+          <span matTextSuffix>min</span>
+          <mat-error>De 0 a 240 minutos.</mat-error>
+        </mat-form-field>
+      </div>
+      <mat-form-field>
+        <mat-label>Veículo</mat-label>
+        <mat-select formControlName="tipoVeiculoId">
+          <mat-option [value]="null">Sem veículo</mat-option>
+          @for (v of veiculosAtivos(); track v.id) {
+            <mat-option [value]="v.id">{{ v.nome }}</mat-option>
+          }
+        </mat-select>
+        <mat-hint>Caminhão atende serviços de carro; qualquer veículo atende os de moto.</mat-hint>
+      </mat-form-field>
+      <mat-form-field>
+        <mat-label>Habilidades</mat-label>
+        <mat-select formControlName="habilidades" multiple>
+          @for (h of habilidadesAtivas(); track h.id) {
+            <mat-option [value]="h.id">{{ h.nome }}</mat-option>
+          }
+        </mat-select>
+      </mat-form-field>
+      <span class="rotulo">Base da equipe</span>
+      <aurora-escolher-ponto [(ponto)]="base" rotulo="Base da equipe" />
+      <p class="nota">
+        Ponto de partida da prévia da rota. No dia, a rota parte de onde o agente estiver ao iniciar
+        a jornada.
+      </p>
       @if (editando()) {
         <mat-slide-toggle formControlName="ativa">Equipe ativa</mat-slide-toggle>
       }

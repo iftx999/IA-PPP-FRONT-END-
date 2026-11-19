@@ -325,12 +325,19 @@ export class CampanhaPagina {
       const fora = r.foraDaArea
         ? ` ${numero(r.foraDaArea)} ficaram de fora: o imóvel não está na área da equipe.`
         : '';
+      const incompativeis = r.incompativeis
+        ? ` ${numero(r.incompativeis)} exigem habilidade ou veículo que a equipe não tem.`
+        : '';
       const ignoradas = r.ignoradas
         ? ` ${numero(r.ignoradas)} já estavam em execução ou encerradas.`
         : '';
-      this.avisos.open(`${numero(r.enviadas)} OS programadas.${fora}${ignoradas}`, 'Ok', {
-        duration: 6000,
-      });
+      this.avisos.open(
+        `${numero(r.enviadas)} OS programadas.${fora}${incompativeis}${ignoradas}`,
+        'Ok',
+        {
+          duration: 6000,
+        },
+      );
       this.recarregar();
     } catch (falha) {
       this.erroEnvio.set(mensagemDeErro(falha));

@@ -275,6 +275,11 @@ export class Ordens {
       if (r.foraDaArea) {
         partes.push(`${numero(r.foraDaArea)} fora da área da equipe.`);
       }
+      if (r.incompativeis) {
+        partes.push(
+          `${numero(r.incompativeis)} exigem habilidade ou veículo que a equipe não tem.`,
+        );
+      }
       if (r.ignoradas) {
         partes.push(`${numero(r.ignoradas)} já em execução ou encerradas.`);
       }

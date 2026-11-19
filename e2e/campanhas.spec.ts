@@ -29,6 +29,28 @@ test.describe('Campanhas de ligação', () => {
     }
     await expect(page.getByRole('button', { name: new RegExp(EQUIPE) })).toBeVisible();
 
+    // Operação (RN-23, ADR 0046): caminhão de vácuo (atende moto, carro e vácuo) e todas as habilidades, para
+    // receber as OS de qualquer serviço dos testes; base no centro da Cidade A.
+    await page.getByRole('button', { name: new RegExp(EQUIPE) }).click();
+    const edicao = page.getByRole('dialog', { name: 'Editar equipe' });
+    await edicao.getByLabel('Veículo').click();
+    await page.getByRole('option', { name: 'Caminhão de vácuo' }).click();
+    await edicao.getByLabel('Habilidades').click();
+    for (const opcao of await page.getByRole('option').all()) {
+      if ((await opcao.getAttribute('aria-selected')) !== 'true') {
+        await opcao.click();
+      }
+    }
+    await page.keyboard.press('Escape');
+    await edicao.getByRole('application', { name: /Base da equipe/ }).click();
+    await expect(edicao.getByText('Nenhum ponto marcado')).toBeHidden();
+    await page.screenshot({ path: 'e2e/capturas/equipe-operacao.png' });
+    await edicao.getByRole('button', { name: 'Salvar' }).click();
+    await expect(edicao).toBeHidden();
+    await expect(page.getByRole('button', { name: new RegExp(EQUIPE) })).toContainText(
+      'Caminhão de vácuo',
+    );
+
     // Campanha por setor, só cortados: a prévia mostra quantas OS e o impacto na meta.
     await page.getByRole('link', { name: '← Campanhas' }).click();
     await page.getByRole('button', { name: 'Nova campanha' }).click();

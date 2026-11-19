@@ -1892,6 +1892,22 @@ export interface paths {
     patch?: never;
     trace?: never;
   };
+  '/api/v1/equipes/opcoes': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get: operations['opcoes_1'];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
   '/api/v1/dispositivos': {
     parameters: {
       query?: never;
@@ -2587,6 +2603,12 @@ export interface components {
       atrasoMaximoHoras: number;
       ativo: boolean;
     };
+    BaseDaEquipeDto: {
+      /** Format: double */
+      latitude: number;
+      /** Format: double */
+      longitude: number;
+    };
     EquipeRequest: {
       /** Format: uuid */
       unidadeId: string;
@@ -2596,6 +2618,19 @@ export interface components {
       empresa: string | null;
       ativa: boolean;
       membros: string[];
+      operacao: components['schemas']['OperacaoRequest'] | null;
+    };
+    OperacaoRequest: {
+      base: components['schemas']['BaseDaEquipeDto'] | null;
+      /** Format: time-local */
+      jornadaInicio: string;
+      /** Format: time-local */
+      jornadaFim: string;
+      /** Format: int32 */
+      pausaMin: number;
+      /** Format: uuid */
+      tipoVeiculoId: string | null;
+      habilidades: string[];
     };
     EquipeResponse: {
       /** Format: uuid */
@@ -2611,6 +2646,7 @@ export interface components {
       membros: components['schemas']['MembroResponse'][];
       /** Format: int64 */
       ordensEmCampo: number;
+      operacao: components['schemas']['OperacaoResponse'];
     };
     MembroResponse: {
       /** Format: uuid */
@@ -2618,6 +2654,18 @@ export interface components {
       nome: string;
       email: string;
       ativo: boolean;
+    };
+    OperacaoResponse: {
+      base: components['schemas']['BaseDaEquipeDto'] | null;
+      /** Format: time-local */
+      jornadaInicio: string;
+      /** Format: time-local */
+      jornadaFim: string;
+      /** Format: int32 */
+      pausaMin: number;
+      /** Format: uuid */
+      tipoVeiculoId: string | null;
+      habilidades: string[];
     };
     ItemRequest: {
       /** @enum {string} */
@@ -2955,6 +3003,8 @@ export interface components {
       programadas: number;
       /** Format: int32 */
       foraDaArea: number;
+      /** Format: int32 */
+      incompativeis: number;
       /** Format: int32 */
       ignoradas: number;
     };
@@ -3465,6 +3515,8 @@ export interface components {
       enviadas: number;
       /** Format: int32 */
       foraDaArea: number;
+      /** Format: int32 */
+      incompativeis: number;
       /** Format: int32 */
       ignoradas: number;
     };
@@ -4268,6 +4320,18 @@ export interface components {
       id: string;
       nome: string;
       email: string;
+    };
+    ItemDoCatalogoResponse: {
+      /** Format: uuid */
+      id: string;
+      codigo: string;
+      nome: string;
+      ativo: boolean;
+      perfilRota: string | null;
+    };
+    OpcoesDaEquipeResponse: {
+      veiculos: components['schemas']['ItemDoCatalogoResponse'][];
+      habilidades: components['schemas']['ItemDoCatalogoResponse'][];
     };
     ContratoResponse: {
       /** Format: uuid */
@@ -7969,6 +8033,26 @@ export interface operations {
         };
         content: {
           '*/*': components['schemas']['PessoaResponse'][];
+        };
+      };
+    };
+  };
+  opcoes_1: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description OK */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          '*/*': components['schemas']['OpcoesDaEquipeResponse'];
         };
       };
     };

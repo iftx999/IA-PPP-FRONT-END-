@@ -170,6 +170,16 @@ h1 {
   gap: var(--space-2);
   padding-top: var(--space-1);
 }
+.secao-form {
+  margin: var(--space-2) 0 0;
+  font-size: 1rem;
+  font-weight: 600;
+}
+.linha-campos {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: var(--space-2);
+}
 .linha {
   display: flex;
   flex-wrap: wrap;

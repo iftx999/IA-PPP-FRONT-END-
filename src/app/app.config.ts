@@ -32,9 +32,11 @@ export function configuracaoDoApp(configuracao: ConfiguracaoAurora, retornoDoLog
     // Calendário em pt-BR: digita e exibe dd/MM/yyyy (o adaptador nativo do navegador não interpreta esse formato).
     { provide: MAT_DATE_LOCALE, useValue: ptBR },
     provideDateFnsAdapter({
-      parse: { dateInput: ['dd/MM/yyyy', 'ddMMyyyy', 'dd/MM/yy'] },
+      parse: { dateInput: ['dd/MM/yyyy', 'ddMMyyyy', 'dd/MM/yy'], timeInput: ['HH:mm', 'HHmm', 'H:mm'] },
       display: {
         dateInput: 'dd/MM/yyyy',
+        timeInput: 'HH:mm',
+        timeOptionLabel: 'HH:mm',
         monthYearLabel: 'MMM yyyy',
         dateA11yLabel: 'PPP',
         monthYearA11yLabel: 'MMMM yyyy',
