@@ -9,6 +9,9 @@
   --on-accent: #04201b;
   --ok: #3de693; --warn: #ecc32a; --danger: #ec8087; --danger-soft: #ee7a62; --neutral: #86929e;
   --net-confirmed: #43c3c5; --net-presumed: #e0c573;
+  // Rotas da roteirização (ADR 0046): uma cor por equipe, distintas entre si sobre o mapa escuro.
+  --rota-1: #4ad7bc; --rota-2: #f2a65a; --rota-3: #8fa8ff; --rota-4: #f07ca8;
+  --rota-5: #e6d35c; --rota-6: #6fd36f; --rota-7: #c792ea; --rota-8: #5cc8f2;
 
   --space-1: 4px; --space-2: 8px; --space-3: 12px; --space-4: 16px; --space-5: 24px; --space-6: 32px;
   --radius-s: 8px; --radius-m: 14px; --radius-l: 20px;
@@ -37,6 +40,8 @@
   --accent-glow: rgba(10, 107, 91, .25);
   --ok: #176038; --warn: #6a5813; --danger: #8b3a3f; --neutral: #58636e;
   --on-accent: #ffffff;
+  --rota-1: #0a6b5b; --rota-2: #b85a00; --rota-3: #3b55c9; --rota-4: #b8336a;
+  --rota-5: #7a6a00; --rota-6: #2e7d32; --rota-7: #7b3fb0; --rota-8: #0b6fa4;
   --shadow-card: 0 8px 30px rgba(11, 26, 31, .08);
   color-scheme: light;
 }

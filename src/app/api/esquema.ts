@@ -532,7 +532,7 @@ export interface paths {
     patch?: never;
     trace?: never;
   };
-  '/api/v1/plataforma/clientes': {
+  '/api/v1/roteirizacoes': {
     parameters: {
       query?: never;
       header?: never;
@@ -540,6 +540,86 @@ export interface paths {
       cookie?: never;
     };
     get: operations['listar_2'];
+    put?: never;
+    post: operations['calcular'];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/api/v1/roteirizacoes/{id}/recalcular': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    post: operations['recalcular'];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/api/v1/roteirizacoes/{id}/publicar': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    post: operations['publicar'];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/api/v1/roteirizacoes/{id}/descartar': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    post: operations['descartar'];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/api/v1/roteirizacoes/reotimizar': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    post: operations['reotimizar'];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/api/v1/plataforma/clientes': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get: operations['listar_3'];
     put?: never;
     post: operations['criar_1'];
     delete?: never;
@@ -587,7 +667,7 @@ export interface paths {
       path?: never;
       cookie?: never;
     };
-    get: operations['listar_3'];
+    get: operations['listar_4'];
     put?: never;
     post: operations['criar_2'];
     delete?: never;
@@ -731,7 +811,7 @@ export interface paths {
       path?: never;
       cookie?: never;
     };
-    get: operations['listar_4'];
+    get: operations['listar_5'];
     put?: never;
     post: operations['criar_3'];
     delete?: never;
@@ -763,7 +843,7 @@ export interface paths {
       path?: never;
       cookie?: never;
     };
-    get: operations['listar_5'];
+    get: operations['listar_6'];
     put?: never;
     post: operations['criar_4'];
     delete?: never;
@@ -891,7 +971,7 @@ export interface paths {
       path?: never;
       cookie?: never;
     };
-    get: operations['listar_6'];
+    get: operations['listar_7'];
     put?: never;
     post: operations['cadastrar'];
     delete?: never;
@@ -923,7 +1003,7 @@ export interface paths {
       path?: never;
       cookie?: never;
     };
-    get: operations['listar_7'];
+    get: operations['listar_8'];
     put?: never;
     post: operations['criar_6'];
     delete?: never;
@@ -1227,7 +1307,7 @@ export interface paths {
       path?: never;
       cookie?: never;
     };
-    get: operations['listar_8'];
+    get: operations['listar_9'];
     put?: never;
     post: operations['criar_7'];
     delete?: never;
@@ -1460,6 +1540,38 @@ export interface paths {
     patch?: never;
     trace?: never;
   };
+  '/api/v1/roteirizacoes/{id}': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get: operations['buscar_1'];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/api/v1/roteirizacoes/candidatas': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get: operations['candidatas'];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
   '/api/v1/publico/clientes/{codigo}': {
     parameters: {
       query?: never;
@@ -1547,7 +1659,7 @@ export interface paths {
       path?: never;
       cookie?: never;
     };
-    get: operations['listar_9'];
+    get: operations['listar_10'];
     put?: never;
     post?: never;
     delete?: never;
@@ -1563,7 +1675,7 @@ export interface paths {
       path?: never;
       cookie?: never;
     };
-    get: operations['buscar_1'];
+    get: operations['buscar_2'];
     put?: never;
     post?: never;
     delete?: never;
@@ -1659,7 +1771,7 @@ export interface paths {
       path?: never;
       cookie?: never;
     };
-    get: operations['listar_10'];
+    get: operations['listar_11'];
     put?: never;
     post?: never;
     delete?: never;
@@ -1755,7 +1867,7 @@ export interface paths {
       path?: never;
       cookie?: never;
     };
-    get: operations['buscar_2'];
+    get: operations['buscar_3'];
     put?: never;
     post?: never;
     delete?: never;
@@ -1835,7 +1947,7 @@ export interface paths {
       path?: never;
       cookie?: never;
     };
-    get: operations['listar_11'];
+    get: operations['listar_12'];
     put?: never;
     post?: never;
     delete?: never;
@@ -1915,7 +2027,7 @@ export interface paths {
       path?: never;
       cookie?: never;
     };
-    get: operations['listar_12'];
+    get: operations['listar_13'];
     put?: never;
     post?: never;
     delete?: never;
@@ -1947,7 +2059,7 @@ export interface paths {
       path?: never;
       cookie?: never;
     };
-    get: operations['listar_13'];
+    get: operations['listar_14'];
     put?: never;
     post?: never;
     delete?: never;
@@ -2235,7 +2347,7 @@ export interface paths {
       path?: never;
       cookie?: never;
     };
-    get: operations['listar_14'];
+    get: operations['listar_15'];
     put?: never;
     post?: never;
     delete?: never;
@@ -2544,6 +2656,8 @@ export interface components {
       latitude: number | null;
       /** Format: double */
       longitude: number | null;
+      /** Format: int32 */
+      sequenciaRota: number | null;
     };
     LogradouroRequest: {
       tipo: string | null;
@@ -2953,6 +3067,109 @@ export interface components {
     UnidadeCriada: {
       /** Format: uuid */
       id: string;
+    };
+    RoteirizacaoRequest: {
+      /** Format: uuid */
+      unidadeId: string;
+      /** Format: date */
+      data: string;
+      equipes: string[];
+      ordens: string[];
+    };
+    OsSemRotaResponse: {
+      /** Format: uuid */
+      ordemServicoId: string;
+      /** Format: int64 */
+      numero: number;
+      servicoNome: string;
+      prioridade: string;
+      /** @enum {string} */
+      motivo: 'JORNADA' | 'HABILIDADE' | 'VEICULO' | 'AREA' | 'SEM_LOCAL';
+    };
+    ParadaDaRotaResponse: {
+      /** Format: uuid */
+      ordemServicoId: string;
+      /** Format: int64 */
+      numero: number;
+      servicoNome: string;
+      prioridade: string;
+      /** Format: int32 */
+      ordem: number;
+      /** Format: date-time */
+      chegadaPrevista: string;
+      /** Format: date-time */
+      saidaPrevista: string;
+      /** Format: double */
+      kmAte: number;
+      /** Format: int32 */
+      minutosAte: number;
+      fixada: boolean;
+      atrasa: boolean;
+      local: components['schemas']['PontoDaRotaDto'] | null;
+    };
+    PontoDaRotaDto: {
+      /** Format: double */
+      latitude: number;
+      /** Format: double */
+      longitude: number;
+    };
+    RotaDaEquipeResponse: {
+      /** Format: uuid */
+      equipeId: string;
+      equipeNome: string;
+      partida: components['schemas']['PontoDaRotaDto'] | null;
+      /** Format: date-time */
+      inicio: string;
+      /** Format: date-time */
+      fimPrevisto: string;
+      /** Format: double */
+      km: number;
+      /** Format: int32 */
+      minutosDeslocamento: number;
+      /** Format: int32 */
+      minutosServico: number;
+      tracado: number[][][];
+      paradas: components['schemas']['ParadaDaRotaResponse'][];
+    };
+    RoteirizacaoResponse: {
+      /** Format: uuid */
+      id: string;
+      /** Format: uuid */
+      unidadeId: string;
+      unidadeNome: string;
+      /** Format: date */
+      data: string;
+      /** @enum {string} */
+      origem: 'PREVIA' | 'JORNADA' | 'REOTIMIZACAO';
+      /** @enum {string} */
+      situacao: 'CALCULANDO' | 'PRONTA' | 'FALHOU' | 'PUBLICADA' | 'DESCARTADA';
+      /** @enum {string|null} */
+      calculo: 'VALHALLA' | 'LINHA_RETA' | null;
+      erro: string | null;
+      /** Format: uuid */
+      anteriorId: string | null;
+      /** Format: date-time */
+      criadaEm: string;
+      criadaPor: string | null;
+      /** Format: date-time */
+      concluidaEm: string | null;
+      /** Format: date-time */
+      publicadaEm: string | null;
+      rotas: components['schemas']['RotaDaEquipeResponse'][];
+      semRota: components['schemas']['OsSemRotaResponse'][];
+    };
+    FixacaoRequest: {
+      /** Format: uuid */
+      equipeId: string;
+      ordens: string[];
+    };
+    RecalculoRequest: {
+      fixadas: components['schemas']['FixacaoRequest'][];
+    };
+    ReotimizacaoRequest: {
+      /** Format: uuid */
+      unidadeId: string;
+      equipes: string[];
     };
     NovoClienteRequest: {
       codigo: string;
@@ -3821,6 +4038,42 @@ export interface components {
       nome: string;
       /** Format: int32 */
       regras: number;
+    };
+    CandidatasResponse: {
+      ordens: components['schemas']['OrdemCandidataResponse'][];
+      truncada: boolean;
+      equipes: components['schemas']['EquipeCandidataResponse'][];
+    };
+    EquipeCandidataResponse: {
+      /** Format: uuid */
+      id: string;
+      nome: string;
+      temBase: boolean;
+      veiculoNome: string | null;
+      /** Format: time-local */
+      jornadaInicio: string;
+      /** Format: time-local */
+      jornadaFim: string;
+      /** Format: int64 */
+      habilidades: number;
+    };
+    OrdemCandidataResponse: {
+      /** Format: uuid */
+      id: string;
+      /** Format: int64 */
+      numero: number;
+      servicoNome: string;
+      prioridade: string;
+      status: string;
+      /** Format: date-time */
+      prazoEm: string | null;
+      atrasada: boolean;
+      /** Format: uuid */
+      equipeId: string | null;
+      equipeNome: string | null;
+      /** Format: date */
+      dataProgramada: string | null;
+      temLocal: boolean;
     };
     ClientePublico: {
       codigo?: string;
@@ -5745,6 +5998,146 @@ export interface operations {
   };
   listar_2: {
     parameters: {
+      query: {
+        data: string;
+      };
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description OK */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          '*/*': components['schemas']['RoteirizacaoResponse'][];
+        };
+      };
+    };
+  };
+  calcular: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        'application/json': components['schemas']['RoteirizacaoRequest'];
+      };
+    };
+    responses: {
+      /** @description Accepted */
+      202: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          '*/*': components['schemas']['RoteirizacaoResponse'];
+        };
+      };
+    };
+  };
+  recalcular: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        id: string;
+      };
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        'application/json': components['schemas']['RecalculoRequest'];
+      };
+    };
+    responses: {
+      /** @description Accepted */
+      202: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          '*/*': components['schemas']['RoteirizacaoResponse'];
+        };
+      };
+    };
+  };
+  publicar: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        id: string;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description OK */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          '*/*': components['schemas']['RoteirizacaoResponse'];
+        };
+      };
+    };
+  };
+  descartar: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        id: string;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description OK */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          '*/*': components['schemas']['RoteirizacaoResponse'];
+        };
+      };
+    };
+  };
+  reotimizar: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        'application/json': components['schemas']['ReotimizacaoRequest'];
+      };
+    };
+    responses: {
+      /** @description Accepted */
+      202: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          '*/*': components['schemas']['RoteirizacaoResponse'];
+        };
+      };
+    };
+  };
+  listar_3: {
+    parameters: {
       query?: never;
       header?: never;
       path?: never;
@@ -5829,7 +6222,7 @@ export interface operations {
       };
     };
   };
-  listar_3: {
+  listar_4: {
     parameters: {
       query?: never;
       header?: never;
@@ -6071,7 +6464,7 @@ export interface operations {
       };
     };
   };
-  listar_4: {
+  listar_5: {
     parameters: {
       query?: never;
       header?: never;
@@ -6139,7 +6532,7 @@ export interface operations {
       };
     };
   };
-  listar_5: {
+  listar_6: {
     parameters: {
       query?: {
         oeste?: number;
@@ -6410,7 +6803,7 @@ export interface operations {
       };
     };
   };
-  listar_6: {
+  listar_7: {
     parameters: {
       query?: never;
       header?: never;
@@ -6476,7 +6869,7 @@ export interface operations {
       };
     };
   };
-  listar_7: {
+  listar_8: {
     parameters: {
       query?: never;
       header?: never;
@@ -7026,7 +7419,7 @@ export interface operations {
       };
     };
   };
-  listar_8: {
+  listar_9: {
     parameters: {
       query?: {
         status?: 'ATIVA' | 'ENCERRADA' | 'CANCELADA';
@@ -7408,6 +7801,51 @@ export interface operations {
       };
     };
   };
+  buscar_1: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        id: string;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description OK */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          '*/*': components['schemas']['RoteirizacaoResponse'];
+        };
+      };
+    };
+  };
+  candidatas: {
+    parameters: {
+      query: {
+        unidade: string;
+        data: string;
+      };
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description OK */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          '*/*': components['schemas']['CandidatasResponse'];
+        };
+      };
+    };
+  };
   porCodigo: {
     parameters: {
       query?: never;
@@ -7520,7 +7958,7 @@ export interface operations {
       };
     };
   };
-  listar_9: {
+  listar_10: {
     parameters: {
       query?: {
         status?:
@@ -7562,7 +8000,7 @@ export interface operations {
       };
     };
   };
-  buscar_1: {
+  buscar_2: {
     parameters: {
       query?: never;
       header?: never;
@@ -7692,7 +8130,7 @@ export interface operations {
       };
     };
   };
-  listar_10: {
+  listar_11: {
     parameters: {
       query?: never;
       header?: never;
@@ -7832,7 +8270,7 @@ export interface operations {
       };
     };
   };
-  buscar_2: {
+  buscar_3: {
     parameters: {
       query?: {
         unidade?: string;
@@ -7944,7 +8382,7 @@ export interface operations {
       };
     };
   };
-  listar_11: {
+  listar_12: {
     parameters: {
       query?: {
         unidade?: string;
@@ -8057,7 +8495,7 @@ export interface operations {
       };
     };
   };
-  listar_12: {
+  listar_13: {
     parameters: {
       query?: never;
       header?: never;
@@ -8099,7 +8537,7 @@ export interface operations {
       };
     };
   };
-  listar_13: {
+  listar_14: {
     parameters: {
       query?: never;
       header?: never;
@@ -8509,7 +8947,7 @@ export interface operations {
       };
     };
   };
-  listar_14: {
+  listar_15: {
     parameters: {
       query?: {
         estado?: 'ABERTOS' | 'RECONHECIDOS' | 'RESOLVIDOS';

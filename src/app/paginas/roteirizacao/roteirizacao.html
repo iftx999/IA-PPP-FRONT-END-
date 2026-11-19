@@ -1,0 +1,390 @@
+<header class="cabecalho">
+  <div class="titulo">
+    <span class="rotulo">Serviços de campo</span>
+    <h1>Roteirização</h1>
+    <p class="orientacao">
+      Escolha as equipes e as OS do dia e calcule as rotas: emergenciais primeiro, prazos
+      respeitados, menos deslocamento e carga equilibrada. Ajuste fixando ou movendo OS e publique
+      para as equipes.
+    </p>
+  </div>
+</header>
+
+@if (!sessao.usuario()) {
+  <div class="esqueleto" role="status" aria-busy="true" aria-label="Carregando"></div>
+} @else if (!podeProgramar()) {
+  <section class="cartao aviso" role="alert">
+    <p class="rotulo">Sem acesso</p>
+    <p>Seu perfil não permite programar ordens de serviço.</p>
+  </section>
+} @else {
+  <section class="barra-filtros" aria-label="Unidade e dia">
+    @if (unidades.hasValue()) {
+      <aurora-filtro-unidade
+        [unidades]="unidades.value()"
+        [valor]="unidade()"
+        rotulo="Unidade"
+        (escolha)="escolherUnidade($event)"
+      />
+    }
+    <mat-form-field class="filtro">
+      <mat-label>Dia</mat-label>
+      <input
+        matInput
+        [formControl]="campoData"
+        [matDatepicker]="calDia"
+        (dateChange)="escolherData($event.value)"
+      />
+      <mat-datepicker-toggle matIconSuffix [for]="calDia" />
+      <mat-datepicker #calDia />
+    </mat-form-field>
+    @if (atual()) {
+      <button matButton="outlined" type="button" (click)="novaRoteirizacao()">
+        <span class="material-symbols-rounded" aria-hidden="true">restart_alt</span> Nova
+        roteirização
+      </button>
+    }
+  </section>
+
+  @if (erro()) {
+    <p class="erro" role="alert">
+      <span class="material-symbols-rounded" aria-hidden="true">error</span>{{ erro() }}
+    </p>
+  }
+
+  @if (atual(); as r) {
+    @if (r.situacao === 'CALCULANDO') {
+      <section class="cartao calculando" role="status" aria-live="polite">
+        <mat-spinner diameter="40" />
+        <div>
+          <p class="nome">Calculando as rotas…</p>
+          <p class="nota">
+            Montando a matriz de deslocamentos e otimizando. Leva até meio minuto; pode sair desta
+            tela e voltar.
+          </p>
+        </div>
+      </section>
+    } @else if (r.situacao === 'FALHOU') {
+      <section class="cartao aviso" role="alert">
+        <p class="rotulo">O cálculo falhou</p>
+        <p>{{ r.erro }}</p>
+      </section>
+    } @else {
+      <section class="cartao resumo" aria-label="Resumo da roteirização">
+        <div class="resumo-topo">
+          <div>
+            <aurora-selo [tom]="rotuloSituacao[r.situacao].tom">{{
+              rotuloSituacao[r.situacao].texto
+            }}</aurora-selo>
+            <p class="nota">
+              {{ r.unidadeNome }} · {{ r.rotas.length }}
+              {{ r.rotas.length === 1 ? 'equipe' : 'equipes' }} ·
+              {{ fmt.numero(totalNasRotas()) }} OS nas rotas
+              @if (r.semRota.length) {
+                · <b>{{ fmt.numero(r.semRota.length) }} sem rota</b>
+              }
+            </p>
+          </div>
+          <div class="acoes">
+            @if (r.situacao === 'PRONTA' || r.situacao === 'PUBLICADA') {
+              <button
+                matButton="outlined"
+                type="button"
+                [disabled]="ocupado() || !ajustado()"
+                [matTooltip]="ajustado() ? '' : 'Fixe ou mova OS para recalcular'"
+                (click)="recalcular()"
+              >
+                <span class="material-symbols-rounded" aria-hidden="true">refresh</span>
+                Recalcular
+              </button>
+            }
+            @if (r.situacao === 'PRONTA') {
+              <button matButton type="button" [disabled]="ocupado()" (click)="descartar()">
+                Descartar
+              </button>
+              <button
+                matButton="filled"
+                type="button"
+                [disabled]="ocupado() || ajustado()"
+                [matTooltip]="ajustado() ? 'Recalcule antes de publicar os ajustes' : ''"
+                (click)="publicar()"
+              >
+                <span class="material-symbols-rounded" aria-hidden="true">send</span> Publicar
+              </button>
+            }
+          </div>
+        </div>
+        <p class="estimativa">
+          <span class="material-symbols-rounded" aria-hidden="true">info</span>
+          @if (r.calculo === 'LINHA_RETA') {
+            <span
+              ><b>Estimativa grosseira:</b> o serviço de rotas não respondeu e os deslocamentos
+              foram calculados em linha reta. Recalcule quando ele voltar.</span
+            >
+          } @else {
+            <span
+              >Estimativa pela malha viária, sem trânsito. Horários servem para planejar; no dia, a
+              rota parte de onde o agente estiver.</span
+            >
+          }
+        </p>
+      </section>
+
+      <div class="painel">
+        <div class="lista-rotas">
+          @for (rota of r.rotas; track rota.equipeId; let i = $index) {
+            <section
+              class="cartao rota"
+              [class.destacada]="selecionada() === rota.equipeId"
+              [style.--cor-rota]="cor(i)"
+              [attr.aria-label]="'Rota de ' + rota.equipeNome"
+            >
+              <button type="button" class="rota-topo" (click)="focar(rota)">
+                <span class="marca" aria-hidden="true"></span>
+                <span class="identificacao">
+                  <span class="nome">{{ rota.equipeNome }}</span>
+                  <span class="sub">
+                    @if (rota.paradas.length) {
+                      {{ fmt.hora(rota.inicio) }}–{{ fmt.hora(rota.fimPrevisto) }} ·
+                      {{ rota.paradas.length }} OS · {{ fmt.km(rota.km) }} ·
+                      {{ fmt.duracao(rota.minutosDeslocamento) }} de deslocamento
+                    } @else {
+                      Sem OS neste cálculo
+                    }
+                  </span>
+                </span>
+                <span class="material-symbols-rounded" aria-hidden="true">center_focus_strong</span>
+              </button>
+              @if (rota.paradas.length) {
+                <ol class="paradas">
+                  @for (p of rota.paradas; track p.ordemServicoId) {
+                    <li [class.atrasa]="p.atrasa">
+                      <span class="ordem" aria-hidden="true">{{ p.ordem }}</span>
+                      <span class="dados">
+                        <span class="linha1">
+                          <b>{{ fmt.hora(p.chegadaPrevista) }}</b> · OS {{ p.numero }} ·
+                          {{ p.servicoNome }}
+                        </span>
+                        <span class="linha2">
+                          <aurora-selo [tom]="prioridade(p.prioridade).tom">{{
+                            prioridade(p.prioridade).texto
+                          }}</aurora-selo>
+                          @if (p.atrasa) {
+                            <aurora-selo tom="perigo">Passa do prazo</aurora-selo>
+                          }
+                          @if (fixadaEm(p.ordemServicoId); as destino) {
+                            @if (destino !== rota.equipeId) {
+                              <aurora-selo tom="atencao"
+                                >Vai para {{ nomeDaEquipe(destino) }}</aurora-selo
+                              >
+                            }
+                          }
+                          <span class="nota">{{ fmt.duracao(p.minutosAte) }} de deslocamento</span>
+                        </span>
+                      </span>
+                      @if (r.situacao !== 'DESCARTADA') {
+                        <button
+                          matIconButton
+                          type="button"
+                          [class.fixada]="fixadaEm(p.ordemServicoId) === rota.equipeId"
+                          [attr.aria-pressed]="fixadaEm(p.ordemServicoId) === rota.equipeId"
+                          [attr.aria-label]="'Fixar OS ' + p.numero + ' nesta equipe'"
+                          matTooltip="Fixar nesta equipe e no começo da rota"
+                          (click)="fixar(p.ordemServicoId)"
+                        >
+                          <span class="material-symbols-rounded" aria-hidden="true">keep</span>
+                        </button>
+                        @if (r.rotas.length > 1) {
+                          <button
+                            matIconButton
+                            type="button"
+                            [matMenuTriggerFor]="menuMover"
+                            [attr.aria-label]="'Mover OS ' + p.numero + ' para outra equipe'"
+                          >
+                            <span class="material-symbols-rounded" aria-hidden="true"
+                              >move_item</span
+                            >
+                          </button>
+                          <mat-menu #menuMover="matMenu">
+                            @for (outra of r.rotas; track outra.equipeId) {
+                              @if (outra.equipeId !== rota.equipeId) {
+                                <button
+                                  mat-menu-item
+                                  type="button"
+                                  (click)="mover(p.ordemServicoId, outra.equipeId)"
+                                >
+                                  {{ outra.equipeNome }}
+                                </button>
+                              }
+                            }
+                          </mat-menu>
+                        }
+                      }
+                    </li>
+                  }
+                </ol>
+              }
+            </section>
+          }
+
+          @if (r.semRota.length) {
+            <section class="cartao sem-rota" aria-label="OS sem rota">
+              <p class="rotulo">Sem rota neste cálculo</p>
+              <ul>
+                @for (s of r.semRota; track s.ordemServicoId) {
+                  <li>
+                    <span
+                      >OS {{ s.numero }} · {{ s.servicoNome }}
+                      <aurora-selo [tom]="prioridade(s.prioridade).tom">{{
+                        prioridade(s.prioridade).texto
+                      }}</aurora-selo></span
+                    >
+                    <span class="nota">{{ rotuloSemRota[s.motivo] }}</span>
+                    @if (r.situacao === 'PRONTA' && r.rotas.length) {
+                      <button
+                        matButton
+                        type="button"
+                        [matMenuTriggerFor]="menuIncluir"
+                        [attr.aria-label]="'Pôr OS ' + s.numero + ' numa equipe'"
+                      >
+                        Pôr numa equipe
+                      </button>
+                      <mat-menu #menuIncluir="matMenu">
+                        @for (outra of r.rotas; track outra.equipeId) {
+                          <button
+                            mat-menu-item
+                            type="button"
+                            (click)="mover(s.ordemServicoId, outra.equipeId)"
+                          >
+                            {{ outra.equipeNome }}
+                            @if (fixadaEm(s.ordemServicoId) === outra.equipeId) {
+                              (escolhida)
+                            }
+                          </button>
+                        }
+                      </mat-menu>
+                    }
+                  </li>
+                }
+              </ul>
+            </section>
+          }
+        </div>
+        <div
+          #mapa
+          class="mapa"
+          role="region"
+          [attr.aria-label]="'Mapa das rotas de ' + r.rotas.length + ' equipes'"
+        ></div>
+      </div>
+    }
+  } @else if (candidatas.hasValue()) {
+    @if (candidatas.value(); as c) {
+      <div class="escolha">
+        <section class="cartao" aria-labelledby="titulo-equipes">
+          <h2 id="titulo-equipes">Equipes</h2>
+          @if (c.equipes.length) {
+            <ul class="opcoes">
+              @for (e of c.equipes; track e.id) {
+                <li>
+                  <mat-checkbox
+                    [checked]="equipesEscolhidas().has(e.id)"
+                    [disabled]="!e.temBase"
+                    (change)="alternar('equipes', e.id)"
+                  >
+                    <span class="nome">{{ e.nome }}</span>
+                    <span class="sub"
+                      >{{ e.jornadaInicio.slice(0, 5) }}–{{ e.jornadaFim.slice(0, 5) }} ·
+                      {{ e.veiculoNome ?? 'Sem veículo' }} · {{ e.habilidades }}
+                      {{ e.habilidades === 1 ? 'habilidade' : 'habilidades' }}</span
+                    >
+                  </mat-checkbox>
+                  @if (!e.temBase) {
+                    <aurora-selo tom="atencao">Sem base: cadastre em Equipes</aurora-selo>
+                  }
+                </li>
+              }
+            </ul>
+          } @else {
+            <p class="nota">Nenhuma equipe ativa atua nesta unidade.</p>
+          }
+        </section>
+
+        <section class="cartao" aria-labelledby="titulo-os">
+          <div class="titulo-com-acoes">
+            <h2 id="titulo-os">
+              OS do dia
+              <span class="nota"
+                >{{ fmt.numero(ordensEscolhidas().size) }} de
+                {{ fmt.numero(c.ordens.length) }}</span
+              >
+            </h2>
+            <div>
+              <button matButton type="button" (click)="todasAsOrdens(true)">Todas</button>
+              <button matButton type="button" (click)="todasAsOrdens(false)">Nenhuma</button>
+            </div>
+          </div>
+          <p class="nota">
+            Planejadas, devolvidas e as já programadas para o dia, por prioridade e prazo.
+            @if (c.truncada) {
+              <b>Há mais OS do que cabem num cálculo (1.500); vieram as mais urgentes.</b>
+            }
+          </p>
+          @if (c.ordens.length) {
+            <ul class="opcoes rolagem">
+              @for (o of c.ordens; track o.id) {
+                <li>
+                  <mat-checkbox
+                    [checked]="ordensEscolhidas().has(o.id)"
+                    [disabled]="!o.temLocal"
+                    (change)="alternar('ordens', o.id)"
+                  >
+                    <span class="nome">OS {{ o.numero }} · {{ o.servicoNome }}</span>
+                    <span class="sub">
+                      @if (o.status === 'PROGRAMADA') {
+                        Programada para {{ o.equipeNome }}
+                      } @else if (o.status === 'DEVOLVIDA') {
+                        Devolvida
+                      } @else {
+                        Planejada
+                      }
+                    </span>
+                  </mat-checkbox>
+                  <span class="selos">
+                    <aurora-selo [tom]="prioridade(o.prioridade).tom">{{
+                      prioridade(o.prioridade).texto
+                    }}</aurora-selo>
+                    @if (o.atrasada) {
+                      <aurora-selo tom="perigo">Atrasada</aurora-selo>
+                    }
+                    @if (!o.temLocal) {
+                      <aurora-selo tom="neutro">Sem local</aurora-selo>
+                    }
+                  </span>
+                </li>
+              }
+            </ul>
+          } @else {
+            <p class="nota">Nenhuma OS a programar nesta unidade.</p>
+          }
+        </section>
+      </div>
+      <div class="rodape-acoes">
+        <button
+          matButton="filled"
+          type="button"
+          [disabled]="ocupado() || !equipesEscolhidas().size || !ordensEscolhidas().size"
+          (click)="calcular()"
+        >
+          @if (ocupado()) {
+            <mat-spinner diameter="18" />
+          }
+          <span class="material-symbols-rounded" aria-hidden="true">route</span>
+          Calcular rotas
+        </button>
+      </div>
+    }
+  } @else {
+    <div class="esqueleto" role="status" aria-busy="true" aria-label="Carregando"></div>
+  }
+}

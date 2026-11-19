@@ -37,6 +37,7 @@ export const SECOES: { titulo: string; telas: Tela[] }[] = [
       { rota: '/campanhas', rotulo: 'Campanhas', permissao: 'campanha:gerenciar' },
       { rota: '/equipes', rotulo: 'Equipes', permissao: 'campanha:gerenciar' },
       { rota: '/ordens', rotulo: 'Programação de OS', permissao: 'os:programar' },
+      { rota: '/roteirizacao', rotulo: 'Roteirização', permissao: 'os:programar' },
       { rota: '/minhas-ordens', rotulo: 'Minhas OS', permissao: 'os:executar' },
       { rota: '/servicos', rotulo: 'Catálogo de serviços', permissao: 'servico:gerenciar' },
       { rota: '/logradouros', rotulo: 'Logradouros', permissao: 'logradouro:gerenciar' },
